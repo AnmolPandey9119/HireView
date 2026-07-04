@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HireView — Interview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <main class="main-content">
+      <div class="content-wrapper">
+
+        <!-- SETUP PAGE -->
+        <div id="startInterviewPage" class="page active">
+          <div class="interview-setup">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem">
+              <div style="font-size:0.85rem;color:rgba(255,255,255,0.4)" id="loggedInAs"></div>
+              <button onclick="handleLogout()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:rgba(255,255,255,0.5);font-size:0.8rem;padding:0.4rem 0.85rem;cursor:pointer;font-family:inherit">Logout</button>
+            </div>
+            <h2 class="setup-title">Start New Interview</h2>
+            <div class="form-group">
+              <label class="form-label">Job Title</label>
+              <input type="text" id="jobTitle" class="form-input" placeholder="e.g. Frontend Developer, UPSC Civil Services">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Interview Language</label>
+              <select id="interviewLanguage" class="select-input">
+                <option value="english" selected>English</option>
+                <option value="hinglish">Hinglish</option>
+              </select>
+            </div>
+            <div class="setup-section-divider">Resume</div>
+            <div class="form-group">
+              <label class="form-label">Upload Your Resume <span style="color:rgba(255,255,255,0.4);font-weight:500;font-size:0.85rem">PDF or plain text</span></label>
+              <div class="resume-upload-zone" id="resumeDropZone">
+                <input type="file" id="resumeFileInput" accept=".pdf,.txt,.doc,.docx" onchange="handleResumeUpload(event)">
+                <span class="resume-upload-icon">📄</span>
+                <div class="resume-upload-title">Drop your resume here or click to browse</div>
+                <div class="resume-upload-hint">PDF, TXT, DOC, DOCX · Max 5MB</div>
+              </div>
+              <div id="resumeParsingIndicator" class="resume-parsing-indicator" style="display:none">
+                <div class="resume-parsing-dots"><span></span><span></span><span></span></div>
+                <span>Reading your resume…</span>
+              </div>
+              <div id="resumeUploadedInfo" style="display:none"></div>
+            </div>
+            <div id="setupError" class="error-message"></div>
+            <button class="primary-btn" onclick="handleInterviewStart()">Begin Interview</button>
+          </div>
+        </div>
+
+        <!-- ACTIVE INTERVIEW PAGE -->
+        <div id="activeInterviewPage" class="page">
+          <div class="interview-header-bar">
+            <div class="interview-info-bar">
+              <span class="recording-indicator">🔴 Recording</span>
+              <span class="interview-timer" id="interviewTimer">00:00</span>
+            </div>
+            <button class="end-interview-btn" onclick="endInterview()">End Interview</button>
+          </div>
+          <div class="interview-content">
+            <div class="camera-section">
+              <div>
+                <div class="video-label">🤖 Arjun — AI Interviewer</div>
+                <div class="ai-avatar-wrap">
+                  <video id="aiAvatarVideo" src="assets/avatar.mp4" loop muted playsinline></video>
+                  <div class="avatar-status">
+                    <div class="avatar-status-dot" id="avatarDot"></div>
+                    <span id="avatarStatusText">Listening...</span>
+                  </div>
+                </div>
+                <div class="ai-bubble" id="aiBubble" style="margin-top:0.75rem">Hi! I'm Arjun. Let's begin when you're ready.</div>
+                <div class="ai-thinking" id="aiThinking">
+                  <div class="thinking-dots"><span></span><span></span><span></span></div>
+                  <span>Arjun is thinking...</span>
+                </div>
+              </div>
+              <div>
+                <div class="video-label">📹 You</div>
+                <video id="candidateVideo" autoplay muted playsinline></video>
+                <div id="cameraPlaceholder" class="camera-placeholder">
+                  <div style="font-size:3rem;opacity:0.4">📹</div>
+                </div>
+              </div>
+              <div class="camera-controls">
+                <button class="control-btn active" id="toggleCameraBtn" onclick="toggleCamera()">📷 Camera On</button>
+                <button class="control-btn active" id="toggleMicBtn" onclick="toggleMic()">🎤 Mic On</button>
+              </div>
+              <div class="confidence-meter">
+                <div class="confidence-label">
+                  <span>Confidence</span>
+                  <span class="confidence-score" id="confidenceScore">—</span>
+                </div>
+                <div class="confidence-bar">
+                  <div class="confidence-fill" id="confidenceFill" style="width:0%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="question-section">
+              <div class="question-card">
+                <div class="question-number" id="questionNumber">Question 1</div>
+                <h2 class="question-text" id="currentQuestion">Preparing your first question...</h2>
+              </div>
+              <div class="answer-section">
+                <label class="form-label">Your Answer</label>
+                <div id="speechStatus" class="speech-status">🎙️ Listening... speak now</div>
+                <textarea id="answerInput" class="answer-textarea" placeholder="Type your answer or use the microphone..." rows="5"></textarea>
+                <div class="answer-actions">
+                  <button class="speak-btn" id="speakBtn" onclick="toggleSpeech()">🎙️ Start Speaking</button>
+                  <button class="secondary-btn" onclick="skipQuestion()">Skip</button>
+                  <button class="primary-btn" style="width:auto;padding:0.9rem 2rem;" onclick="submitAnswer()">Submit Answer</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/cheating.js"></script>
+  <script src="js/interview.js"></script>
+  <script>
+    // Auth check — logged in नहीं है तो auth.html पर भेजें
+    window.addEventListener('DOMContentLoaded', () => {
+      if (!authToken) {
+        window.location.href = 'auth.html';
+        return;
+      }
+      const el = document.getElementById('loggedInAs');
+      if (el && currentUser) el.textContent = `👤 ${currentUser.name}`;
+    });
+
+    // Logout
+    function handleLogout() {
+      authToken = null;
+      currentUser = null;
+      localStorage.removeItem('hv_token');
+      localStorage.removeItem('hv_user');
+      window.location.href = 'auth.html';
+    }
+
+    // showPage helper (interview.js uses this)
+    function showPage(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+    }
+  </script>
+</body>
+</html>
