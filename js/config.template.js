@@ -1,8 +1,11 @@
 // ════════════════════════════════════════════════
 // HireView AI — Global Config
+// (This is a template checked into git. The real value
+// is injected at deploy time by build.js from the
+// BACKEND_URL environment variable set in Vercel.)
 // ════════════════════════════════════════════════
 
-const BACKEND_URL = 'https://hireview-qu8g.onrender.com';
+const BACKEND_URL = '__BACKEND_URL__';
 const INTERVIEWER_NAME = 'Arjun';
 
 // Auth token (localStorage से आएगा, यहाँ सिर्फ़ initialize)

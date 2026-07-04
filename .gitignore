@@ -31,3 +31,6 @@ hireview-backend/temp/
 
 # Node (if frontend tooling is ever added)
 node_modules/
+
+# Generated at deploy time from js/config.template.js — never commit the real backend URL
+js/config.js
