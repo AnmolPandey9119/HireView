@@ -25,6 +25,7 @@ class UserResponse(BaseModel):
     id: int
     name: str
     email: str
+    is_verified: bool
     created_at: datetime
 
     class Config:
@@ -34,6 +35,31 @@ class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserResponse
+
+class MessageResponse(BaseModel):
+    message: str
+
+
+# ============================================================
+# OTP SCHEMAS
+# ============================================================
+class SendEmailOTPRequest(BaseModel):
+    """Step 1 of signup: send an OTP to an email before the account exists."""
+    email: EmailStr
+
+class VerifyEmailOTPRequest(BaseModel):
+    """Step 2 of signup: verify that OTP. On success, the email is marked
+    verified for a short window so /auth/register can be called next."""
+    email: EmailStr
+    otp: str
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ForgotPasswordReset(BaseModel):
+    email: EmailStr
+    otp: str
+    new_password: str
 
 
 # ============================================================

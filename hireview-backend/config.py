@@ -40,6 +40,20 @@ ALGORITHM   = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
 # ============================================================
+# OTP / EMAIL (Brevo)
+# BREVO_API_KEY: from https://app.brevo.com -> SMTP & API -> API Keys
+# BREVO_SENDER_EMAIL: must be a verified sender in your Brevo account
+# ============================================================
+BREVO_API_KEY       = os.getenv("BREVO_API_KEY", "")
+BREVO_SENDER_EMAIL  = os.getenv("BREVO_SENDER_EMAIL", "no-reply@hireview.app")
+BREVO_SENDER_NAME   = os.getenv("BREVO_SENDER_NAME", "HireView")
+
+OTP_LENGTH                   = 6
+OTP_EXPIRY_MINUTES           = 10
+OTP_MAX_VERIFY_ATTEMPTS      = 5     # wrong-OTP attempts before it's invalidated
+OTP_RESEND_COOLDOWN_SECONDS  = 45    # min gap between two OTP sends to same email/purpose
+
+# ============================================================
 # TTS CONFIGURATION (Voice Cloning)
 # ============================================================
 TTS_MODEL_NAME      = "tts_models/multilingual/multi-dataset/xtts_v2"

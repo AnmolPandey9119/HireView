@@ -4,7 +4,7 @@
 # Defines all tables: Users, Interviews, Resumes, Feedback
 # ============================================================
 
-from sqlalchemy import create_engine, Column, Integer, String, Float, Text, DateTime, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, Float, Text, DateTime, ForeignKey, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
@@ -33,10 +33,31 @@ class User(Base):
     name          = Column(String, nullable=False)
     email         = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
+    is_verified   = Column(Boolean, default=False, nullable=False)
     created_at    = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     interviews = relationship("Interview", back_populates="user", cascade="all, delete")
+
+
+# ============================================================
+# OTP VERIFICATION TABLE
+# One active row per (email, purpose). Used for:
+#   - "register"        -> verifying email right after signup
+#   - "login"            -> OTP-based login (passwordless)
+#   - "reset_password"   -> forgot password flow
+# The OTP itself is never stored in plain text, only its hash.
+# ============================================================
+class OTPVerification(Base):
+    __tablename__ = "otp_verifications"
+
+    id           = Column(Integer, primary_key=True, index=True)
+    email        = Column(String, index=True, nullable=False)
+    purpose      = Column(String, nullable=False)   # register | login | reset_password
+    otp_hash     = Column(String, nullable=False)
+    attempts     = Column(Integer, default=0)        # failed verify attempts
+    expires_at   = Column(DateTime, nullable=False)
+    created_at   = Column(DateTime, default=datetime.utcnow)
 
 
 # ============================================================

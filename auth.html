@@ -95,14 +95,37 @@
               <div class="free-badge">🎉 First 3 interviews are completely free!</div>
               <h2 class="auth-title">Create your account</h2>
               <p class="auth-subtitle">Start practicing for your dream job today</p>
+
               <div class="form-group">
                 <label class="form-label">Full Name</label>
                 <input type="text" id="signupName" class="form-input" placeholder="Your full name">
               </div>
+
               <div class="form-group">
                 <label class="form-label">Email</label>
-                <input type="email" id="signupEmail" class="form-input" placeholder="you@email.com">
+                <div style="display:flex;gap:0.5rem;align-items:center">
+                  <input type="email" id="signupEmail" class="form-input" placeholder="you@email.com" oninput="onSignupEmailChanged()" style="flex:1">
+                  <button type="button" id="sendOtpBtn" class="secondary-btn" style="white-space:nowrap;padding:0.9rem 1.1rem" onclick="handleSendEmailOtp()">Send OTP</button>
+                  <span id="emailVerifiedBadge" style="display:none;color:#22c55e;font-weight:700;font-size:1.3rem" title="Email verified">✅</span>
+                </div>
               </div>
+
+              <!-- OTP entry — shown after "Send OTP" is clicked, hidden once verified -->
+              <div id="signupOtpBlock" style="display:none">
+                <div class="form-group">
+                  <label class="form-label">Verification code</label>
+                  <div style="display:flex;gap:0.5rem">
+                    <input type="text" id="signupOtpCode" class="form-input" placeholder="123456" maxlength="6" inputmode="numeric" style="flex:1">
+                    <button type="button" class="secondary-btn" style="white-space:nowrap;padding:0.9rem 1.1rem" onclick="handleVerifyEmailOtp()">Verify OTP</button>
+                  </div>
+                  <div style="text-align:right;margin-top:0.4rem">
+                    <a onclick="handleSendEmailOtp(true)" style="color:#818cf8;font-size:0.82rem;cursor:pointer;font-weight:600">Resend code</a>
+                  </div>
+                </div>
+              </div>
+
+              <div id="signupOtpMsg" class="error-message"></div>
+
               <div class="form-group">
                 <label class="form-label">Password <span style="color:rgba(255,255,255,0.4);font-size:0.82rem">min 6 characters</span></label>
                 <input type="password" id="signupPassword" class="form-input" placeholder="Choose a strong password">
@@ -135,17 +158,41 @@
                     </div>
                   </div>
               <h2 class="auth-title">Reset Password</h2>
-              <p class="auth-subtitle">Enter your email and we'll send you a reset link</p>
-              <div class="form-group">
-                <label class="form-label">Email</label>
-                <input type="email" id="forgotEmail" class="form-input" placeholder="you@email.com">
+
+              <!-- Step 1: request code -->
+              <div id="forgotStep1">
+                <p class="auth-subtitle">Enter your email and we'll send you a reset code</p>
+                <div class="form-group">
+                  <label class="form-label">Email</label>
+                  <input type="email" id="forgotEmail" class="form-input" placeholder="you@email.com">
+                </div>
+                <div id="forgotMsg" class="error-message"></div>
+                <button class="primary-btn" onclick="handleForgotPasswordRequest()">Send Reset Code</button>
               </div>
-              <div id="forgotMsg" class="error-message"></div>
-              <button class="primary-btn" onclick="handleForgotPassword()">Send Reset Link</button>
-              <div class="auth-switch"><a onclick="showPage('loginPage')">← Back to Login</a></div>
+
+              <!-- Step 2: enter code + new password (hidden until code is sent) -->
+              <div id="forgotStep2" style="display:none">
+                <p class="auth-subtitle">Enter the code we emailed you and choose a new password</p>
+                <div class="form-group">
+                  <label class="form-label">6-digit code</label>
+                  <input type="text" id="forgotOtp" class="form-input" placeholder="123456" maxlength="6" inputmode="numeric">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">New Password <span style="color:rgba(255,255,255,0.4);font-size:0.82rem">min 6 characters</span></label>
+                  <input type="password" id="forgotNewPassword" class="form-input" placeholder="Choose a new password">
+                </div>
+                <div id="forgotResetMsg" class="error-message"></div>
+                <button class="primary-btn" onclick="handleForgotPasswordReset()">Reset Password</button>
+                <div style="text-align:center;margin-top:0.75rem">
+                  <a onclick="handleForgotPasswordRequest(true)" style="color:#818cf8;font-size:0.85rem;cursor:pointer;font-weight:600">Resend code</a>
+                </div>
+              </div>
+
+              <div class="auth-switch"><a onclick="resetForgotPasswordPage(); showPage('loginPage')">← Back to Login</a></div>
             </div>
           </div>
         </div>
+
 
       </div>
     </main>
@@ -154,18 +201,15 @@
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
   <script>
-    // Login के बाद interview.html पर redirect करें
-    const _origLogin = handleLogin;
-    handleLogin = async function() {
-      await _origLogin();
-      if (authToken) window.location.href = 'interview.html';
-    };
-
-    const _origSignup = handleSignup;
-    handleSignup = async function() {
-      await _origSignup();
-      if (authToken) window.location.href = 'interview.html';
-    };
+    // After a successful login or account creation (which sets authToken),
+    // redirect straight into the app.
+    ['handleLogin', 'handleSignup'].forEach(fnName => {
+      const original = window[fnName];
+      window[fnName] = async function(...args) {
+        await original.apply(this, args);
+        if (authToken) window.location.href = 'interview.html';
+      };
+    });
   </script>
 </body>
 </html>
