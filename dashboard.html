@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HireView — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem; }
+    .dashboard-welcome { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .dashboard-sub { color: rgba(255,255,255,0.5); font-size: 0.95rem; margin-top: 0.25rem; }
+    .header-actions { display: flex; gap: 1rem; align-items: center; }
+    .start-btn { padding: 0.85rem 1.75rem; background: linear-gradient(135deg, #6366f1, #ec4899); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
+    .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.6); }
+    .logout-btn { padding: 0.85rem 1.25rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: rgba(255,255,255,0.5); font-weight: 600; cursor: pointer; font-family: inherit; font-size: 0.9rem; transition: all 0.2s ease; }
+    .logout-btn:hover { background: rgba(255,255,255,0.1); }
+
+    /* Stats Grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem; }
+    .stat-card { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); padding: 1.75rem; border-radius: 18px; border: 1px solid rgba(99,102,241,0.2); box-shadow: 0 8px 30px rgba(0,0,0,0.3); transition: transform 0.2s ease; }
+    .stat-card:hover { transform: translateY(-3px); }
+    .stat-icon { font-size: 1.75rem; margin-bottom: 0.75rem; }
+    .stat-value { font-size: 2.25rem; font-weight: 800; margin-bottom: 0.25rem; }
+    .stat-label { font-size: 0.85rem; color: rgba(255,255,255,0.5); font-weight: 600; }
+    .stat-purple { color: #818cf8; }
+    .stat-green { color: #22c55e; }
+    .stat-pink { color: #ec4899; }
+    .stat-yellow { color: #f59e0b; }
+
+    /* Free Trial Banner */
+    .free-trial-banner { background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(236,72,153,0.15)); border: 1px solid rgba(99,102,241,0.3); border-radius: 18px; padding: 1.5rem 2rem; margin-bottom: 2.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .free-trial-text { font-weight: 700; color: rgba(255,255,255,0.9); font-size: 1rem; }
+    .free-trial-sub { font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-top: 0.25rem; }
+    .free-trial-badges { display: flex; gap: 0.5rem; }
+    .trial-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700; }
+    .trial-dot.used { background: rgba(99,102,241,0.3); border: 2px solid #6366f1; }
+    .trial-dot.available { background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.2); }
+
+    /* Recent Interviews */
+    .section-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 1.25rem; color: rgba(255,255,255,0.9); }
+    .interviews-list { display: flex; flex-direction: column; gap: 1rem; }
+    .interview-card { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(99,102,241,0.15); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; transition: all 0.2s ease; cursor: pointer; }
+    .interview-card:hover { border-color: rgba(99,102,241,0.4); background: rgba(255,255,255,0.06); transform: translateX(4px); }
+    .interview-role { font-weight: 700; font-size: 1rem; color: white; margin-bottom: 0.35rem; }
+    .interview-date { font-size: 0.82rem; color: rgba(255,255,255,0.4); }
+    .interview-meta { display: flex; align-items: center; gap: 1rem; }
+    .interview-score { font-size: 1.4rem; font-weight: 800; }
+    .status-badge { padding: 0.3rem 0.85rem; border-radius: 20px; font-size: 0.78rem; font-weight: 700; }
+    .status-completed { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+    .status-in_progress { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+    .status-cheating_terminated { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); } 
+    .sector-badge { padding: 0.3rem 0.85rem; border-radius: 20px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
+    .sector-government { background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.3); }
+    .sector-private { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.12); }
+    .empty-state { text-align: center; padding: 4rem 2rem; color: rgba(255,255,255,0.4); }
+    .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .loading-shimmer { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 18px; height: 100px; }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <main class="main-content">
+      <div class="content-wrapper">
+
+        <div class="dashboard-header">
+          <div>
+            <div class="dashboard-welcome" id="welcomeText">Welcome back!</div>
+            <div class="dashboard-sub">Here's your interview progress</div>
+          </div>
+          <div class="header-actions">
+            <button class="start-btn" onclick="window.location.href='interview.html'">+ New Interview</button>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+          </div>
+        </div>
+
+        <!-- Free Trial Banner -->
+        <div class="free-trial-banner" id="freeTrialBanner" style="display:none">
+          <div>
+            <div class="free-trial-text" id="freeTrialText">You have free interviews remaining</div>
+            <div class="free-trial-sub">First 3 interviews are completely free — no payment needed</div>
+          </div>
+          <div class="free-trial-badges" id="freeTrialBadges"></div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid" id="statsGrid">
+          <div class="loading-shimmer"></div>
+          <div class="loading-shimmer"></div>
+          <div class="loading-shimmer"></div>
+          <div class="loading-shimmer"></div>
+        </div>
+
+        <!-- Recent Interviews -->
+        <div class="section-title">Recent Interviews</div>
+        <div class="interviews-list" id="interviewsList">
+          <div class="loading-shimmer"></div>
+          <div class="loading-shimmer"></div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // Auth check
+    if (!authToken) window.location.href = 'auth.html';
+
+    function handleLogout() {
+      authToken = null;
+      currentUser = null;
+      localStorage.removeItem('hv_token');
+      localStorage.removeItem('hv_user');
+      window.location.href = 'auth.html';
+    }
+
+    function formatDate(isoString) {
+      if (!isoString) return '—';
+      const d = new Date(isoString);
+      return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function getScoreColor(score) {
+      if (!score) return 'rgba(255,255,255,0.3)';
+      if (score >= 8) return '#22c55e';
+      if (score >= 6) return '#f59e0b';
+      return '#ef4444';
+    }
+
+    function renderFreeTrialBanner(remaining, total) {
+      const banner = document.getElementById('freeTrialBanner');
+      const text = document.getElementById('freeTrialText');
+      const badges = document.getElementById('freeTrialBadges');
+
+      if (remaining > 0) {
+        banner.style.display = 'flex';
+        text.textContent = `You have ${remaining} free interview${remaining > 1 ? 's' : ''} remaining`;
+        let html = '';
+        for (let i = 0; i < 3; i++) {
+          if (i < Math.min(total, 3)) {
+            html += `<div class="trial-dot used">✓</div>`;
+          } else {
+            html += `<div class="trial-dot available">${i + 1}</div>`;
+          }
+        }
+        badges.innerHTML = html;
+      } else {
+        banner.style.display = 'none';
+      }
+    }
+
+    function renderStats(stats) {
+      document.getElementById('statsGrid').innerHTML = `
+        <div class="stat-card">
+          <div class="stat-icon">🎯</div>
+          <div class="stat-value stat-purple">${stats.total_interviews}</div>
+          <div class="stat-label">Total Interviews</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-value stat-green">${stats.completed_interviews}</div>
+          <div class="stat-label">Completed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⭐</div>
+          <div class="stat-value stat-yellow">${stats.average_score || '—'}</div>
+          <div class="stat-label">Average Score</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🏆</div>
+          <div class="stat-value stat-pink">${stats.best_score || '—'}</div>
+          <div class="stat-label">Best Score</div>
+        </div>`;
+    }
+
+    function getSectorBadge(i) {
+      if (i.sector === 'government') {
+        const label = i.government_domain ? `🏛️ ${i.government_domain}` : '🏛️ Government';
+        return `<span class="sector-badge sector-government">${label}</span>`;
+      }
+      return `<span class="sector-badge sector-private">💼 Private</span>`;
+    }
+
+    function renderInterviews(interviews) {
+      const list = document.getElementById('interviewsList');
+      if (!interviews || interviews.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <div style="font-weight:700;font-size:1.1rem;margin-bottom:0.5rem">No interviews yet</div>
+            <div style="font-size:0.9rem">Start your first interview to see your progress here</div>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = interviews.map(i => `
+        <div class="interview-card" onclick="window.location.href='history.html?id=${i.id}'">
+          <div>
+            <div class="interview-role">${i.role}</div>
+            <div class="interview-date">📅 ${formatDate(i.started_at)}</div>
+          </div>
+          <div class="interview-meta">
+            ${getSectorBadge(i)}
+            <div class="interview-score" style="color:${getScoreColor(i.overall_score)}">
+              ${i.overall_score ? `${i.overall_score}/10` : '—'}
+            </div>
+            <span class="status-badge status-${i.status}">
+             ${i.status === 'completed' ? '✅ Completed' 
+                : i.status === 'cheating_terminated' ? '🚨 Terminated'
+                : '🔄 In Progress'}
+            </span>
+          </div>
+        </div>`).join('');
+    }
+
+    async function loadDashboard() {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/dashboard`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+
+        if (!res.ok) {
+          if (res.status === 401) { window.location.href = 'auth.html'; return; }
+          throw new Error('Failed to load dashboard');
+        }
+
+        const data = await res.json();
+
+        // Welcome text
+        document.getElementById('welcomeText').textContent =
+          `Welcome back, ${data.user.name.split(' ')[0]}! 👋`;
+
+        // Free trial banner
+        renderFreeTrialBanner(data.stats.interviews_remaining_free, data.stats.total_interviews);
+
+        // Stats
+        renderStats(data.stats);
+
+        // Recent interviews
+        renderInterviews(data.recent_interviews);
+
+      } catch (err) {
+        console.error('Dashboard error:', err);
+        document.getElementById('statsGrid').innerHTML =
+          '<div style="color:#f87171;padding:1rem">Could not load dashboard. Is the backend running?</div>';
+      }
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>

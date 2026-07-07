@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HireView — Practice Like It's Real</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .logo-3d { width: 160px; height: 160px; margin: 0 auto 1.5rem; position: relative; animation: logoFloat 4s ease-in-out infinite; }
+    @keyframes logoFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+    /* Outer glow circle */
+    .logo-outer-circle { position: absolute; top: 50%; left: 50%; width: 160px; height: 160px; margin: -80px 0 0 -80px; border-radius: 50%; background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%); box-shadow: 0 0 60px rgba(99,102,241,0.5), inset 0 0 40px rgba(99,102,241,0.1); }
+
+    /* Rotating rings */
+    .layer-ring { position: absolute; top: 50%; left: 50%; border-radius: 50%; border: 2px solid; }
+    .layer-1 { width: 160px; height: 160px; margin: -80px 0 0 -80px; border: 3px solid rgba(99,102,241,0.8); box-shadow: 0 0 40px rgba(99,102,241,0.8); animation: layerRotate 10s linear infinite; }
+    .layer-2 { width: 120px; height: 120px; margin: -60px 0 0 -60px; border: 3px solid rgba(139,92,246,0.7); box-shadow: 0 0 30px rgba(139,92,246,0.7); animation: layerRotate 14s linear infinite reverse; }
+    .layer-3 { width: 80px; height: 80px; margin: -40px 0 0 -40px; border: 3px solid rgba(236,72,153,0.7); box-shadow: 0 0 25px rgba(236,72,153,0.7); animation: layerRotate 18s linear infinite; }
+    @keyframes layerRotate { 0% { transform: rotate(0deg) rotateY(0deg); } 100% { transform: rotate(360deg) rotateY(360deg); } }
+    /* HV center text */
+    .center-hv { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.2rem; font-weight: 900; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 0 20px rgba(99,102,241,1)); z-index: 10; animation: centerPulse 3s ease-in-out infinite; letter-spacing: -2px; }
+    @keyframes centerPulse { 0%,100% { transform: translate(-50%,-50%) scale(1); } 50% { transform: translate(-50%,-50%) scale(1.12); } }
+
+    .logo-container { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  
+    /* Floating logo animation */
+    .logo-wrap { animation: logoFloat 3s ease-in-out infinite; }
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <main class="main-content">
+      <div class="content-wrapper">
+
+        <!-- LOGIN PAGE -->
+        <div id="loginPage" class="page active">
+          <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-logo">
+                    <div class="logo-container">
+                        <div class="logo-3d">
+                            <div class="logo-outer-circle"></div>
+                            <div class="layer-ring layer-1"></div>
+                            <div class="layer-ring layer-2"></div>
+                            <div class="layer-ring layer-3"></div>
+                            <span class="center-hv">HV</span>
+                          </div>
+                      <div class="auth-logo-text">HireView</div>
+                      <div class="auth-logo-sub">Practice Like It's Real. Perform Like a Pro.</div>
+                    </div>
+                  </div>
+              <h2 class="auth-title">Welcome back</h2>
+              <p class="auth-subtitle">Log in to continue your interview practice</p>
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="loginEmail" class="form-input" placeholder="you@email.com">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" id="loginPassword" class="form-input" placeholder="Your password">
+              </div>
+              <div style="text-align:right;margin-top:-1rem;margin-bottom:1.5rem">
+                <a onclick="showPage('forgotPage')" style="color:#818cf8;font-size:0.85rem;cursor:pointer;font-weight:600">Forgot password?</a>
+              </div>
+              <div id="loginError" class="error-message"></div>
+              <button class="primary-btn" onclick="handleLogin()">Log In</button>
+              <div class="auth-switch">Don't have an account? <a onclick="showPage('signupPage')">Sign up free</a></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SIGNUP PAGE -->
+        <div id="signupPage" class="page">
+          <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-logo">
+                    <div class="logo-container">
+                        <div class="logo-3d">
+                            <div class="logo-outer-circle"></div>
+                            <div class="layer-ring layer-1"></div>
+                            <div class="layer-ring layer-2"></div>
+                            <div class="layer-ring layer-3"></div>
+                            <span class="center-hv">HV</span>
+                          </div>
+                      <div class="auth-logo-text">HireView</div>
+                      <div class="auth-logo-sub">Practice Like It's Real. Perform Like a Pro.</div>
+                    </div>
+                  </div>
+              <div class="free-badge">🎉 First 3 interviews are completely free!</div>
+              <h2 class="auth-title">Create your account</h2>
+              <p class="auth-subtitle">Start practicing for your dream job today</p>
+
+              <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" id="signupName" class="form-input" placeholder="Your full name">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <div style="display:flex;gap:0.5rem;align-items:center">
+                  <input type="email" id="signupEmail" class="form-input" placeholder="you@email.com" oninput="onSignupEmailChanged()" style="flex:1">
+                  <button type="button" id="sendOtpBtn" class="secondary-btn" style="white-space:nowrap;padding:0.9rem 1.1rem" onclick="handleSendEmailOtp()">Send OTP</button>
+                  <span id="emailVerifiedBadge" style="display:none;color:#22c55e;font-weight:700;font-size:1.3rem" title="Email verified">✅</span>
+                </div>
+              </div>
+
+              <!-- OTP entry — shown after "Send OTP" is clicked, hidden once verified -->
+              <div id="signupOtpBlock" style="display:none">
+                <div class="form-group">
+                  <label class="form-label">Verification code</label>
+                  <div style="display:flex;gap:0.5rem">
+                    <input type="text" id="signupOtpCode" class="form-input" placeholder="123456" maxlength="6" inputmode="numeric" style="flex:1">
+                    <button type="button" class="secondary-btn" style="white-space:nowrap;padding:0.9rem 1.1rem" onclick="handleVerifyEmailOtp()">Verify OTP</button>
+                  </div>
+                  <div style="text-align:right;margin-top:0.4rem">
+                    <a onclick="handleSendEmailOtp(true)" style="color:#818cf8;font-size:0.82rem;cursor:pointer;font-weight:600">Resend code</a>
+                  </div>
+                </div>
+              </div>
+
+              <div id="signupOtpMsg" class="error-message"></div>
+
+              <div class="form-group">
+                <label class="form-label">Password <span style="color:rgba(255,255,255,0.4);font-size:0.82rem">min 6 characters</span></label>
+                <input type="password" id="signupPassword" class="form-input" placeholder="Choose a strong password">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Confirm Password</label>
+                <input type="password" id="signupConfirm" class="form-input" placeholder="Repeat your password">
+              </div>
+              <div id="signupError" class="error-message"></div>
+              <button class="primary-btn" onclick="handleSignup()">Create Account</button>
+              <div class="auth-switch">Already have an account? <a onclick="showPage('loginPage')">Log in</a></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FORGOT PASSWORD PAGE -->
+        <div id="forgotPage" class="page">
+          <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-logo">
+                    <div class="logo-container">
+                        <div class="logo-3d">
+                            <div class="logo-outer-circle"></div>
+                            <div class="layer-ring layer-1"></div>
+                            <div class="layer-ring layer-2"></div>
+                            <div class="layer-ring layer-3"></div>
+                            <span class="center-hv">HV</span>
+                          </div>
+                      <div class="auth-logo-text">HireView</div>
+                    </div>
+                  </div>
+              <h2 class="auth-title">Reset Password</h2>
+
+              <!-- Step 1: request code -->
+              <div id="forgotStep1">
+                <p class="auth-subtitle">Enter your email and we'll send you a reset code</p>
+                <div class="form-group">
+                  <label class="form-label">Email</label>
+                  <input type="email" id="forgotEmail" class="form-input" placeholder="you@email.com">
+                </div>
+                <div id="forgotMsg" class="error-message"></div>
+                <button class="primary-btn" onclick="handleForgotPasswordRequest()">Send Reset Code</button>
+              </div>
+
+              <!-- Step 2: enter code + new password (hidden until code is sent) -->
+              <div id="forgotStep2" style="display:none">
+                <p class="auth-subtitle">Enter the code we emailed you and choose a new password</p>
+                <div class="form-group">
+                  <label class="form-label">6-digit code</label>
+                  <input type="text" id="forgotOtp" class="form-input" placeholder="123456" maxlength="6" inputmode="numeric">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">New Password <span style="color:rgba(255,255,255,0.4);font-size:0.82rem">min 6 characters</span></label>
+                  <input type="password" id="forgotNewPassword" class="form-input" placeholder="Choose a new password">
+                </div>
+                <div id="forgotResetMsg" class="error-message"></div>
+                <button class="primary-btn" onclick="handleForgotPasswordReset()">Reset Password</button>
+                <div style="text-align:center;margin-top:0.75rem">
+                  <a onclick="handleForgotPasswordRequest(true)" style="color:#818cf8;font-size:0.85rem;cursor:pointer;font-weight:600">Resend code</a>
+                </div>
+              </div>
+
+              <div class="auth-switch"><a onclick="resetForgotPasswordPage(); showPage('loginPage')">← Back to Login</a></div>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+    </main>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // After a successful login or account creation (which sets authToken),
+    // redirect straight into the app.
+    ['handleLogin', 'handleSignup'].forEach(fnName => {
+      const original = window[fnName];
+      window[fnName] = async function(...args) {
+        await original.apply(this, args);
+        if (authToken) window.location.href = 'interview.html';
+      };
+    });
+  </script>
+</body>
+</html>

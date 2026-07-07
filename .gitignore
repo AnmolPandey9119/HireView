@@ -1,0 +1,36 @@
+# Python / backend
+hireview-backend/venv/
+hireview-backend/.venv/
+__pycache__/
+*.pyc
+*.pyo
+.Python
+
+# Env & secrets
+.env
+hireview-backend/.env
+*.env.local
+
+# Database (never commit real user data)
+*.db
+*.sqlite3
+hireview-backend/database/*.db
+
+# Logs
+hireview-backend/logs/
+*.log
+
+# Runtime data
+hireview-backend/data/
+hireview-backend/temp/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Node (if frontend tooling is ever added)
+node_modules/
+
+# Generated at deploy time from js/config.template.js — never commit the real backend URL
+js/config.js
