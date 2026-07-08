@@ -30,7 +30,10 @@ for directory in [DATA_DIR, VOICE_SAMPLES_DIR, AVATARS_DIR, RESUMES_DIR,
 # DATABASE
 # ============================================================
 DATABASE_PATH = os.path.join(DATABASE_DIR, 'hireview.db')
-DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DATABASE_PATH}")
+# Reads DATABASE_URL from the environment (e.g. your Neon Postgres
+# connection string set in Render). Falls back to local SQLite when
+# no env var is set, so local development still works unchanged.
+DATABASE_URL  = os.getenv("DATABASE_URL", f"sqlite:///{DATABASE_PATH}")
 
 # ============================================================
 # AUTHENTICATION
@@ -38,6 +41,17 @@ DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DATABASE_PATH}")
 SECRET_KEY  = os.getenv("SECRET_KEY", "hireview-dev-secret-key-CHANGE-THIS-IN-PRODUCTION")
 ALGORITHM   = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
+
+# ============================================================
+# ADMIN PORTAL
+# Set BOTH of these as environment variables in Render — never
+# commit real values to git. ADMIN_PASSWORD_HASH is a bcrypt hash,
+# not the raw password. Generate one with:
+#   python generate_admin_hash.py
+# ============================================================
+ADMIN_USERNAME       = os.getenv("ADMIN_USERNAME", "")
+ADMIN_PASSWORD_HASH  = os.getenv("ADMIN_PASSWORD_HASH", "")
+ADMIN_TOKEN_EXPIRE_MINUTES = 60 * 12  # 12 hours — shorter-lived than user tokens
 
 # ============================================================
 # OTP / EMAIL (Brevo)

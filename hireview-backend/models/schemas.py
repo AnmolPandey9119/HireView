@@ -109,6 +109,53 @@ class InterviewResponse(BaseModel):
 
 
 # ============================================================
+# ADMIN SCHEMAS
+# ============================================================
+class AdminLogin(BaseModel):
+    username: str
+    password: str
+
+class AdminToken(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+class AdminUserUpdate(BaseModel):
+    """All fields optional — only what's sent gets changed."""
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    is_verified: Optional[bool] = None
+    new_password: Optional[str] = None
+
+class AdminInterviewUpdate(BaseModel):
+    role: Optional[str] = None
+    difficulty: Optional[str] = None
+    status: Optional[str] = None
+    overall_score: Optional[float] = None
+    sector: Optional[str] = None
+    government_domain: Optional[str] = None
+    government_role: Optional[str] = None
+    candidate_summary: Optional[str] = None
+
+class AdminQuestionUpdate(BaseModel):
+    question_text: Optional[str] = None
+    answer_text: Optional[str] = None
+    order_index: Optional[int] = None
+
+class AdminFeedbackUpdate(BaseModel):
+    overall_score: Optional[float] = None
+    hiring_recommendation: Optional[str] = None
+    summary: Optional[str] = None
+    technical_score: Optional[float] = None
+    soft_skills_score: Optional[float] = None
+    eye_contact_score: Optional[float] = None
+    confidence_score: Optional[float] = None
+    engagement_score: Optional[float] = None
+    strengths: Optional[str] = None
+    areas_to_improve: Optional[str] = None
+    next_steps: Optional[str] = None
+
+
+# ============================================================
 # FEEDBACK SCHEMAS
 # ============================================================
 class FeedbackCreate(BaseModel):

@@ -9,7 +9,7 @@ import logging
 
 import config
 from models.database import init_db
-from routes import auth, interviews
+from routes import auth, interviews, admin
 
 # ============================================================
 # LOGGING
@@ -50,6 +50,7 @@ app.add_middleware(
 # ============================================================
 app.include_router(auth.router, prefix="/api", tags=["Auth"])
 app.include_router(interviews.router, prefix="/api", tags=["Interviews"])
+app.include_router(admin.router, prefix="/api", tags=["Admin"])
 
 @app.get("/")
 async def root():

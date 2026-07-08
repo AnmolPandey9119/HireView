@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>HireView Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;width:100%;}
+  body{font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+       background:linear-gradient(135deg,#0a0e27 0%,#1a1f3a 50%,#2d1b4e 100%);color:#fff;min-height:100vh;}
+  a{color:inherit;}
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:rgba(99,102,241,0.4);border-radius:8px;}
+
+  /* ---------- LOGIN ---------- */
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;}
+  .login-card{width:100%;max-width:400px;background:rgba(255,255,255,0.04);backdrop-filter:blur(20px);
+              padding:2.5rem;border-radius:24px;border:1px solid rgba(99,102,241,0.25);box-shadow:0 20px 60px rgba(0,0,0,0.4);}
+  .login-title{font-size:1.6rem;font-weight:800;margin-bottom:0.4rem;
+               background:linear-gradient(135deg,#6366f1,#8b5cf6,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .login-sub{color:rgba(255,255,255,0.5);font-size:0.9rem;margin-bottom:1.75rem;}
+  .field{margin-bottom:1.1rem;}
+  .field label{display:block;font-size:0.85rem;font-weight:600;color:rgba(255,255,255,0.75);margin-bottom:0.4rem;}
+  .field input{width:100%;padding:0.85rem 1rem;background:rgba(255,255,255,0.05);border:2px solid rgba(99,102,241,0.3);
+               border-radius:12px;color:#fff;font-size:0.95rem;font-family:inherit;}
+  .field input:focus{outline:none;border-color:#6366f1;box-shadow:0 0 0 4px rgba(99,102,241,0.15);}
+  .btn{cursor:pointer;border:none;font-family:inherit;font-weight:700;border-radius:12px;transition:all .2s ease;}
+  .btn-primary{width:100%;padding:0.9rem;background:linear-gradient(135deg,#6366f1,#8b5cf6,#ec4899);color:#fff;font-size:1rem;
+               box-shadow:0 8px 25px rgba(99,102,241,0.4);}
+  .btn-primary:hover{transform:translateY(-2px);}
+  .btn-primary:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+  .err{color:#f87171;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);padding:0.75rem 1rem;
+       border-radius:10px;font-size:0.85rem;margin-top:1rem;display:none;}
+  .err.show{display:block;}
+
+  /* ---------- APP SHELL ---------- */
+  .app{display:none;min-height:100vh;}
+  .app.show{display:block;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.75rem;
+          background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(99,102,241,0.15);position:sticky;top:0;z-index:20;backdrop-filter:blur(20px);}
+  .brand{font-weight:800;font-size:1.15rem;background:linear-gradient(135deg,#6366f1,#8b5cf6,#ec4899);
+         -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .brand-sub{font-size:0.75rem;color:rgba(255,255,255,0.4);margin-left:0.5rem;}
+  .logout-btn{padding:0.55rem 1.1rem;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#f87171;font-size:0.85rem;}
+
+  .tabs{display:flex;gap:0.5rem;padding:1.25rem 1.75rem 0;}
+  .tab{padding:0.6rem 1.2rem;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(99,102,241,0.15);
+       color:rgba(255,255,255,0.6);font-weight:700;font-size:0.85rem;cursor:pointer;}
+  .tab.active{background:rgba(99,102,241,0.18);border-color:#6366f1;color:#fff;}
+
+  .content{padding:1.5rem 1.75rem 3rem;max-width:1300px;margin:0 auto;}
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:2rem;}
+  .stat-card{background:rgba(255,255,255,0.04);border:1px solid rgba(99,102,241,0.2);border-radius:16px;padding:1.25rem;}
+  .stat-num{font-size:1.8rem;font-weight:800;}
+  .stat-label{font-size:0.8rem;color:rgba(255,255,255,0.5);margin-top:0.2rem;}
+
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;gap:1rem;flex-wrap:wrap;}
+  .search-input{padding:0.65rem 1rem;background:rgba(255,255,255,0.05);border:2px solid rgba(99,102,241,0.25);
+               border-radius:10px;color:#fff;font-family:inherit;font-size:0.9rem;min-width:240px;}
+  .search-input:focus{outline:none;border-color:#6366f1;}
+  .refresh-btn{padding:0.6rem 1rem;background:rgba(255,255,255,0.06);border:1px solid rgba(99,102,241,0.25);color:#fff;font-size:0.85rem;}
+
+  table{width:100%;border-collapse:collapse;background:rgba(255,255,255,0.03);border-radius:14px;overflow:hidden;}
+  thead th{text-align:left;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.04em;color:rgba(255,255,255,0.45);
+           padding:0.85rem 1rem;border-bottom:1px solid rgba(99,102,241,0.15);}
+  tbody td{padding:0.85rem 1rem;font-size:0.88rem;border-bottom:1px solid rgba(255,255,255,0.05);}
+  tbody tr:hover{background:rgba(99,102,241,0.06);}
+  .pill{display:inline-block;padding:0.2rem 0.65rem;border-radius:20px;font-size:0.72rem;font-weight:700;}
+  .pill-green{background:rgba(34,197,94,0.15);color:#22c55e;}
+  .pill-orange{background:rgba(251,146,60,0.15);color:#fb923c;}
+  .pill-blue{background:rgba(99,102,241,0.18);color:#a5b4fc;}
+  .row-actions{display:flex;gap:0.4rem;}
+  .icon-btn{padding:0.4rem 0.7rem;font-size:0.78rem;background:rgba(255,255,255,0.06);border:1px solid rgba(99,102,241,0.2);color:#fff;}
+  .icon-btn.danger{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.3);color:#f87171;}
+  .icon-btn:hover{background:rgba(99,102,241,0.2);}
+  .icon-btn.danger:hover{background:rgba(239,68,68,0.25);}
+  .empty-state{text-align:center;padding:3rem 1rem;color:rgba(255,255,255,0.4);}
+
+  /* ---------- MODAL ---------- */
+  .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(5,6,15,0.75);backdrop-filter:blur(4px);z-index:50;
+                  align-items:flex-start;justify-content:center;padding:3rem 1rem;overflow-y:auto;}
+  .modal-backdrop.show{display:flex;}
+  .modal{width:100%;max-width:640px;background:#151933;border:1px solid rgba(99,102,241,0.3);border-radius:20px;
+         box-shadow:0 30px 80px rgba(0,0,0,0.6);padding:2rem;}
+  .modal h3{font-size:1.25rem;font-weight:800;margin-bottom:1.25rem;}
+  .modal .field textarea{width:100%;padding:0.8rem 1rem;background:rgba(255,255,255,0.05);border:2px solid rgba(99,102,241,0.3);
+               border-radius:10px;color:#fff;font-family:inherit;font-size:0.88rem;resize:vertical;min-height:70px;}
+  .modal-actions{display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1.5rem;}
+  .checkbox-row{display:flex;align-items:center;gap:0.6rem;margin-bottom:1.1rem;}
+  .checkbox-row input{width:18px;height:18px;}
+  .btn-secondary{padding:0.75rem 1.4rem;background:rgba(255,255,255,0.06);border:1px solid rgba(99,102,241,0.25);color:#fff;}
+  .btn-danger{padding:0.75rem 1.4rem;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.35);color:#f87171;}
+  .btn-save{padding:0.75rem 1.6rem;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;}
+  .sub-block{background:rgba(255,255,255,0.03);border:1px solid rgba(99,102,241,0.15);border-radius:12px;padding:1rem;margin-bottom:0.85rem;}
+  .sub-block-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;}
+  .sub-label{font-size:0.72rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.4);letter-spacing:0.04em;}
+  .muted{color:rgba(255,255,255,0.45);font-size:0.85rem;}
+  .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#1a1f3a;border:1px solid rgba(99,102,241,0.4);
+        padding:0.9rem 1.4rem;border-radius:12px;font-size:0.9rem;font-weight:600;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,0.4);
+        opacity:0;transform:translateY(10px);transition:all .3s ease;}
+  .toast.show{opacity:1;transform:translateY(0);}
+  .toast.error{border-color:rgba(239,68,68,0.5);color:#f87171;}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="login-title">HireView Admin</div>
+    <div class="login-sub">Restricted access — sign in to continue.</div>
+    <form id="loginForm">
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="loginUsername" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" autocomplete="current-password" required>
+      </div>
+      <button class="btn btn-primary" type="submit" id="loginBtn">Log In</button>
+      <div class="err" id="loginErr"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div class="app" id="app">
+  <div class="topbar">
+    <div><span class="brand">HireView Admin</span><span class="brand-sub">control panel</span></div>
+    <button class="btn logout-btn" id="logoutBtn">Log Out</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-view="overview">Overview</div>
+    <div class="tab" data-view="users">Users</div>
+    <div class="tab" data-view="interviews">Interviews</div>
+  </div>
+
+  <div class="content">
+
+    <!-- OVERVIEW -->
+    <div class="view active" id="view-overview">
+      <div class="stat-grid" id="statGrid"></div>
+      <p class="muted">Use the tabs above to view, edit, or delete user accounts and interview records.</p>
+    </div>
+
+    <!-- USERS -->
+    <div class="view" id="view-users">
+      <div class="toolbar">
+        <input class="search-input" id="userSearch" placeholder="Search by name or email…">
+        <button class="btn refresh-btn" id="refreshUsers">Refresh</button>
+      </div>
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Verified</th><th>Interviews</th><th>Joined</th><th>Actions</th></tr></thead>
+        <tbody id="usersTbody"></tbody>
+      </table>
+      <div class="empty-state" id="usersEmpty" style="display:none;">No users found.</div>
+    </div>
+
+    <!-- INTERVIEWS -->
+    <div class="view" id="view-interviews">
+      <div class="toolbar">
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+          <div class="tab sector-tab active" data-sector="">All</div>
+          <div class="tab sector-tab" data-sector="private">Private Sector</div>
+          <div class="tab sector-tab" data-sector="government">Government Sector</div>
+          <select class="search-input" id="domainFilter" style="display:none;min-width:180px;">
+            <option value="">All Domains</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:0.6rem;">
+          <input class="search-input" id="interviewSearch" placeholder="Search by role or user ID…">
+          <button class="btn refresh-btn" id="refreshInterviews">Refresh</button>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>ID</th><th>User ID</th><th>Role</th><th>Sector</th><th>Difficulty</th><th>Status</th><th>Score</th><th>Started</th><th>Actions</th></tr></thead>
+        <tbody id="interviewsTbody"></tbody>
+      </table>
+      <div class="empty-state" id="interviewsEmpty" style="display:none;">No interviews found.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ USER EDIT MODAL ============ -->
+<div class="modal-backdrop" id="userModal">
+  <div class="modal">
+    <h3>Edit User</h3>
+    <div class="field"><label>Name</label><input type="text" id="editUserName"></div>
+    <div class="field"><label>Email</label><input type="text" id="editUserEmail"></div>
+    <div class="checkbox-row"><input type="checkbox" id="editUserVerified"><label>Email verified</label></div>
+    <div class="field"><label>Reset password (leave blank to keep current)</label><input type="password" id="editUserPassword" placeholder="New password, min 6 characters"></div>
+    <div id="userDetailInterviews"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="deleteUserBtn">Delete User</button>
+      <button class="btn btn-secondary" id="closeUserModal">Cancel</button>
+      <button class="btn btn-save" id="saveUserBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ INTERVIEW DETAIL MODAL ============ -->
+<div class="modal-backdrop" id="interviewModal">
+  <div class="modal" style="max-width:760px;">
+    <h3>Interview Detail</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div class="field"><label>Role</label><input type="text" id="editRole"></div>
+      <div class="field"><label>Difficulty</label><input type="text" id="editDifficulty"></div>
+      <div class="field"><label>Status</label><input type="text" id="editStatus"></div>
+      <div class="field"><label>Overall Score</label><input type="number" step="0.1" id="editScore"></div>
+    </div>
+    <div id="interviewQA"></div>
+    <div id="interviewFeedback"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="deleteInterviewBtn">Delete Interview</button>
+      <button class="btn btn-secondary" id="closeInterviewModal">Cancel</button>
+      <button class="btn btn-save" id="saveInterviewBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../js/config.js"></script>
+<script>
+(function(){
+  const API = (typeof BACKEND_URL !== 'undefined' ? BACKEND_URL : '').replace(/\/$/, '') + '/api';
+  let adminToken = sessionStorage.getItem('hv_admin_token') || null;
+  let currentUsers = [];
+  let currentInterviews = [];
+  let editingUserId = null;
+  let editingInterviewId = null;
+
+  const $ = (id) => document.getElementById(id);
+
+  function showToast(msg, isError){
+    const t = $('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  async function api(path, options = {}) {
+    const res = await fetch(API + path, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(adminToken ? { Authorization: 'Bearer ' + adminToken } : {}),
+        ...(options.headers || {}),
+      },
+    });
+    if (res.status === 401) {
+      logout();
+      throw new Error('Session expired. Please log in again.');
+    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || 'Request failed');
+    return data;
+  }
+
+  function logout(){
+    adminToken = null;
+    sessionStorage.removeItem('hv_admin_token');
+    $('app').classList.remove('show');
+    $('loginWrap').style.display = 'flex';
+  }
+
+  function enterApp(){
+    $('loginWrap').style.display = 'none';
+    $('app').classList.add('show');
+    loadOverview();
+    loadUsers();
+    loadInterviews();
+  }
+
+  // ---------- LOGIN ----------
+  $('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = $('loginBtn');
+    const err = $('loginErr');
+    err.classList.remove('show');
+    btn.disabled = true; btn.textContent = 'Logging in…';
+    try {
+      const res = await fetch(API + '/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: $('loginUsername').value, password: $('loginPassword').value }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Login failed');
+      adminToken = data.access_token;
+      sessionStorage.setItem('hv_admin_token', adminToken);
+      enterApp();
+    } catch (ex) {
+      err.textContent = ex.message;
+      err.classList.add('show');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Log In';
+    }
+  });
+
+  $('logoutBtn').addEventListener('click', logout);
+
+  // ---------- TABS ----------
+  document.querySelectorAll('.tabs > .tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tabs > .tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      tab.classList.add('active');
+      $('view-' + tab.dataset.view).classList.add('active');
+    });
+  });
+
+  // ---------- OVERVIEW ----------
+  async function loadOverview(){
+    try {
+      const s = await api('/admin/stats');
+      $('statGrid').innerHTML = `
+        <div class="stat-card"><div class="stat-num">${s.total_users}</div><div class="stat-label">Total Users</div></div>
+        <div class="stat-card"><div class="stat-num">${s.verified_users}</div><div class="stat-label">Verified Users</div></div>
+        <div class="stat-card"><div class="stat-num">${s.total_interviews}</div><div class="stat-label">Total Interviews</div></div>
+        <div class="stat-card"><div class="stat-num">${s.completed_interviews}</div><div class="stat-label">Completed Interviews</div></div>
+        <div class="stat-card"><div class="stat-num">${s.private_interviews}</div><div class="stat-label">Private Sector</div></div>
+        <div class="stat-card"><div class="stat-num">${s.government_interviews}</div><div class="stat-label">Government Sector</div></div>
+      `;
+    } catch (ex) { showToast(ex.message, true); }
+  }
+
+  // ---------- USERS ----------
+  function fmtDate(d){ return d ? new Date(d).toLocaleDateString() : '—'; }
+
+  function renderUsers(list){
+    $('usersTbody').innerHTML = list.map(u => `
+      <tr>
+        <td>${u.id}</td>
+        <td>${escapeHtml(u.name)}</td>
+        <td>${escapeHtml(u.email)}</td>
+        <td>${u.is_verified ? '<span class="pill pill-green">Verified</span>' : '<span class="pill pill-orange">Unverified</span>'}</td>
+        <td>${u.interview_count}</td>
+        <td>${fmtDate(u.created_at)}</td>
+        <td class="row-actions">
+          <button class="btn icon-btn" onclick="HVAdmin.openUser(${u.id})">Edit</button>
+          <button class="btn icon-btn danger" onclick="HVAdmin.quickDeleteUser(${u.id})">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+    $('usersEmpty').style.display = list.length ? 'none' : 'block';
+  }
+
+  async function loadUsers(){
+    try {
+      currentUsers = await api('/admin/users');
+      renderUsers(currentUsers);
+    } catch (ex) { showToast(ex.message, true); }
+  }
+
+  $('userSearch').addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    renderUsers(currentUsers.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)));
+  });
+  $('refreshUsers').addEventListener('click', loadUsers);
+
+  async function openUser(id){
+    try {
+      const u = await api('/admin/users/' + id);
+      editingUserId = id;
+      $('editUserName').value = u.name;
+      $('editUserEmail').value = u.email;
+      $('editUserVerified').checked = u.is_verified;
+      $('editUserPassword').value = '';
+      $('userDetailInterviews').innerHTML = u.interviews.length
+        ? `<div class="sub-label" style="margin:1rem 0 0.5rem;">Interviews (${u.interviews.length})</div>` +
+          u.interviews.map(i => `
+            <div class="sub-block">
+              <div class="sub-block-head">
+                <span>#${i.id} — ${escapeHtml(i.role)} (${escapeHtml(i.difficulty)})</span>
+                <span class="pill ${i.status === 'completed' ? 'pill-green' : 'pill-orange'}">${i.status}</span>
+              </div>
+              <div class="muted">Score: ${i.overall_score ?? '—'} · Started ${fmtDate(i.started_at)}</div>
+            </div>`).join('')
+        : '<p class="muted" style="margin-top:1rem;">No interviews yet.</p>';
+      $('userModal').classList.add('show');
+    } catch (ex) { showToast(ex.message, true); }
+  }
+
+  $('closeUserModal').addEventListener('click', () => $('userModal').classList.remove('show'));
+
+  $('saveUserBtn').addEventListener('click', async () => {
+    try {
+      const payload = {
+        name: $('editUserName').value,
+        email: $('editUserEmail').value,
+        is_verified: $('editUserVerified').checked,
+      };
+      const pw = $('editUserPassword').value;
+      if (pw) payload.new_password = pw;
+      await api('/admin/users/' + editingUserId, { method: 'PUT', body: JSON.stringify(payload) });
+      $('userModal').classList.remove('show');
+      showToast('User updated');
+      loadUsers(); loadOverview();
+    } catch (ex) { showToast(ex.message, true); }
+  });
+
+  $('deleteUserBtn').addEventListener('click', async () => {
+    if (!confirm('Delete this user and ALL their interviews/feedback permanently?')) return;
+    try {
+      await api('/admin/users/' + editingUserId, { method: 'DELETE' });
+      $('userModal').classList.remove('show');
+      showToast('User deleted');
+      loadUsers(); loadOverview();
+    } catch (ex) { showToast(ex.message, true); }
+  });
+
+  async function quickDeleteUser(id){
+    if (!confirm('Delete this user and ALL their interviews/feedback permanently?')) return;
+    try {
+      await api('/admin/users/' + id, { method: 'DELETE' });
+      showToast('User deleted');
+      loadUsers(); loadOverview();
+    } catch (ex) { showToast(ex.message, true); }
+  }
+
+  // ---------- INTERVIEWS ----------
+  function renderInterviews(list){
+    $('interviewsTbody').innerHTML = list.map(i => `
+      <tr>
+        <td>${i.id}</td>
+        <td>${i.user_id}</td>
+        <td>${escapeHtml(i.role)}</td>
+        <td>${i.sector === 'government' ? '<span class="pill pill-blue">Government' + (i.government_domain ? ' · ' + escapeHtml(i.government_domain) : '') + '</span>' : '<span class="pill pill-green">Private</span>'}</td>
+        <td>${escapeHtml(i.difficulty)}</td>
+        <td><span class="pill ${i.status === 'completed' ? 'pill-green' : 'pill-orange'}">${i.status}</span></td>
+        <td>${i.overall_score ?? '—'}</td>
+        <td>${fmtDate(i.started_at)}</td>
+        <td class="row-actions">
+          <button class="btn icon-btn" onclick="HVAdmin.openInterview(${i.id})">View</button>
+          <button class="btn icon-btn danger" onclick="HVAdmin.quickDeleteInterview(${i.id})">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+    $('interviewsEmpty').style.display = list.length ? 'none' : 'block';
+  }
+
+  let currentSector = '';
+  let currentDomain = '';
+
+  async function loadInterviews(){
+    try {
+      const params = new URLSearchParams();
+      if (currentSector) params.set('sector', currentSector);
+      if (currentDomain) params.set('government_domain', currentDomain);
+      const qs = params.toString();
+      currentInterviews = await api('/admin/interviews' + (qs ? '?' + qs : ''));
+      applyInterviewSearch();
+    } catch (ex) { showToast(ex.message, true); }
+  }
+
+  function applyInterviewSearch(){
+    const q = $('interviewSearch').value.toLowerCase();
+    const filtered = q
+      ? currentInterviews.filter(i => i.role.toLowerCase().includes(q) || String(i.user_id).includes(q))
+      : currentInterviews;
+    renderInterviews(filtered);
+  }
+
+  async function loadGovernmentDomains(){
+    try {
+      const domains = await api('/admin/government-domains');
+      const select = $('domainFilter');
+      select.innerHTML = '<option value="">All Domains</option>' +
+        domains.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+    } catch (ex) { /* non-fatal */ }
+  }
+
+  document.querySelectorAll('.sector-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.sector-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentSector = tab.dataset.sector;
+      currentDomain = '';
+      $('domainFilter').value = '';
+      $('domainFilter').style.display = currentSector === 'government' ? 'inline-block' : 'none';
+      if (currentSector === 'government') loadGovernmentDomains();
+      loadInterviews();
+    });
+  });
+
+  $('domainFilter').addEventListener('change', (e) => {
+    currentDomain = e.target.value;
+    loadInterviews();
+  });
+
+  $('interviewSearch').addEventListener('input', applyInterviewSearch);
+  $('refreshInterviews').addEventListener('click', loadInterviews);
+
+  async function openInterview(id){
+    try {
+      const i = await api('/admin/interviews/' + id);
+      editingInterviewId = id;
+      $('editRole').value = i.role;
+      $('editDifficulty').value = i.difficulty;
+      $('editStatus').value = i.status;
+      $('editScore').value = i.overall_score ?? '';
+
+      $('interviewQA').innerHTML = `<div class="sub-label" style="margin:1rem 0 0.5rem;">Questions & Answers (${i.questions.length})</div>` +
+        (i.questions.length ? i.questions.map(q => `
+          <div class="sub-block">
+            <div class="sub-block-head"><span>Q${q.order_index + 1}</span>
+              <button class="btn icon-btn danger" onclick="HVAdmin.deleteQuestion(${q.id})">Delete</button></div>
+            <div class="muted" style="margin-bottom:0.4rem;"><strong>Q:</strong> ${escapeHtml(q.question_text)}</div>
+            <div class="muted"><strong>A:</strong> ${escapeHtml(q.answer_text || '—')}</div>
+          </div>`).join('') : '<p class="muted">No questions recorded.</p>');
+
+      $('interviewFeedback').innerHTML = i.feedback
+        ? `<div class="sub-label" style="margin:1rem 0 0.5rem;">Feedback</div>
+           <div class="sub-block">
+             <div class="sub-block-head"><span>Summary & Scores</span>
+               <button class="btn icon-btn danger" onclick="HVAdmin.deleteFeedback(${i.feedback.id})">Delete Feedback</button></div>
+             <div class="muted" style="margin-bottom:0.3rem;"><strong>Recommendation:</strong> ${escapeHtml(i.feedback.hiring_recommendation || '—')}</div>
+             <div class="muted" style="margin-bottom:0.3rem;"><strong>Summary:</strong> ${escapeHtml(i.feedback.summary || '—')}</div>
+             <div class="muted">Technical: ${i.feedback.technical_score ?? '—'} · Soft Skills: ${i.feedback.soft_skills_score ?? '—'}</div>
+           </div>`
+        : '<p class="muted" style="margin-top:1rem;">No feedback generated yet.</p>';
+
+      $('interviewModal').classList.add('show');
+    } catch (ex) { showToast(ex.message, true); }
+  }
+
+  $('closeInterviewModal').addEventListener('click', () => $('interviewModal').classList.remove('show'));
+
+  $('saveInterviewBtn').addEventListener('click', async () => {
+    try {
+      const payload = {
+        role: $('editRole').value,
+        difficulty: $('editDifficulty').value,
+        status: $('editStatus').value,
+        overall_score: $('editScore').value === '' ? null : parseFloat($('editScore').value),
+      };
+      await api('/admin/interviews/' + editingInterviewId, { method: 'PUT', body: JSON.stringify(payload) });
+      $('interviewModal').classList.remove('show');
+      showToast('Interview updated');
+      loadInterviews(); loadOverview();
+    } catch (ex) { showToast(ex.message, true); }
+  });
+
+  $('deleteInterviewBtn').addEventListener('click', async () => {
+    if (!confirm('Delete this interview and all its questions/feedback permanently?')) return;
+    try {
+      await api('/admin/interviews/' + editingInterviewId, { method: 'DELETE' });
+      $('interviewModal').classList.remove('show');
+      showToast('Interview deleted');
+      loadInterviews(); loadOverview();
+    } catch (ex) { showToast(ex.message, true); }
+  });
+
+  async function quickDeleteInterview(id){
+    if (!confirm('Delete this interview and all its questions/feedback permanently?')) return;
+    try {
+      await api('/admin/interviews/' + id, { method: 'DELETE' });
+      showToast('Interview deleted');
+      loadInterviews(); loadOverview();
+    } catch (ex) { showToast(ex.message, true); }
+  }
+
+  async function deleteQuestion(id){
+    if (!confirm('Delete this question/answer?')) return;
+    try {
+      await api('/admin/questions/' + id, { method: 'DELETE' });
+      showToast('Question deleted');
+      openInterview(editingInterviewId);
+    } catch (ex) { showToast(ex.message, true); }
+  }
+
+  async function deleteFeedback(id){
+    if (!confirm('Delete this feedback record?')) return;
+    try {
+      await api('/admin/feedback/' + id, { method: 'DELETE' });
+      showToast('Feedback deleted');
+      openInterview(editingInterviewId);
+    } catch (ex) { showToast(ex.message, true); }
+  }
+
+  function escapeHtml(str){
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // expose the handful of functions used via inline onclick=""
+  window.HVAdmin = { openUser, quickDeleteUser, openInterview, quickDeleteInterview, deleteQuestion, deleteFeedback };
+
+  // ---------- INIT ----------
+  if (adminToken) {
+    enterApp();
+  }
+})();
+</script>
+</body>
+</html>
