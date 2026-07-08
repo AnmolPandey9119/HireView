@@ -18,6 +18,32 @@ let recognitionRunning = false;
 let speechBuffer = '';
 let questionStartTime = null;
 let responseTimes = [];
+
+// ════════════════════════════════════════════════
+// GOVERNMENT SECTOR — REGIONAL LANGUAGE SUPPORT
+// Each entry: speechLang = BCP-47 code used for both TTS voice
+// matching and STT (SpeechRecognition) language.
+// promptName = how we describe the language to the AI in the system prompt.
+// ════════════════════════════════════════════════
+const GOV_LANGUAGES = {
+  english:   { label: 'English',            speechLang: 'en-IN', promptName: 'clear, professional English' },
+  hinglish:  { label: 'Hinglish',            speechLang: 'hi-IN', promptName: 'natural Hinglish (mix of Hindi and English in Roman script), exactly how Indian professionals talk in real interviews' },
+  hindi:     { label: 'हिंदी (Hindi)',        speechLang: 'hi-IN', promptName: 'pure, natural Hindi (Devanagari script in spirit — respond as a native Hindi speaker would)' },
+  bengali:   { label: 'বাংলা (Bengali)',      speechLang: 'bn-IN', promptName: 'natural Bengali, as a native Bengali speaker would in a formal interview' },
+  tamil:     { label: 'தமிழ் (Tamil)',        speechLang: 'ta-IN', promptName: 'natural Tamil, as a native Tamil speaker would in a formal interview' },
+  telugu:    { label: 'తెలుగు (Telugu)',      speechLang: 'te-IN', promptName: 'natural Telugu, as a native Telugu speaker would in a formal interview' },
+  marathi:   { label: 'मराठी (Marathi)',      speechLang: 'mr-IN', promptName: 'natural Marathi, as a native Marathi speaker would in a formal interview' },
+  gujarati:  { label: 'ગુજરાતી (Gujarati)',   speechLang: 'gu-IN', promptName: 'natural Gujarati, as a native Gujarati speaker would in a formal interview' },
+  kannada:   { label: 'ಕನ್ನಡ (Kannada)',      speechLang: 'kn-IN', promptName: 'natural Kannada, as a native Kannada speaker would in a formal interview' },
+  malayalam: { label: 'മലയാളം (Malayalam)',   speechLang: 'ml-IN', promptName: 'natural Malayalam, as a native Malayalam speaker would in a formal interview' },
+  punjabi:   { label: 'ਪੰਜਾਬੀ (Punjabi)',     speechLang: 'pa-IN', promptName: 'natural Punjabi, as a native Punjabi speaker would in a formal interview' },
+  odia:      { label: 'ଓଡ଼ିଆ (Odia)',         speechLang: 'or-IN', promptName: 'natural Odia, as a native Odia speaker would in a formal interview' },
+  urdu:      { label: 'اردو (Urdu)',          speechLang: 'ur-IN', promptName: 'natural Urdu, as a native Urdu speaker would in a formal interview' }
+};
+
+function getLangConfig() {
+  return GOV_LANGUAGES[selectedLanguage] || GOV_LANGUAGES.english;
+}
 let availableVoices = [];
 // Recording
 let mediaRecorder = null;
@@ -648,6 +674,7 @@ async function setupCameraAndMic() {
         const utterance = new SpeechSynthesisUtterance(settleMsg);
         const voice = pickVoice();
         if (voice) utterance.voice = voice;
+        utterance.lang = getLangConfig().speechLang;
         utterance.rate = 0.92;
         utterance.pitch = 1.0;
         const dot = document.getElementById('avatarDot');
@@ -704,9 +731,9 @@ function pickVoice() {
   const goodEnglishNames = ['Google UK English Male', 'Daniel', 'Eddy (English (United States))', 'Google US English'];
   const avoidNames = ['Bad News','Bahh','Bells','Boing','Bubbles','Cellos','Trinoids','Whisper','Wobble','Zarvox','Good News','Superstar','Jester','Organ','Albert'];
 
-  if (selectedLanguage === 'hinglish') {
-    return availableVoices.find(v => v.name === 'Google हिन्दी')
-      || availableVoices.find(v => v.lang.startsWith('hi'))
+  if (selectedLanguage !== 'english') {
+    const langPrefix = getLangConfig().speechLang.split('-')[0]; // e.g. 'hi', 'ta', 'bn'
+    return availableVoices.find(v => v.lang.toLowerCase().startsWith(langPrefix))
       || availableVoices.find(v => goodEnglishNames.includes(v.name))
       || availableVoices[0];
   }
@@ -725,6 +752,7 @@ function speakAsInterviewer(text, onDoneCallback) {
   const utterance = new SpeechSynthesisUtterance(text);
   const voice = pickVoice();
   if (voice) utterance.voice = voice;
+  utterance.lang = getLangConfig().speechLang;
   utterance.rate = 0.92;
   utterance.pitch = 1.0;
 
@@ -767,7 +795,7 @@ function setupSpeechRecognition() {
   recognition = new SR();
   recognition.continuous = true;
   recognition.interimResults = true;
-  recognition.lang = selectedLanguage === 'hinglish' ? 'hi-IN' : 'en-IN';
+  recognition.lang = getLangConfig().speechLang;
 
   recognition.onresult = (event) => {
     let interimText = '';
@@ -870,7 +898,8 @@ function toggleSpeech() {
 // AI INTERVIEWER — GROQ
 // ════════════════════════════════════════════════
 function buildSystemPrompt() {
-  const langLine = selectedLanguage === 'hinglish'
+  const govLangLine = `Speak in ${getLangConfig().promptName}. Ask every question and give all guidance entirely in this language — do not switch to English unless the candidate does first.`;
+  const privateLangLine = selectedLanguage === 'hinglish'
     ? 'Speak in natural Hinglish (mix of Hindi and English in Roman script), exactly how Indian professionals talk in real interviews.'
     : 'Speak in clear, professional English.';
 
@@ -885,7 +914,7 @@ function buildSystemPrompt() {
 
     return `You are ${INTERVIEWER_NAME}, an experienced and friendly but rigorous interviewer conducting a real mock interview for the government job role: ${govRole} (${govDomain}).
 
-${langLine}
+${govLangLine}
 
 Candidate's Biodata/Information:
 """
@@ -911,7 +940,7 @@ RULES:
     const jobTitle = document.getElementById('privateRole').value;
     return `You are ${INTERVIEWER_NAME}, an experienced and friendly but rigorous interviewer conducting a real mock interview for the role of "${jobTitle}".
 
-${langLine}
+${privateLangLine}
 
 Candidate's resume:
 """
