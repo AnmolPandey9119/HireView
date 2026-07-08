@@ -14,9 +14,14 @@ import config
 # ============================================================
 # DATABASE SETUP
 # ============================================================
+# SQLite needs check_same_thread=False; Postgres (Neon) doesn't
+# accept that arg at all, so only pass it when actually on SQLite.
+connect_args = {"check_same_thread": False} if config.DATABASE_URL.startswith("sqlite") else {}
+
 engine = create_engine(
     config.DATABASE_URL,
-    connect_args={"check_same_thread": False}  # Needed for SQLite
+    connect_args=connect_args,
+    pool_pre_ping=True,   # avoids stale-connection errors after Neon auto-suspends
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

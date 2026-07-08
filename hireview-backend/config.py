@@ -30,7 +30,7 @@ for directory in [DATA_DIR, VOICE_SAMPLES_DIR, AVATARS_DIR, RESUMES_DIR,
 # DATABASE
 # ============================================================
 DATABASE_PATH = os.path.join(DATABASE_DIR, 'hireview.db')
-DATABASE_URL  = f"sqlite:///{DATABASE_PATH}"
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DATABASE_PATH}")
 
 # ============================================================
 # AUTHENTICATION
