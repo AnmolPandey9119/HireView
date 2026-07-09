@@ -63,7 +63,13 @@
               </div>
               <div class="form-group">
                 <label class="form-label">Password</label>
-                <input type="password" id="loginPassword" class="form-input" placeholder="Your password">
+                <div class="password-wrapper">
+                  <input type="password" id="loginPassword" class="form-input" placeholder="Your password">
+                  <span class="password-toggle" onclick="togglePasswordVisibility('loginPassword', this)" role="button" aria-label="Show password" tabindex="0">
+                    <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.8 21.8 0 0 1 5.06-6.06M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a21.8 21.8 0 0 1-3.22 4.53M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                  </span>
+                </div>
               </div>
               <div style="text-align:right;margin-top:-1rem;margin-bottom:1.5rem">
                 <a onclick="showPage('forgotPage')" style="color:#818cf8;font-size:0.85rem;cursor:pointer;font-weight:600">Forgot password?</a>
@@ -128,11 +134,23 @@
 
               <div class="form-group">
                 <label class="form-label">Password <span style="color:rgba(255,255,255,0.4);font-size:0.82rem">min 6 characters</span></label>
-                <input type="password" id="signupPassword" class="form-input" placeholder="Choose a strong password">
+                <div class="password-wrapper">
+                  <input type="password" id="signupPassword" class="form-input" placeholder="Choose a strong password">
+                  <span class="password-toggle" onclick="togglePasswordVisibility('signupPassword', this)" role="button" aria-label="Show password" tabindex="0">
+                    <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.8 21.8 0 0 1 5.06-6.06M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a21.8 21.8 0 0 1-3.22 4.53M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                  </span>
+                </div>
               </div>
               <div class="form-group">
                 <label class="form-label">Confirm Password</label>
-                <input type="password" id="signupConfirm" class="form-input" placeholder="Repeat your password">
+                <div class="password-wrapper">
+                  <input type="password" id="signupConfirm" class="form-input" placeholder="Repeat your password">
+                  <span class="password-toggle" onclick="togglePasswordVisibility('signupConfirm', this)" role="button" aria-label="Show password" tabindex="0">
+                    <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.8 21.8 0 0 1 5.06-6.06M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a21.8 21.8 0 0 1-3.22 4.53M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                  </span>
+                </div>
               </div>
               <div id="signupError" class="error-message"></div>
               <button class="primary-btn" onclick="handleSignup()">Create Account</button>
@@ -179,7 +197,13 @@
                 </div>
                 <div class="form-group">
                   <label class="form-label">New Password <span style="color:rgba(255,255,255,0.4);font-size:0.82rem">min 6 characters</span></label>
-                  <input type="password" id="forgotNewPassword" class="form-input" placeholder="Choose a new password">
+                  <div class="password-wrapper">
+                    <input type="password" id="forgotNewPassword" class="form-input" placeholder="Choose a new password">
+                    <span class="password-toggle" onclick="togglePasswordVisibility('forgotNewPassword', this)" role="button" aria-label="Show password" tabindex="0">
+                      <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                      <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.8 21.8 0 0 1 5.06-6.06M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a21.8 21.8 0 0 1-3.22 4.53M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                    </span>
+                  </div>
                 </div>
                 <div id="forgotResetMsg" class="error-message"></div>
                 <button class="primary-btn" onclick="handleForgotPasswordReset()">Reset Password</button>

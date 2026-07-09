@@ -26,6 +26,16 @@
    .select-input { width: 100%; padding: 1rem 1.25rem; background: rgba(255,255,255,0.05); border: 2px solid rgba(99,102,241,0.3); border-radius: 14px; color: white; font-size: 1rem; cursor: pointer; font-family: inherit; font-weight: 500; transition: all 0.3s ease; }
    .select-input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99,102,241,0.15); }
    .select-input option { background: #1a1f3a; color: white; }
+
+   /* PASSWORD SHOW/HIDE TOGGLE */
+   .password-wrapper { position: relative; }
+   .password-wrapper .form-input { padding-right: 3rem; }
+   .password-toggle { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); cursor: pointer; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.45); padding: 0.25rem; border-radius: 6px; transition: color 0.2s ease; }
+   .password-toggle:hover { color: rgba(255,255,255,0.85); }
+   .password-toggle svg { width: 20px; height: 20px; display: block; }
+   .password-toggle .icon-eye-off { display: none; }
+   .password-toggle.showing .icon-eye { display: none; }
+   .password-toggle.showing .icon-eye-off { display: block; }
    
    /* BUTTONS */
    .primary-btn { width: 100%; padding: 1.15rem; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); border: none; border-radius: 14px; color: white; font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; font-family: inherit; box-shadow: 0 8px 25px rgba(99,102,241,0.4); }

@@ -12,6 +12,15 @@ function showPage(pageId) {
   document.getElementById(pageId).classList.add('active');
 }
 
+// Toggles a password <input> between type="password" and type="text",
+// and swaps the eye / eye-off icon inside the clicked toggle button.
+function togglePasswordVisibility(inputId, toggleEl) {
+  const input = document.getElementById(inputId);
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  toggleEl.classList.toggle('showing', isHidden);
+}
+
 function showAuthError(elementId, message, isSuccess = false) {
   const el = document.getElementById(elementId);
   el.textContent = message;
