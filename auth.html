@@ -224,16 +224,5 @@
 
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
-  <script>
-    // After a successful login or account creation (which sets authToken),
-    // redirect straight into the app.
-    ['handleLogin', 'handleSignup'].forEach(fnName => {
-      const original = window[fnName];
-      window[fnName] = async function(...args) {
-        await original.apply(this, args);
-        if (authToken) window.location.href = 'interview.html';
-      };
-    });
-  </script>
 </body>
 </html>
