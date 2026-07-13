@@ -13,8 +13,6 @@
     .header-actions { display: flex; gap: 1rem; align-items: center; }
     .start-btn { padding: 0.85rem 1.75rem; background: linear-gradient(135deg, #6366f1, #ec4899); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
     .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.6); }
-    .logout-btn { padding: 0.85rem 1.25rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: rgba(255,255,255,0.5); font-weight: 600; cursor: pointer; font-family: inherit; font-size: 0.9rem; transition: all 0.2s ease; }
-    .logout-btn:hover { background: rgba(255,255,255,0.1); }
 
     /* Stats Grid */
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem; }
@@ -57,6 +55,99 @@
     .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; }
     .loading-shimmer { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 18px; height: 100px; }
     @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+    /* ════════════════════════════════════════════
+       PROFILE AVATAR + GOOGLE-STYLE MINI DROPDOWN
+       ════════════════════════════════════════════ */
+    .profile-widget { position: relative; }
+    .profile-trigger { background: none; border: none; cursor: pointer; padding: 0; border-radius: 50%; line-height: 0; }
+    .profile-trigger-avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: 2px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 0.95rem; transition: box-shadow 0.2s ease; }
+    .profile-trigger:hover .profile-trigger-avatar { box-shadow: 0 0 0 3px rgba(99,102,241,0.35); }
+
+    .mini-dropdown { position: absolute; top: calc(100% + 12px); right: 0; width: 290px; background: #161b38; border: 1px solid rgba(99,102,241,0.25); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.55); padding: 1.75rem 1.5rem 1.25rem; text-align: center; opacity: 0; visibility: hidden; transform: translateY(-8px); transition: all 0.18s ease; z-index: 500; }
+    .mini-dropdown.open { opacity: 1; visibility: visible; transform: translateY(0); }
+    .mini-dropdown-email { font-size: 0.82rem; color: rgba(255,255,255,0.55); margin-bottom: 1.1rem; word-break: break-all; }
+    .mini-dropdown-avatar { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: white; margin: 0 auto 0.9rem; }
+    .mini-dropdown-greeting { font-size: 1.1rem; font-weight: 700; color: white; margin-bottom: 1.4rem; }
+    .manage-account-btn { width: 100%; padding: 0.7rem 1rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(99,102,241,0.3); border-radius: 999px; color: white; font-weight: 600; font-size: 0.85rem; cursor: pointer; font-family: inherit; transition: all 0.2s ease; }
+    .manage-account-btn:hover { background: rgba(99,102,241,0.22); border-color: #6366f1; }
+    .mini-dropdown-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 1.1rem 0; }
+    .mini-dropdown-signout { width: 100%; padding: 0.6rem; background: none; border: none; color: #f87171; font-weight: 600; font-size: 0.85rem; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: 10px; transition: background 0.2s ease; }
+    .mini-dropdown-signout:hover { background: rgba(239,68,68,0.12); }
+
+    /* ════════════════════════════════════════════
+       BIG ACCOUNT-MANAGEMENT OVERLAY PANEL
+       ════════════════════════════════════════════ */
+    .account-overlay-backdrop { position: fixed; inset: 0; background: rgba(5,7,20,0.6); backdrop-filter: blur(2px); z-index: 600; opacity: 0; visibility: hidden; transition: opacity 0.25s ease; }
+    .account-overlay-backdrop.open { opacity: 1; visibility: visible; }
+
+    .account-big-panel { position: fixed; top: 6vh; left: 50%; width: min(920px, 92vw); max-height: 88vh; overflow-y: auto; background: #12162c; border: 1px solid rgba(99,102,241,0.25); border-radius: 24px; box-shadow: 0 30px 90px rgba(0,0,0,0.6); z-index: 601; padding: 2rem; opacity: 0; visibility: hidden; transform: translate(-50%, -12px); transition: all 0.25s ease; }
+    .account-big-panel.open { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+    .big-panel-close { position: absolute; top: 1.25rem; right: 1.25rem; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: white; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s ease; }
+    .big-panel-close:hover { background: rgba(255,255,255,0.14); }
+
+    .account-shell { display: flex; align-items: flex-start; gap: 2rem; }
+    .account-sidebar { width: 240px; flex-shrink: 0; background: rgba(255,255,255,0.03); border: 1px solid rgba(99,102,241,0.15); border-radius: 18px; padding: 1.25rem 1rem; }
+    .sidebar-title { font-size: 1rem; font-weight: 800; padding: 0 0.5rem 1.1rem; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .sidebar-nav { display: flex; flex-direction: column; gap: 0.35rem; }
+    .sidebar-link { display: flex; align-items: center; gap: 0.7rem; width: 100%; text-align: left; padding: 0.8rem 0.9rem; border-radius: 12px; border: 1px solid transparent; background: transparent; color: rgba(255,255,255,0.65); font-family: inherit; font-size: 0.92rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+    .sidebar-link .icon { font-size: 1.05rem; width: 1.4rem; text-align: center; flex-shrink: 0; }
+    .sidebar-link:hover { background: rgba(255,255,255,0.06); color: white; }
+    .sidebar-link.active { background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(236,72,153,0.15)); border-color: rgba(99,102,241,0.35); color: white; box-shadow: 0 4px 20px rgba(99,102,241,0.25); }
+    .sidebar-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 0.6rem 0.5rem; }
+    .sidebar-link-logout { color: #f87171; }
+    .sidebar-link-logout:hover { background: rgba(239,68,68,0.12); color: #f87171; }
+    .account-main { flex: 1; min-width: 0; }
+
+    @media (max-width: 720px) {
+      .account-big-panel { top: 3vh; max-height: 94vh; padding: 1.5rem; }
+      .account-shell { flex-direction: column; }
+      .account-sidebar { width: 100%; }
+      .sidebar-nav { flex-direction: row; overflow-x: auto; gap: 0.5rem; }
+      .sidebar-link { flex-shrink: 0; white-space: nowrap; }
+      .sidebar-divider { display: none; }
+      .mini-dropdown { width: 260px; right: -0.5rem; }
+    }
+
+    /* PERSONAL INFO */
+    .profile-card { max-width: 520px; margin: 1rem auto 0; text-align: center; background: rgba(255,255,255,0.04); border: 1px solid rgba(99,102,241,0.2); border-radius: 24px; padding: 3rem 2.5rem; }
+    .profile-avatar-wrap { position: relative; width: 132px; height: 132px; margin: 0 auto 1.5rem; }
+    .profile-avatar-ring { width: 132px; height: 132px; border-radius: 50%; padding: 4px; background: conic-gradient(from 180deg, #ef4444, #f59e0b, #22c55e, #06b6d4, #6366f1, #ec4899, #ef4444); }
+    .profile-avatar { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 2.4rem; font-weight: 800; color: white; border: 3px solid #12162c; overflow: hidden; }
+    .profile-avatar-camera { position: absolute; bottom: 2px; right: 2px; width: 38px; height: 38px; border-radius: 50%; background: #6366f1; border: 3px solid #12162c; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: all 0.2s ease; }
+    .profile-avatar-camera:hover { background: #818cf8; transform: scale(1.08); }
+    .profile-name { font-size: 1.6rem; font-weight: 800; color: white; margin-bottom: 0.35rem; }
+    .profile-email { font-size: 0.95rem; color: rgba(255,255,255,0.5); margin-bottom: 2rem; }
+    .profile-membership { background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(236,72,153,0.15)); border: 1px solid rgba(99,102,241,0.3); border-radius: 16px; padding: 1.5rem; }
+    .profile-membership-title { font-weight: 700; color: rgba(255,255,255,0.9); margin-bottom: 0.25rem; }
+    .profile-membership-sub { font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-bottom: 1.25rem; }
+    .profile-explore-btn { padding: 0.85rem 2rem; background: linear-gradient(135deg, #6366f1, #ec4899); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
+    .profile-explore-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.6); }
+
+    /* PAYMENT / PLANS */
+    .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
+    .plan-card { background: rgba(255,255,255,0.04); border: 2px solid rgba(99,102,241,0.2); border-radius: 20px; padding: 2rem 1.5rem; text-align: center; transition: all 0.3s ease; display: flex; flex-direction: column; }
+    .plan-card:hover { transform: translateY(-4px); border-color: rgba(99,102,241,0.4); }
+    .plan-card.featured { border-color: #6366f1; background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(236,72,153,0.08)); }
+    .plan-badge { align-self: center; background: linear-gradient(135deg, #6366f1, #ec4899); color: white; font-size: 0.72rem; font-weight: 800; padding: 0.25rem 0.8rem; border-radius: 20px; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .plan-name { font-size: 1.15rem; font-weight: 800; color: white; margin-bottom: 0.5rem; }
+    .plan-price { font-size: 2rem; font-weight: 800; color: white; margin-bottom: 0.25rem; }
+    .plan-price span { font-size: 0.9rem; font-weight: 500; color: rgba(255,255,255,0.5); }
+    .plan-cycle { font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-bottom: 1.5rem; }
+    .plan-features { list-style: none; text-align: left; margin-bottom: 1.75rem; flex: 1; }
+    .plan-features li { padding: 0.5rem 0; font-size: 0.88rem; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 0.6rem; }
+    .plan-btn { padding: 0.85rem; border-radius: 12px; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.9rem; transition: all 0.3s ease; border: 2px solid rgba(99,102,241,0.3); background: rgba(255,255,255,0.06); color: white; }
+    .plan-btn:hover { background: rgba(255,255,255,0.12); }
+    .plan-btn.primary { background: linear-gradient(135deg, #6366f1, #ec4899); border: none; box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
+    .plan-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.6); }
+
+    /* PASSWORD */
+    .password-card { max-width: 480px; background: rgba(255,255,255,0.04); border: 1px solid rgba(99,102,241,0.2); border-radius: 20px; padding: 2.5rem; margin-top: 1rem; }
+    .password-hint { font-size: 0.85rem; color: rgba(255,255,255,0.45); margin-top: -0.5rem; margin-bottom: 1.5rem; }
+
+    /* Toast */
+    .hv-toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(26,31,58,0.95); border: 1px solid rgba(99,102,241,0.4); color: white; padding: 0.9rem 1.5rem; border-radius: 14px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 12px 35px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: all 0.3s ease; z-index: 999; }
+    .hv-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
@@ -71,7 +162,22 @@
           </div>
           <div class="header-actions">
             <button class="start-btn" onclick="window.location.href='interview.html'">+ New Interview</button>
-            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+
+            <!-- Profile avatar + Google-style mini dropdown -->
+            <div class="profile-widget" id="profileWidget">
+              <button class="profile-trigger" id="profileTrigger" onclick="toggleMiniDropdown()" aria-label="Account menu">
+                <div class="profile-trigger-avatar" id="headerAvatar">?</div>
+              </button>
+
+              <div class="mini-dropdown" id="miniDropdown">
+                <div class="mini-dropdown-email" id="miniEmail">—</div>
+                <div class="mini-dropdown-avatar" id="miniAvatar">?</div>
+                <div class="mini-dropdown-greeting" id="miniGreeting">Hi!</div>
+                <button class="manage-account-btn" onclick="openBigPanel()">Manage your HireView Account</button>
+                <div class="mini-dropdown-divider"></div>
+                <button class="mini-dropdown-signout" onclick="handleLogout()">🚪 Sign out</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -103,6 +209,126 @@
     </main>
   </div>
 
+  <!-- Big account-management overlay (opens on "Manage your HireView Account") -->
+  <div class="account-overlay-backdrop" id="accountBackdrop" onclick="closeBigPanel()"></div>
+  <div class="account-big-panel" id="accountBigPanel">
+    <button class="big-panel-close" onclick="closeBigPanel()" aria-label="Close">✕</button>
+
+    <div class="account-shell">
+      <aside class="account-sidebar">
+        <div class="sidebar-title">HireView Account</div>
+        <nav class="sidebar-nav">
+          <button class="sidebar-link" onclick="closeBigPanel()">
+            <span class="icon">🏠</span> Home
+          </button>
+          <button class="sidebar-link active" data-page="personalInfoPage" onclick="switchTab('personalInfoPage', this)">
+            <span class="icon">👤</span> Personal Info
+          </button>
+          <button class="sidebar-link" data-page="paymentPage" onclick="switchTab('paymentPage', this)">
+            <span class="icon">💳</span> Payment and Subscription
+          </button>
+          <button class="sidebar-link" data-page="passwordPage" onclick="switchTab('passwordPage', this)">
+            <span class="icon">🔒</span> Password
+          </button>
+          <div class="sidebar-divider"></div>
+          <button class="sidebar-link sidebar-link-logout" onclick="handleLogout()">
+            <span class="icon">🚪</span> Logout
+          </button>
+        </nav>
+      </aside>
+
+      <div class="account-main">
+        <div class="page active" id="personalInfoPage">
+          <div class="section-title">Personal Info</div>
+          <div class="profile-card">
+            <div class="profile-avatar-wrap">
+              <div class="profile-avatar-ring">
+                <div class="profile-avatar" id="profileAvatar">?</div>
+              </div>
+              <div class="profile-avatar-camera" onclick="showComingSoon('Profile photo upload')" title="Change photo">📷</div>
+            </div>
+            <div class="profile-name" id="profileName">—</div>
+            <div class="profile-email" id="profileEmail">—</div>
+
+            <div class="profile-membership">
+              <div class="profile-membership-title">Get a membership plan</div>
+              <div class="profile-membership-sub">Unlock access to more premium features</div>
+              <button class="profile-explore-btn" onclick="switchTab('paymentPage', document.querySelector('.sidebar-link[data-page=paymentPage]'))">Explore plans</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="page" id="paymentPage">
+          <div class="section-title">Payment and Subscription</div>
+          <div class="dashboard-sub" style="margin-bottom:1.5rem">Choose the plan that fits how often you interview.</div>
+
+          <div class="plans-grid">
+            <div class="plan-card">
+              <div class="plan-name">Free</div>
+              <div class="plan-price">₹0</div>
+              <div class="plan-cycle">forever</div>
+              <ul class="plan-features">
+                <li>✅ 3 free interviews</li>
+                <li>✅ Basic AI feedback</li>
+                <li>✅ Interview history</li>
+              </ul>
+              <button class="plan-btn" disabled style="opacity:0.6;cursor:default">Current Plan</button>
+            </div>
+
+            <div class="plan-card featured">
+              <div class="plan-badge">Most Popular</div>
+              <div class="plan-name">Pro</div>
+              <div class="plan-price">₹499<span>/mo</span></div>
+              <div class="plan-cycle">billed monthly</div>
+              <ul class="plan-features">
+                <li>✅ Unlimited interviews</li>
+                <li>✅ Advanced AI feedback</li>
+                <li>✅ Government sector prep</li>
+                <li>✅ Cheating/integrity report</li>
+              </ul>
+              <button class="plan-btn primary" onclick="showComingSoon('Pro plan checkout')">Upgrade to Pro</button>
+            </div>
+
+            <div class="plan-card">
+              <div class="plan-name">Premium</div>
+              <div class="plan-price">₹1,499<span>/mo</span></div>
+              <div class="plan-cycle">billed monthly</div>
+              <ul class="plan-features">
+                <li>✅ Everything in Pro</li>
+                <li>✅ Priority AI response</li>
+                <li>✅ Multilingual interviews</li>
+                <li>✅ 1:1 resume review</li>
+              </ul>
+              <button class="plan-btn" onclick="showComingSoon('Premium plan checkout')">Upgrade to Premium</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="page" id="passwordPage">
+          <div class="section-title">Password</div>
+          <div class="password-card">
+            <div class="form-group">
+              <label class="form-label">Current Password</label>
+              <input type="password" class="form-input" placeholder="Enter current password" id="currentPasswordInput">
+            </div>
+            <div class="form-group">
+              <label class="form-label">New Password</label>
+              <input type="password" class="form-input" placeholder="Choose a new password" id="newPasswordInput">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confirm New Password</label>
+              <input type="password" class="form-input" placeholder="Re-enter new password" id="confirmPasswordInput">
+            </div>
+            <div class="password-hint">Password changing from Account Settings is coming soon. Need to reset it right now? Use "Forgot Password" on the login page.</div>
+            <button class="primary-btn" onclick="showComingSoon('Password update')">Update Password</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hv-toast" id="hvToast"></div>
+
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
   <script>
@@ -116,6 +342,101 @@
       localStorage.removeItem('hv_user');
       window.location.href = 'auth.html';
     }
+
+    // ────────────────────────────────────────────
+    // MINI DROPDOWN (Google-style, opens from avatar)
+    // ────────────────────────────────────────────
+    function toggleMiniDropdown() {
+      document.getElementById('miniDropdown').classList.toggle('open');
+    }
+
+    document.addEventListener('click', (e) => {
+      const widget = document.getElementById('profileWidget');
+      if (widget && !widget.contains(e.target)) {
+        document.getElementById('miniDropdown').classList.remove('open');
+      }
+    });
+
+    // ────────────────────────────────────────────
+    // BIG ACCOUNT-MANAGEMENT PANEL
+    // ────────────────────────────────────────────
+    function openBigPanel() {
+      document.getElementById('miniDropdown').classList.remove('open');
+      document.getElementById('accountBackdrop').classList.add('open');
+      document.getElementById('accountBigPanel').classList.add('open');
+      switchTab('personalInfoPage', document.querySelector('.sidebar-link[data-page="personalInfoPage"]'));
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeBigPanel() {
+      document.getElementById('accountBackdrop').classList.remove('open');
+      document.getElementById('accountBigPanel').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.getElementById('miniDropdown').classList.remove('open');
+        closeBigPanel();
+      }
+    });
+
+    // ────────────────────────────────────────────
+    // TAB SWITCHING (sidebar navigation inside the big panel)
+    // ────────────────────────────────────────────
+    function switchTab(pageId, btnEl) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+      document.querySelectorAll('.sidebar-link[data-page]').forEach(l => l.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+    }
+
+    // ────────────────────────────────────────────
+    // "Coming soon" toast for not-yet-wired actions
+    // ────────────────────────────────────────────
+    let toastTimer = null;
+    function showComingSoon(feature) {
+      const toast = document.getElementById('hvToast');
+      toast.textContent = `${feature} is coming soon 🚧`;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    // ────────────────────────────────────────────
+    // PROFILE INFO (avatar trigger, mini dropdown, big panel)
+    // ────────────────────────────────────────────
+    function getInitials(name) {
+      if (!name) return '?';
+      const parts = name.trim().split(/\s+/);
+      const initials = parts.length > 1
+        ? parts[0][0] + parts[parts.length - 1][0]
+        : parts[0].slice(0, 2);
+      return initials.toUpperCase();
+    }
+
+    function populatePersonalInfo(user) {
+      if (!user) return;
+      const initials = getInitials(user.name);
+      const firstName = (user.name || '').trim().split(/\s+/)[0] || '';
+
+      // Header trigger avatar
+      document.getElementById('headerAvatar').textContent = initials;
+
+      // Mini dropdown
+      document.getElementById('miniEmail').textContent = user.email || '—';
+      document.getElementById('miniAvatar').textContent = initials;
+      document.getElementById('miniGreeting').textContent = `Hi, ${firstName || 'there'}!`;
+
+      // Big panel — Personal Info page
+      document.getElementById('profileName').textContent = user.name || '—';
+      document.getElementById('profileEmail').textContent = user.email || '—';
+      document.getElementById('profileAvatar').textContent = initials;
+    }
+
+    // Show whatever we already have in localStorage immediately,
+    // then refresh once /api/dashboard responds below.
+    if (currentUser) populatePersonalInfo(currentUser);
 
     function formatDate(isoString) {
       if (!isoString) return '—';
@@ -232,6 +553,9 @@
         // Welcome text
         document.getElementById('welcomeText').textContent =
           `Welcome back, ${data.user.name.split(' ')[0]}! 👋`;
+
+        // Profile widgets (header avatar, mini dropdown, big panel)
+        populatePersonalInfo(data.user);
 
         // Free trial banner
         renderFreeTrialBanner(data.stats.interviews_remaining_free, data.stats.total_interviews);
