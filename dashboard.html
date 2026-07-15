@@ -148,6 +148,28 @@
     /* Toast */
     .hv-toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(26,31,58,0.95); border: 1px solid rgba(99,102,241,0.4); color: white; padding: 0.9rem 1.5rem; border-radius: 14px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 12px 35px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: all 0.3s ease; z-index: 999; }
     .hv-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .hv-toast.error { border-color: rgba(239,68,68,0.5); }
+
+    .hidden { display: none !important; }
+
+    /* PERSONAL INFO — editable name/email fields */
+    .profile-field { margin-bottom: 0.9rem; }
+    .profile-field-display { display: flex; align-items: center; justify-content: center; gap: 0.6rem; }
+    .field-edit-btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); width: 28px; height: 28px; border-radius: 50%; color: rgba(255,255,255,0.6); cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s ease; }
+    .field-edit-btn:hover { background: rgba(99,102,241,0.2); border-color: #6366f1; color: white; }
+    .profile-field-edit { display: flex; flex-direction: column; gap: 0.6rem; max-width: 340px; margin: 0 auto; }
+    .profile-field-edit input.form-input { text-align: center; }
+    .field-edit-actions { display: flex; gap: 0.6rem; }
+    .field-btn-save, .field-btn-cancel { flex: 1; padding: 0.6rem; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; font-family: inherit; transition: all 0.2s ease; border: none; }
+    .field-btn-save { background: linear-gradient(135deg, #6366f1, #ec4899); color: white; }
+    .field-btn-save:hover { transform: translateY(-1px); }
+    .field-btn-save:disabled { opacity: 0.6; cursor: default; transform: none; }
+    .field-btn-cancel { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.7); }
+    .field-btn-cancel:hover { background: rgba(255,255,255,0.1); }
+    .otp-sent-note { font-size: 0.82rem; color: rgba(255,255,255,0.5); text-align: center; }
+    .resend-link { background: none; border: none; color: #818cf8; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: inherit; text-align: center; padding: 0.3rem; }
+    .resend-link:disabled { color: rgba(255,255,255,0.3); cursor: default; }
+    .resend-link:not(:disabled):hover { color: #a5b4fc; text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -245,10 +267,50 @@
               <div class="profile-avatar-ring">
                 <div class="profile-avatar" id="profileAvatar">?</div>
               </div>
-              <div class="profile-avatar-camera" onclick="showComingSoon('Profile photo upload')" title="Change photo">📷</div>
+              <div class="profile-avatar-camera" onclick="triggerAvatarUpload()" title="Change photo">📷</div>
+              <input type="file" id="avatarFileInput" accept="image/*" class="hidden" onchange="handleAvatarFile(event)">
             </div>
-            <div class="profile-name" id="profileName">—</div>
-            <div class="profile-email" id="profileEmail">—</div>
+
+            <!-- Name (editable) -->
+            <div class="profile-field">
+              <div class="profile-field-display" id="nameDisplay">
+                <span class="profile-name" id="profileName" style="margin-bottom:0">—</span>
+                <button class="field-edit-btn" onclick="startEditName()" title="Edit name">✏️</button>
+              </div>
+              <div class="profile-field-edit hidden" id="nameEditForm">
+                <input type="text" class="form-input" id="nameInput" maxlength="100" placeholder="Your full name">
+                <div class="field-edit-actions">
+                  <button class="field-btn-save" id="nameSaveBtn" onclick="saveNameEdit()">Save</button>
+                  <button class="field-btn-cancel" onclick="cancelNameEdit()">Cancel</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Email (editable, OTP-verified) -->
+            <div class="profile-field" style="margin-bottom:2rem">
+              <div class="profile-field-display" id="emailDisplay">
+                <span class="profile-email" id="profileEmail" style="margin-bottom:0">—</span>
+                <button class="field-edit-btn" onclick="startEditEmail()" title="Change email">✏️</button>
+              </div>
+
+              <div class="profile-field-edit hidden" id="emailEditForm">
+                <input type="email" class="form-input" id="newEmailInput" placeholder="Enter new email address">
+                <div class="field-edit-actions">
+                  <button class="field-btn-save" id="emailSendBtn" onclick="sendEmailOtp()">Send Code</button>
+                  <button class="field-btn-cancel" onclick="cancelEmailEdit()">Cancel</button>
+                </div>
+              </div>
+
+              <div class="profile-field-edit hidden" id="emailOtpForm">
+                <div class="otp-sent-note" id="otpSentNote">Code sent to —</div>
+                <input type="text" class="form-input" id="emailOtpInput" placeholder="6-digit code" maxlength="6" inputmode="numeric">
+                <div class="field-edit-actions">
+                  <button class="field-btn-save" id="emailVerifyBtn" onclick="verifyEmailOtp()">Verify &amp; Update</button>
+                  <button class="field-btn-cancel" onclick="cancelEmailEdit()">Cancel</button>
+                </div>
+                <button class="resend-link" id="resendOtpBtn" onclick="sendEmailOtp(true)">Resend code</button>
+              </div>
+            </div>
 
             <div class="profile-membership">
               <div class="profile-membership-title">Get a membership plan</div>
@@ -392,15 +454,19 @@
     }
 
     // ────────────────────────────────────────────
-    // "Coming soon" toast for not-yet-wired actions
+    // Toast notifications
     // ────────────────────────────────────────────
     let toastTimer = null;
-    function showComingSoon(feature) {
+    function showToast(message, isError) {
       const toast = document.getElementById('hvToast');
-      toast.textContent = `${feature} is coming soon 🚧`;
+      toast.textContent = message;
+      toast.classList.toggle('error', !!isError);
       toast.classList.add('show');
       clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), isError ? 3500 : 2500);
+    }
+    function showComingSoon(feature) {
+      showToast(`${feature} is coming soon 🚧`, false);
     }
 
     // ────────────────────────────────────────────
@@ -415,28 +481,249 @@
       return initials.toUpperCase();
     }
 
+    // Renders either the uploaded photo (if any) or initials into an avatar circle
+    function renderAvatarEl(elId, user) {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      if (user && user.profile_picture) {
+        el.innerHTML = `<img src="${user.profile_picture}" alt="Profile photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      } else {
+        el.textContent = getInitials(user && user.name);
+      }
+    }
+
     function populatePersonalInfo(user) {
       if (!user) return;
-      const initials = getInitials(user.name);
       const firstName = (user.name || '').trim().split(/\s+/)[0] || '';
 
-      // Header trigger avatar
-      document.getElementById('headerAvatar').textContent = initials;
+      renderAvatarEl('headerAvatar', user);
+      renderAvatarEl('miniAvatar', user);
+      renderAvatarEl('profileAvatar', user);
 
-      // Mini dropdown
       document.getElementById('miniEmail').textContent = user.email || '—';
-      document.getElementById('miniAvatar').textContent = initials;
       document.getElementById('miniGreeting').textContent = `Hi, ${firstName || 'there'}!`;
 
-      // Big panel — Personal Info page
       document.getElementById('profileName').textContent = user.name || '—';
       document.getElementById('profileEmail').textContent = user.email || '—';
-      document.getElementById('profileAvatar').textContent = initials;
     }
 
     // Show whatever we already have in localStorage immediately,
     // then refresh once /api/dashboard responds below.
     if (currentUser) populatePersonalInfo(currentUser);
+
+    // ────────────────────────────────────────────
+    // Shared helper: PUT /api/auth/profile (name and/or photo)
+    // ────────────────────────────────────────────
+    async function saveProfile(payload) {
+      const res = await fetch(`${BACKEND_URL}/api/auth/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.detail || 'Something went wrong. Please try again.');
+
+      currentUser = data;
+      localStorage.setItem('hv_user', JSON.stringify(currentUser));
+      populatePersonalInfo(currentUser);
+      return currentUser;
+    }
+
+    // ────────────────────────────────────────────
+    // AVATAR UPLOAD
+    // ────────────────────────────────────────────
+    function triggerAvatarUpload() {
+      document.getElementById('avatarFileInput').click();
+    }
+
+    function resizeImageFile(file, maxDim, quality) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Could not read that file.'));
+        reader.onload = () => {
+          const img = new Image();
+          img.onerror = () => reject(new Error('That doesn\'t look like a valid image.'));
+          img.onload = () => {
+            let { width, height } = img;
+            if (width > height) {
+              if (width > maxDim) { height = Math.round(height * maxDim / width); width = maxDim; }
+            } else {
+              if (height > maxDim) { width = Math.round(width * maxDim / height); height = maxDim; }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handleAvatarFile(e) {
+      const file = e.target.files[0];
+      e.target.value = ''; // allow re-selecting the same file later
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        showToast('Please choose an image file.', true);
+        return;
+      }
+
+      try {
+        const dataUrl = await resizeImageFile(file, 400, 0.82);
+        await saveProfile({ profile_picture: dataUrl });
+        showToast('Profile photo updated!');
+      } catch (err) {
+        showToast(err.message || 'Could not update photo.', true);
+      }
+    }
+
+    // ────────────────────────────────────────────
+    // EDIT NAME
+    // ────────────────────────────────────────────
+    function startEditName() {
+      document.getElementById('nameInput').value = currentUser?.name || '';
+      document.getElementById('nameDisplay').classList.add('hidden');
+      document.getElementById('nameEditForm').classList.remove('hidden');
+      document.getElementById('nameInput').focus();
+    }
+
+    function cancelNameEdit() {
+      document.getElementById('nameEditForm').classList.add('hidden');
+      document.getElementById('nameDisplay').classList.remove('hidden');
+    }
+
+    async function saveNameEdit() {
+      const val = document.getElementById('nameInput').value.trim();
+      if (!val) { showToast('Name cannot be empty.', true); return; }
+
+      const btn = document.getElementById('nameSaveBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+      try {
+        await saveProfile({ name: val });
+        cancelNameEdit();
+        showToast('Name updated!');
+      } catch (err) {
+        showToast(err.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save';
+      }
+    }
+
+    // ────────────────────────────────────────────
+    // CHANGE EMAIL (OTP verified)
+    // ────────────────────────────────────────────
+    let pendingNewEmail = null;
+    let resendCooldownTimer = null;
+
+    function startEditEmail() {
+      document.getElementById('newEmailInput').value = '';
+      document.getElementById('emailDisplay').classList.add('hidden');
+      document.getElementById('emailEditForm').classList.remove('hidden');
+      document.getElementById('emailOtpForm').classList.add('hidden');
+      document.getElementById('newEmailInput').focus();
+    }
+
+    function cancelEmailEdit() {
+      document.getElementById('emailEditForm').classList.add('hidden');
+      document.getElementById('emailOtpForm').classList.add('hidden');
+      document.getElementById('emailDisplay').classList.remove('hidden');
+      pendingNewEmail = null;
+      clearInterval(resendCooldownTimer);
+    }
+
+    async function sendEmailOtp(isResend) {
+      const emailToUse = isResend ? pendingNewEmail : document.getElementById('newEmailInput').value.trim();
+      if (!emailToUse) { showToast('Enter a new email address.', true); return; }
+
+      const btn = isResend ? document.getElementById('resendOtpBtn') : document.getElementById('emailSendBtn');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      if (!isResend) btn.textContent = 'Sending...';
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/auth/change-email/request`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+          body: JSON.stringify({ new_email: emailToUse })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.detail || 'Could not send the code. Please try again.');
+
+        pendingNewEmail = emailToUse;
+        document.getElementById('otpSentNote').textContent = `Code sent to ${emailToUse}`;
+        document.getElementById('emailEditForm').classList.add('hidden');
+        document.getElementById('emailOtpForm').classList.remove('hidden');
+        document.getElementById('emailOtpInput').value = '';
+        document.getElementById('emailOtpInput').focus();
+        startResendCooldown();
+        showToast(isResend ? 'Code resent!' : 'Verification code sent!');
+      } catch (err) {
+        showToast(err.message, true);
+        if (!isResend) { btn.disabled = false; btn.textContent = originalText; }
+      }
+    }
+
+    function startResendCooldown() {
+      const btn = document.getElementById('resendOtpBtn');
+      let seconds = 45; // matches backend OTP_RESEND_COOLDOWN_SECONDS
+      btn.disabled = true;
+      btn.textContent = `Resend code (${seconds}s)`;
+      clearInterval(resendCooldownTimer);
+      resendCooldownTimer = setInterval(() => {
+        seconds--;
+        if (seconds <= 0) {
+          clearInterval(resendCooldownTimer);
+          btn.disabled = false;
+          btn.textContent = 'Resend code';
+        } else {
+          btn.textContent = `Resend code (${seconds}s)`;
+        }
+      }, 1000);
+    }
+
+    async function verifyEmailOtp() {
+      const otp = document.getElementById('emailOtpInput').value.trim();
+      if (!otp) { showToast('Enter the 6-digit code.', true); return; }
+      if (!pendingNewEmail) { showToast('Please request a new code.', true); return; }
+
+      const btn = document.getElementById('emailVerifyBtn');
+      btn.disabled = true;
+      btn.textContent = 'Verifying...';
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/auth/change-email/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+          body: JSON.stringify({ new_email: pendingNewEmail, otp })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.detail || 'Verification failed. Please try again.');
+
+        // Backend returns a fresh Token { access_token, user } since the email claim changed
+        authToken = data.access_token;
+        currentUser = data.user;
+        localStorage.setItem('hv_token', authToken);
+        localStorage.setItem('hv_user', JSON.stringify(currentUser));
+        populatePersonalInfo(currentUser);
+        cancelEmailEdit();
+        clearInterval(resendCooldownTimer);
+        showToast('Email updated successfully!');
+      } catch (err) {
+        showToast(err.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Verify & Update';
+      }
+    }
 
     function formatDate(isoString) {
       if (!isoString) return '—';

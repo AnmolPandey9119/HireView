@@ -124,6 +124,11 @@ except ImportError:
 MAX_FILE_SIZE_MB = 100
 MAX_TEXT_LENGTH  = 5000
 
+# Profile picture is stored inline in the DB as a base64 data URL (no
+# external storage set up yet), so it's kept small. Frontend resizes/
+# compresses the image before upload; this is the backend's hard cap.
+MAX_PROFILE_PICTURE_BYTES = 900_000  # ~900 KB decoded (~1.2 MB base64)
+
 # ============================================================
 # LOGGING
 # ============================================================

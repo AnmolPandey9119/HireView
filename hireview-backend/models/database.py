@@ -34,12 +34,16 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = "users"
 
-    id            = Column(Integer, primary_key=True, index=True)
-    name          = Column(String, nullable=False)
-    email         = Column(String, unique=True, index=True, nullable=False)
-    password_hash = Column(String, nullable=False)
-    is_verified   = Column(Boolean, default=False, nullable=False)
-    created_at    = Column(DateTime, default=datetime.utcnow)
+    id               = Column(Integer, primary_key=True, index=True)
+    name             = Column(String, nullable=False)
+    email            = Column(String, unique=True, index=True, nullable=False)
+    password_hash    = Column(String, nullable=False)
+    is_verified      = Column(Boolean, default=False, nullable=False)
+    # Stored as a base64 data URL (e.g. "data:image/jpeg;base64,...").
+    # Frontend resizes/compresses before upload — see MAX_PROFILE_PICTURE_BYTES
+    # in config.py for the enforced size cap.
+    profile_picture  = Column(Text, nullable=True)
+    created_at       = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     interviews = relationship("Interview", back_populates="user", cascade="all, delete")

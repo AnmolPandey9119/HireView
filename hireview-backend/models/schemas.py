@@ -26,6 +26,7 @@ class UserResponse(BaseModel):
     name: str
     email: str
     is_verified: bool
+    profile_picture: Optional[str] = None
     created_at: datetime
 
     class Config:
@@ -38,6 +39,26 @@ class Token(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
+
+# ============================================================
+# PROFILE SCHEMAS (Personal Info section)
+# ============================================================
+class UpdateProfileRequest(BaseModel):
+    """Both fields optional — only what's sent gets changed.
+    Email is NOT editable here; changing email goes through the
+    separate OTP-verified change-email flow below."""
+    name: Optional[str] = None
+    profile_picture: Optional[str] = None  # base64 data URL
+
+class ChangeEmailRequest(BaseModel):
+    """Step 1: request an OTP be sent to the NEW email address."""
+    new_email: EmailStr
+
+class ChangeEmailVerify(BaseModel):
+    """Step 2: verify the OTP sent to the new email, then swap it in."""
+    new_email: EmailStr
+    otp: str
 
 
 # ============================================================

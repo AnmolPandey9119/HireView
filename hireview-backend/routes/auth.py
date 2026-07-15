@@ -16,6 +16,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from datetime import timedelta
+import base64
 import logging
 
 import config
@@ -24,6 +25,7 @@ from models.schemas import (
     UserRegister, UserLogin, Token, UserResponse, MessageResponse,
     SendEmailOTPRequest, VerifyEmailOTPRequest,
     ForgotPasswordRequest, ForgotPasswordReset,
+    UpdateProfileRequest, ChangeEmailRequest, ChangeEmailVerify,
 )
 from models.auth_utils import hash_password, verify_password, create_access_token, decode_access_token
 from models.otp_utils import create_otp, verify_otp, can_resend, mark_email_verified, consume_email_verified
@@ -207,3 +209,110 @@ async def forgot_password_reset(payload: ForgotPasswordReset, db: Session = Depe
 @router.get("/auth/me", response_model=UserResponse)
 async def get_me(current_user: User = Depends(get_current_user)):
     return UserResponse.model_validate(current_user)
+
+
+# ============================================================
+# UPDATE PROFILE — name and/or profile picture
+# (Email is intentionally NOT handled here — see change-email
+# flow below, which requires OTP verification.)
+# ============================================================
+@router.put("/auth/profile", response_model=UserResponse)
+async def update_profile(
+    payload: UpdateProfileRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if payload.name is not None:
+        name = payload.name.strip()
+        if not name:
+            raise HTTPException(status_code=400, detail="Name cannot be empty")
+        if len(name) > 100:
+            raise HTTPException(status_code=400, detail="Name is too long")
+        current_user.name = name
+
+    if payload.profile_picture is not None:
+        pic = payload.profile_picture.strip()
+        if pic == "":
+            # Empty string = explicit removal
+            current_user.profile_picture = None
+        else:
+            if not pic.startswith("data:image/"):
+                raise HTTPException(status_code=400, detail="Profile picture must be an image data URL")
+
+            try:
+                _, b64_data = pic.split(",", 1)
+                decoded_size = len(base64.b64decode(b64_data, validate=True))
+            except Exception:
+                raise HTTPException(status_code=400, detail="Invalid image data")
+
+            if decoded_size > config.MAX_PROFILE_PICTURE_BYTES:
+                max_kb = config.MAX_PROFILE_PICTURE_BYTES // 1024
+                raise HTTPException(status_code=400, detail=f"Image is too large. Please use an image under {max_kb}KB.")
+
+            current_user.profile_picture = pic
+
+    db.commit()
+    db.refresh(current_user)
+    logger.info(f"Profile updated: {current_user.email}")
+    return UserResponse.model_validate(current_user)
+
+
+# ============================================================
+# CHANGE EMAIL — step 1: send an OTP to the NEW email
+# ============================================================
+@router.post("/auth/change-email/request", response_model=MessageResponse)
+async def change_email_request(
+    payload: ChangeEmailRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    new_email = payload.new_email.lower()
+
+    if new_email == current_user.email.lower():
+        raise HTTPException(status_code=400, detail="That's already your current email")
+
+    existing = db.query(User).filter(User.email == new_email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="This email is already in use by another account")
+
+    allowed, wait_seconds = can_resend(db, new_email, "change_email")
+    if not allowed:
+        raise HTTPException(status_code=429, detail=f"Please wait {wait_seconds}s before requesting another code.")
+
+    otp = create_otp(db, new_email, "change_email")
+    sent = await send_otp_email(new_email, otp, "change_email", name=current_user.name)
+
+    if not sent and config.BREVO_API_KEY:
+        raise HTTPException(status_code=502, detail="Could not send verification email. Please try again.")
+
+    return MessageResponse(message=f"A verification code has been sent to {new_email}.")
+
+
+# ============================================================
+# CHANGE EMAIL — step 2: verify the OTP, then swap the email
+# ============================================================
+@router.post("/auth/change-email/verify", response_model=Token)
+async def change_email_verify(
+    payload: ChangeEmailVerify,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    new_email = payload.new_email.lower()
+
+    success, error = verify_otp(db, new_email, "change_email", payload.otp)
+    if not success:
+        raise HTTPException(status_code=400, detail=error)
+
+    # Re-check in case someone else claimed this email while the OTP was pending
+    existing = db.query(User).filter(User.email == new_email).first()
+    if existing and existing.id != current_user.id:
+        raise HTTPException(status_code=400, detail="This email is already in use by another account")
+
+    current_user.email = new_email
+    db.commit()
+    db.refresh(current_user)
+
+    logger.info(f"Email changed for user {current_user.id}: now {current_user.email}")
+
+    # Issue a fresh token — the old one's "email" claim is now stale
+    return _issue_token(current_user)

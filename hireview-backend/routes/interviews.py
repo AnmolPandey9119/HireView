@@ -240,7 +240,8 @@ async def get_dashboard_stats(
     return {
         "user": {
             "name": current_user.name,
-            "email": current_user.email
+            "email": current_user.email,
+            "profile_picture": current_user.profile_picture
         },
         "stats": {
             "total_interviews": total,

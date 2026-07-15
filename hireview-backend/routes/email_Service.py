@@ -35,6 +35,11 @@ _PURPOSE_COPY = {
         "heading": "Reset your password",
         "body": "Use the code below to reset your HireView password. If you didn't request this, you can ignore this email.",
     },
+    "change_email": {
+        "subject": "Verify your new email for HireView",
+        "heading": "Confirm your new email",
+        "body": "Use the code below to confirm this is your new email address for your HireView account.",
+    },
 }
 
 
