@@ -4,7 +4,7 @@
 # Defines all tables: Users, Interviews, Resumes, Feedback
 # ============================================================
 
-from sqlalchemy import create_engine, Column, Integer, String, Float, Text, DateTime, ForeignKey, Boolean
+from sqlalchemy import create_engine, Column, Integer, String, Float, Text, DateTime, ForeignKey, Boolean, inspect, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
@@ -155,8 +155,59 @@ class Feedback(Base):
 # CREATE ALL TABLES
 # ============================================================
 def init_db():
-    """Create all tables in the database"""
+    """
+    Create all tables in the database, then reconcile any columns that
+    exist on the SQLAlchemy models but are missing from the actual
+    tables (e.g. a column was added to a model after the table was
+    already created in production — create_all() alone never ALTERs
+    existing tables, so without this, a new nullable column silently
+    breaks every query that touches it until someone manually migrates).
+
+    This only ever ADDS missing nullable columns. It never drops or
+    modifies existing columns, so it's safe to run on every startup.
+    """
     Base.metadata.create_all(bind=engine)
+    _sync_missing_columns()
+
+
+def _sync_missing_columns():
+    inspector = inspect(engine)
+    existing_tables = set(inspector.get_table_names())
+
+    # Map SQLAlchemy column types to basic SQL types for ALTER TABLE.
+    # Keep this minimal — it only needs to cover types actually used
+    # in the models above (Integer, String, Text, Boolean, Float, DateTime).
+    type_map = {
+        "INTEGER": "INTEGER",
+        "VARCHAR": "VARCHAR",
+        "TEXT": "TEXT",
+        "BOOLEAN": "BOOLEAN",
+        "FLOAT": "FLOAT",
+        "DATETIME": "TIMESTAMP",
+    }
+
+    for table in Base.metadata.sorted_tables:
+        if table.name not in existing_tables:
+            continue  # create_all() just made it fresh; nothing to reconcile
+
+        existing_columns = {col["name"] for col in inspector.get_columns(table.name)}
+
+        for column in table.columns:
+            if column.name in existing_columns:
+                continue
+
+            sql_type = type_map.get(str(column.type).split("(")[0], None)
+            if sql_type is None:
+                logger_msg = (
+                    f"[init_db] Skipping auto-migration of {table.name}.{column.name}: "
+                    f"unsupported type {column.type}. Add it manually."
+                )
+                print(logger_msg)
+                continue
+
+            print(f"[init_db] Adding missing column {table.name}.{column.name} ({sql_type})")
+            with engine.begin() as conn:
+                conn.execute(text(f"ALTER TABLE {table.name} ADD COLUMN {column.name} {sql_type}"))
 
 
 # ============================================================
