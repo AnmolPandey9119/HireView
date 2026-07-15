@@ -114,8 +114,19 @@
     .profile-avatar-wrap { position: relative; width: 132px; height: 132px; margin: 0 auto 1.5rem; }
     .profile-avatar-ring { width: 132px; height: 132px; border-radius: 50%; padding: 4px; background: conic-gradient(from 180deg, #ef4444, #f59e0b, #22c55e, #06b6d4, #6366f1, #ec4899, #ef4444); }
     .profile-avatar { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 2.4rem; font-weight: 800; color: white; border: 3px solid #12162c; overflow: hidden; }
-    .profile-avatar-camera { position: absolute; bottom: 2px; right: 2px; width: 38px; height: 38px; border-radius: 50%; background: #6366f1; border: 3px solid #12162c; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: all 0.2s ease; }
+    .profile-avatar-ring.has-photo { cursor: zoom-in; transition: transform 0.15s ease; }
+    .profile-avatar-ring.has-photo:hover { transform: scale(1.03); }
+    .profile-avatar-camera { position: absolute; bottom: 2px; right: 2px; width: 38px; height: 38px; border-radius: 50%; background: #6366f1; border: 3px solid #12162c; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: all 0.2s ease; z-index: 2; }
     .profile-avatar-camera:hover { background: #818cf8; transform: scale(1.08); }
+
+    /* AVATAR PREVIEW LIGHTBOX */
+    .avatar-preview-overlay { display: none; position: fixed; inset: 0; background: rgba(6,8,20,0.85); backdrop-filter: blur(6px); z-index: 1000; align-items: center; justify-content: center; padding: 2rem; }
+    .avatar-preview-overlay.open { display: flex; }
+    .avatar-preview-box { position: relative; display: flex; flex-direction: column; align-items: center; max-width: min(90vw, 480px); }
+    .avatar-preview-img { width: min(90vw, 420px); height: min(90vw, 420px); object-fit: cover; border-radius: 50%; border: 4px solid rgba(255,255,255,0.12); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+    .avatar-preview-close { position: absolute; top: -14px; right: -14px; width: 40px; height: 40px; border-radius: 50%; background: #12162c; border: 2px solid rgba(255,255,255,0.15); color: white; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease; }
+    .avatar-preview-close:hover { background: #ef4444; border-color: #ef4444; transform: scale(1.08); }
+    .avatar-preview-hint { margin-top: 1.25rem; color: rgba(255,255,255,0.55); font-size: 0.9rem; }
     .profile-name { font-size: 1.6rem; font-weight: 800; color: white; margin-bottom: 0.35rem; }
     .profile-email { font-size: 0.95rem; color: rgba(255,255,255,0.5); margin-bottom: 2rem; }
     .profile-membership { background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(236,72,153,0.15)); border: 1px solid rgba(99,102,241,0.3); border-radius: 16px; padding: 1.5rem; }
@@ -264,11 +275,20 @@
           <div class="section-title">Personal Info</div>
           <div class="profile-card">
             <div class="profile-avatar-wrap">
-              <div class="profile-avatar-ring">
+              <div class="profile-avatar-ring" id="profileAvatarRing" onclick="openAvatarPreview()">
                 <div class="profile-avatar" id="profileAvatar">?</div>
               </div>
-              <div class="profile-avatar-camera" onclick="triggerAvatarUpload()" title="Change photo">📷</div>
+              <div class="profile-avatar-camera" onclick="event.stopPropagation(); triggerAvatarUpload()" title="Change photo">📷</div>
               <input type="file" id="avatarFileInput" accept="image/*" class="hidden" onchange="handleAvatarFile(event)">
+            </div>
+
+            <!-- Avatar preview lightbox -->
+            <div class="avatar-preview-overlay" id="avatarPreviewOverlay" onclick="if (event.target === this) closeAvatarPreview()">
+              <div class="avatar-preview-box">
+                <button class="avatar-preview-close" onclick="closeAvatarPreview()" title="Close">✕</button>
+                <img class="avatar-preview-img" id="avatarPreviewImg" alt="Profile photo preview">
+                <div class="avatar-preview-hint">Click the camera icon to change your photo</div>
+              </div>
             </div>
 
             <!-- Name (editable) -->
@@ -490,7 +510,32 @@
       } else {
         el.textContent = getInitials(user && user.name);
       }
+
+      // The big avatar on the Personal Info page doubles as a click-to-zoom
+      // preview, but only when there's an actual photo — clicking initials
+      // shouldn't open an empty lightbox.
+      if (elId === 'profileAvatar') {
+        const ring = document.getElementById('profileAvatarRing');
+        if (ring) ring.classList.toggle('has-photo', !!(user && user.profile_picture));
+      }
     }
+
+    // ────────────────────────────────────────────
+    // AVATAR PREVIEW LIGHTBOX
+    // ────────────────────────────────────────────
+    function openAvatarPreview() {
+      if (!currentUser || !currentUser.profile_picture) return; // nothing to enlarge yet
+      document.getElementById('avatarPreviewImg').src = currentUser.profile_picture;
+      document.getElementById('avatarPreviewOverlay').classList.add('open');
+    }
+
+    function closeAvatarPreview() {
+      document.getElementById('avatarPreviewOverlay').classList.remove('open');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAvatarPreview();
+    });
 
     function populatePersonalInfo(user) {
       if (!user) return;
