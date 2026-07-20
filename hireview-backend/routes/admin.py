@@ -25,7 +25,10 @@ import logging
 
 import config
 from models.database import get_db, User, Interview, InterviewQuestion, Feedback
-from models.auth_utils import hash_password, verify_password, create_access_token, decode_access_token
+from models.auth_utils import (
+    hash_password, verify_password, create_access_token, decode_access_token,
+    validate_password_strength,
+)
 from models.schemas import (
     AdminLogin, AdminToken,
     AdminUserUpdate, AdminInterviewUpdate,
@@ -105,9 +108,16 @@ async def list_government_domains(db: Session = Depends(get_db), _admin=Depends(
 # ============================================================
 @router.get("/admin/users")
 async def list_users(db: Session = Depends(get_db), _admin=Depends(get_current_admin)):
-    users = db.query(User).order_by(User.id.desc()).all()
+    # Ordered oldest-first so serial_no reflects registration order: 1, 2, 3, ...
+    # serial_no is computed fresh on every request (not stored in the DB), so
+    # when a user is deleted, everyone registered after them automatically
+    # shifts up by one the next time this list is loaded. `id` (the real,
+    # permanent database primary key) is kept separate and unchanged — it's
+    # what edit/delete actions actually use under the hood.
+    users = db.query(User).order_by(User.id.asc()).all()
     return [
         {
+            "serial_no": idx,
             "id": u.id,
             "name": u.name,
             "email": u.email,
@@ -115,7 +125,7 @@ async def list_users(db: Session = Depends(get_db), _admin=Depends(get_current_a
             "created_at": u.created_at,
             "interview_count": len(u.interviews),
         }
-        for u in users
+        for idx, u in enumerate(users, start=1)
     ]
 
 
@@ -157,8 +167,9 @@ async def update_user(
     if payload.is_verified is not None:
         user.is_verified = payload.is_verified
     if payload.new_password:
-        if len(payload.new_password) < 6:
-            raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+        is_valid, error = validate_password_strength(payload.new_password)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error)
         user.password_hash = hash_password(payload.new_password)
 
     db.commit()

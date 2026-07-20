@@ -47,6 +47,24 @@ async function postJSON(path, body) {
   return { ok: res.ok, status: res.status, data };
 }
 
+// ────────────────────────────────────────────────
+// PASSWORD STRENGTH CHECK
+// Min 8 chars, at least 1 uppercase, 1 lowercase, 1 number, 1 special char.
+// Mirrors the backend rule in hireview-backend/models/auth_utils.py
+// ────────────────────────────────────────────────
+const PASSWORD_REQUIREMENTS_MESSAGE =
+  'Password must be at least 8 characters and include an uppercase letter, ' +
+  'a lowercase letter, a number, and a special character.';
+
+function isStrongPassword(password) {
+  if (!password || password.length < 8) return false;
+  if (!/[A-Z]/.test(password)) return false;
+  if (!/[a-z]/.test(password)) return false;
+  if (!/\d/.test(password)) return false;
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) return false;
+  return true;
+}
+
 function saveSession(token, user) {
   authToken = token;
   currentUser = user;
@@ -142,7 +160,7 @@ async function handleVerifyEmailOtp() {
   const otp = document.getElementById('signupOtpCode').value.trim();
 
   if (!otp || otp.length !== 6) {
-    showAuthError('signupOtpMsg', 'Please enter the 6-digit code.');
+    showAuthError('signupOtpMsg', 'Please enter the 6-character code.');
     return;
   }
 
@@ -188,8 +206,8 @@ async function handleSignup() {
     showAuthError('signupError', 'Passwords do not match.');
     return;
   }
-  if (password.length < 6) {
-    showAuthError('signupError', 'Password must be at least 6 characters.');
+  if (!isStrongPassword(password)) {
+    showAuthError('signupError', PASSWORD_REQUIREMENTS_MESSAGE);
     return;
   }
 
@@ -250,11 +268,11 @@ async function handleForgotPasswordReset() {
     return;
   }
   if (!otp || otp.length !== 6) {
-    showAuthError('forgotResetMsg', 'Please enter the 6-digit code.');
+    showAuthError('forgotResetMsg', 'Please enter the 6-character code.');
     return;
   }
-  if (!newPassword || newPassword.length < 6) {
-    showAuthError('forgotResetMsg', 'Password must be at least 6 characters.');
+  if (!isStrongPassword(newPassword)) {
+    showAuthError('forgotResetMsg', PASSWORD_REQUIREMENTS_MESSAGE);
     return;
   }
 
@@ -308,30 +326,9 @@ function updateLoggedInUser() {
 
 window.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('loginPage')) {
-    // 1. Strict Validation: Ensure tokens aren't corrupt, 'null', or 'undefined' strings
-    const rawToken = localStorage.getItem('hv_token');
-    const rawUser = localStorage.getItem('hv_user');
-
-    const isValidToken = rawToken && rawToken !== 'null' && rawToken !== 'undefined' && rawToken.trim() !== '';
-    let isValidUser = false;
-    
-    try {
-      const parsedUser = JSON.parse(rawUser);
-      isValidUser = parsedUser && typeof parsedUser === 'object' && Boolean(parsedUser.email || parsedUser.id);
-    } catch (e) {
-      isValidUser = false;
-    }
-
-    // 2. Only redirect if BOTH token and user are verifiably present
-    if (isValidToken && isValidUser) {
-      window.location.replace('dashboard.html');
+    if (authToken && currentUser) {
+      window.location.href = 'dashboard.html';
     } else {
-      // Clean up any corrupt leftover storage
-      localStorage.removeItem('hv_token');
-      localStorage.removeItem('hv_user');
-      authToken = null;
-      currentUser = null;
-
       const preferred = localStorage.getItem('hv_preferred_view');
       localStorage.removeItem('hv_preferred_view');
       if (preferred === 'signupPage' && document.getElementById('signupPage')) {

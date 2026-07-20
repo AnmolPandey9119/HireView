@@ -21,8 +21,13 @@ from models.database import OTPVerification
 
 
 def generate_otp() -> str:
-    """Generate a numeric OTP of config.OTP_LENGTH digits."""
-    return "".join(secrets.choice("0123456789") for _ in range(config.OTP_LENGTH))
+    """
+    Generate an alphanumeric OTP of config.OTP_LENGTH characters
+    (uppercase letters + digits). Ambiguous-looking characters
+    (0/O and 1/I) are excluded so codes are easy to read and type.
+    """
+    alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    return "".join(secrets.choice(alphabet) for _ in range(config.OTP_LENGTH))
 
 
 def _hash_otp(otp: str) -> str:
@@ -92,6 +97,8 @@ def verify_otp(db: Session, email: str, purpose: str, submitted_otp: str) -> tup
     On failure, increments the attempt counter and invalidates
     the OTP entirely once OTP_MAX_VERIFY_ATTEMPTS is hit.
     """
+    submitted_otp = (submitted_otp or "").strip().upper()
+
     record = get_active_otp(db, email, purpose)
 
     if not record:

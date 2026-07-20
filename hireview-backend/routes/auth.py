@@ -27,7 +27,10 @@ from models.schemas import (
     ForgotPasswordRequest, ForgotPasswordReset,
     UpdateProfileRequest, ChangeEmailRequest, ChangeEmailVerify,
 )
-from models.auth_utils import hash_password, verify_password, create_access_token, decode_access_token
+from models.auth_utils import (
+    hash_password, verify_password, create_access_token, decode_access_token,
+    validate_password_strength,
+)
 from models.otp_utils import create_otp, verify_otp, can_resend, mark_email_verified, consume_email_verified
 from routes.email_Service import send_otp_email
 
@@ -119,6 +122,10 @@ async def register(payload: UserRegister, db: Session = Depends(get_db)):
         if existing.is_verified:
             raise HTTPException(status_code=400, detail="Email already registered")
         # An old unverified row from a previous flow — reuse it
+        is_valid, error = validate_password_strength(payload.password)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error)
+
         existing.name = payload.name
         existing.password_hash = hash_password(payload.password)
         existing.is_verified = True
@@ -127,8 +134,9 @@ async def register(payload: UserRegister, db: Session = Depends(get_db)):
         logger.info(f"New user registered: {existing.email}")
         return _issue_token(existing)
 
-    if len(payload.password) < 6:
-        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    is_valid, error = validate_password_strength(payload.password)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=error)
 
     user = User(
         name=payload.name,
@@ -189,8 +197,9 @@ async def forgot_password_reset(payload: ForgotPasswordReset, db: Session = Depe
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect or expired code")
 
-    if len(payload.new_password) < 6:
-        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    is_valid, error = validate_password_strength(payload.new_password)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=error)
 
     success, error = verify_otp(db, payload.email, "reset_password", payload.otp)
     if not success:

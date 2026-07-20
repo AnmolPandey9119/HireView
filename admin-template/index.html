@@ -172,7 +172,7 @@
         <button class="btn refresh-btn" id="refreshUsers">Refresh</button>
       </div>
       <table>
-        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Verified</th><th>Interviews</th><th>Joined</th><th>Actions</th></tr></thead>
+        <thead><tr><th>S.No.</th><th>Name</th><th>Email</th><th>Verified</th><th>Interviews</th><th>Joined</th><th>Actions</th></tr></thead>
         <tbody id="usersTbody"></tbody>
       </table>
       <div class="empty-state" id="usersEmpty" style="display:none;">No users found.</div>
@@ -371,7 +371,7 @@ function togglePasswordVisibility(inputId, toggleEl) {
   function renderUsers(list){
     $('usersTbody').innerHTML = list.map(u => `
       <tr>
-        <td>${u.id}</td>
+        <td>${u.serial_no}</td>
         <td>${escapeHtml(u.name)}</td>
         <td>${escapeHtml(u.email)}</td>
         <td>${u.is_verified ? '<span class="pill pill-green">Verified</span>' : '<span class="pill pill-orange">Unverified</span>'}</td>

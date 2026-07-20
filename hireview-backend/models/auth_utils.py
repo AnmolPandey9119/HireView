@@ -5,11 +5,46 @@
 # ============================================================
 
 import bcrypt
+import re
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from typing import Optional
 
 import config
+
+# ============================================================
+# PASSWORD STRENGTH VALIDATION
+# Rule: at least 8 characters, and must contain at least one
+# uppercase letter, one lowercase letter, one digit, and one
+# special character.
+# ============================================================
+PASSWORD_MIN_LENGTH = 8
+SPECIAL_CHARS_PATTERN = r'[!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>\/?`~]'
+
+PASSWORD_REQUIREMENTS_MESSAGE = (
+    f"Password must be at least {PASSWORD_MIN_LENGTH} characters long and include "
+    "at least one uppercase letter, one lowercase letter, one number, "
+    "and one special character."
+)
+
+
+def validate_password_strength(password: str) -> tuple[bool, str]:
+    """
+    Checks a plain-text password against the strength policy.
+    Returns (is_valid, error_message). error_message is "" when valid.
+    """
+    if not password or len(password) < PASSWORD_MIN_LENGTH:
+        return False, PASSWORD_REQUIREMENTS_MESSAGE
+    if not re.search(r'[A-Z]', password):
+        return False, PASSWORD_REQUIREMENTS_MESSAGE
+    if not re.search(r'[a-z]', password):
+        return False, PASSWORD_REQUIREMENTS_MESSAGE
+    if not re.search(r'\d', password):
+        return False, PASSWORD_REQUIREMENTS_MESSAGE
+    if not re.search(SPECIAL_CHARS_PATTERN, password):
+        return False, PASSWORD_REQUIREMENTS_MESSAGE
+    return True, ""
+
 
 # ============================================================
 # PASSWORD HASHING

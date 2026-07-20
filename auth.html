@@ -121,7 +121,7 @@
                 <div class="form-group">
                   <label class="form-label">Verification code</label>
                   <div style="display:flex;gap:0.5rem">
-                    <input type="text" id="signupOtpCode" class="form-input" placeholder="123456" maxlength="6" inputmode="numeric" style="flex:1">
+                    <input type="text" id="signupOtpCode" class="form-input" placeholder="A1B2C3" maxlength="6" inputmode="text" autocapitalize="characters" style="flex:1;text-transform:uppercase">
                     <button type="button" class="secondary-btn" style="white-space:nowrap;padding:0.9rem 1.1rem" onclick="handleVerifyEmailOtp()">Verify OTP</button>
                   </div>
                   <div style="text-align:right;margin-top:0.4rem">
@@ -133,7 +133,7 @@
               <div id="signupOtpMsg" class="error-message"></div>
 
               <div class="form-group">
-                <label class="form-label">Password <span style="color:rgba(255,255,255,0.4);font-size:0.82rem">min 6 characters</span></label>
+                <label class="form-label">Password <span style="color:rgba(255,255,255,0.4);font-size:0.82rem">min 8 chars, incl. upper, lower, number &amp; special char</span></label>
                 <div class="password-wrapper">
                   <input type="password" id="signupPassword" class="form-input" placeholder="Choose a strong password">
                   <span class="password-toggle" onclick="togglePasswordVisibility('signupPassword', this)" role="button" aria-label="Show password" tabindex="0">
@@ -193,10 +193,10 @@
                 <p class="auth-subtitle">Enter the code we emailed you and choose a new password</p>
                 <div class="form-group">
                   <label class="form-label">6-digit code</label>
-                  <input type="text" id="forgotOtp" class="form-input" placeholder="123456" maxlength="6" inputmode="numeric">
+                  <input type="text" id="forgotOtp" class="form-input" placeholder="A1B2C3" maxlength="6" inputmode="text" autocapitalize="characters" style="text-transform:uppercase">
                 </div>
                 <div class="form-group">
-                  <label class="form-label">New Password <span style="color:rgba(255,255,255,0.4);font-size:0.82rem">min 6 characters</span></label>
+                  <label class="form-label">New Password <span style="color:rgba(255,255,255,0.4);font-size:0.82rem">min 8 chars, incl. upper, lower, number &amp; special char</span></label>
                   <div class="password-wrapper">
                     <input type="password" id="forgotNewPassword" class="form-input" placeholder="Choose a new password">
                     <span class="password-toggle" onclick="togglePasswordVisibility('forgotNewPassword', this)" role="button" aria-label="Show password" tabindex="0">

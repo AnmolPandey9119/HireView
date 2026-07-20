@@ -323,7 +323,7 @@
 
               <div class="profile-field-edit hidden" id="emailOtpForm">
                 <div class="otp-sent-note" id="otpSentNote">Code sent to —</div>
-                <input type="text" class="form-input" id="emailOtpInput" placeholder="6-digit code" maxlength="6" inputmode="numeric">
+                <input type="text" class="form-input" id="emailOtpInput" placeholder="6-character code" maxlength="6" inputmode="text" autocapitalize="characters" style="text-transform:uppercase">
                 <div class="field-edit-actions">
                   <button class="field-btn-save" id="emailVerifyBtn" onclick="verifyEmailOtp()">Verify &amp; Update</button>
                   <button class="field-btn-cancel" onclick="cancelEmailEdit()">Cancel</button>
@@ -414,45 +414,15 @@
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
   <script>
-    // ════════════════════════════════════════════════
-    // STRICT AUTH GUARD (Prevents redirect loops)
-    // ════════════════════════════════════════════════
-    function enforceAuthGuard() {
-      const rawToken = localStorage.getItem('hv_token');
-      const rawUser = localStorage.getItem('hv_user');
-
-      const isValidToken = rawToken && rawToken !== 'null' && rawToken !== 'undefined' && rawToken.trim() !== '';
-      let isValidUser = false;
-
-      try {
-        const parsedUser = JSON.parse(rawUser);
-        isValidUser = Boolean(parsedUser && typeof parsedUser === 'object' && (parsedUser.email || parsedUser.id || parsedUser.name));
-      } catch (e) {
-        isValidUser = false;
-      }
-
-      if (!isValidToken || !isValidUser) {
-        // ALWAYS purge corrupt session data before bouncing back to auth.html
-        localStorage.removeItem('hv_token');
-        localStorage.removeItem('hv_user');
-        window.location.replace('auth.html');
-        return false;
-      }
-      return true;
-    }
-
-    // Run auth guard immediately
-    if (!enforceAuthGuard()) {
-      // Stop executing script if unauthorized
-      throw new Error("Unauthorized session - redirecting to auth.html");
-    }
+    // Auth check
+    if (!authToken) window.location.href = 'auth.html';
 
     function handleLogout() {
       authToken = null;
       currentUser = null;
       localStorage.removeItem('hv_token');
       localStorage.removeItem('hv_user');
-      window.location.replace('auth.html');
+      window.location.href = 'auth.html';
     }
 
     // ────────────────────────────────────────────
@@ -531,6 +501,7 @@
       return initials.toUpperCase();
     }
 
+    // Renders either the uploaded photo (if any) or initials into an avatar circle
     function renderAvatarEl(elId, user) {
       const el = document.getElementById(elId);
       if (!el) return;
@@ -540,6 +511,9 @@
         el.textContent = getInitials(user && user.name);
       }
 
+      // The big avatar on the Personal Info page doubles as a click-to-zoom
+      // preview, but only when there's an actual photo — clicking initials
+      // shouldn't open an empty lightbox.
       if (elId === 'profileAvatar') {
         const ring = document.getElementById('profileAvatarRing');
         if (ring) ring.classList.toggle('has-photo', !!(user && user.profile_picture));
@@ -550,7 +524,7 @@
     // AVATAR PREVIEW LIGHTBOX
     // ────────────────────────────────────────────
     function openAvatarPreview() {
-      if (!currentUser || !currentUser.profile_picture) return;
+      if (!currentUser || !currentUser.profile_picture) return; // nothing to enlarge yet
       document.getElementById('avatarPreviewImg').src = currentUser.profile_picture;
       document.getElementById('avatarPreviewOverlay').classList.add('open');
     }
@@ -578,10 +552,12 @@
       document.getElementById('profileEmail').textContent = user.email || '—';
     }
 
+    // Show whatever we already have in localStorage immediately,
+    // then refresh once /api/dashboard responds below.
     if (currentUser) populatePersonalInfo(currentUser);
 
     // ────────────────────────────────────────────
-    // Shared helper: PUT /api/auth/profile
+    // Shared helper: PUT /api/auth/profile (name and/or photo)
     // ────────────────────────────────────────────
     async function saveProfile(payload) {
       const res = await fetch(`${BACKEND_URL}/api/auth/profile`, {
@@ -636,7 +612,7 @@
 
     async function handleAvatarFile(e) {
       const file = e.target.files[0];
-      e.target.value = '';
+      e.target.value = ''; // allow re-selecting the same file later
       if (!file) return;
 
       if (!file.type.startsWith('image/')) {
@@ -743,7 +719,7 @@
 
     function startResendCooldown() {
       const btn = document.getElementById('resendOtpBtn');
-      let seconds = 45;
+      let seconds = 45; // matches backend OTP_RESEND_COOLDOWN_SECONDS
       btn.disabled = true;
       btn.textContent = `Resend code (${seconds}s)`;
       clearInterval(resendCooldownTimer);
@@ -761,7 +737,7 @@
 
     async function verifyEmailOtp() {
       const otp = document.getElementById('emailOtpInput').value.trim();
-      if (!otp) { showToast('Enter the 6-digit code.', true); return; }
+      if (!otp) { showToast('Enter the 6-character code.', true); return; }
       if (!pendingNewEmail) { showToast('Please request a new code.', true); return; }
 
       const btn = document.getElementById('emailVerifyBtn');
@@ -777,6 +753,7 @@
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.detail || 'Verification failed. Please try again.');
 
+        // Backend returns a fresh Token { access_token, user } since the email claim changed
         authToken = data.access_token;
         currentUser = data.user;
         localStorage.setItem('hv_token', authToken);
@@ -899,13 +876,7 @@
         });
 
         if (!res.ok) {
-          if (res.status === 401 || res.status === 403) {
-            // SAFE UNHANDLED REDIRECT: Clean session storage before bouncing
-            localStorage.removeItem('hv_token');
-            localStorage.removeItem('hv_user');
-            window.location.replace('auth.html');
-            return;
-          }
+          if (res.status === 401) { window.location.href = 'auth.html'; return; }
           throw new Error('Failed to load dashboard');
         }
 
@@ -915,7 +886,7 @@
         document.getElementById('welcomeText').textContent =
           `Welcome back, ${data.user.name.split(' ')[0]}! 👋`;
 
-        // Profile widgets
+        // Profile widgets (header avatar, mini dropdown, big panel)
         populatePersonalInfo(data.user);
 
         // Free trial banner
