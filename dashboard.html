@@ -118,6 +118,9 @@
     .profile-avatar-ring.has-photo:hover { transform: scale(1.03); }
     .profile-avatar-camera { position: absolute; bottom: 2px; right: 2px; width: 38px; height: 38px; border-radius: 50%; background: #6366f1; border: 3px solid #12162c; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: all 0.2s ease; z-index: 2; }
     .profile-avatar-camera:hover { background: #818cf8; transform: scale(1.08); }
+    .profile-avatar-remove { display: none; position: absolute; bottom: 2px; left: 2px; width: 38px; height: 38px; border-radius: 50%; background: #ef4444; border: 3px solid #12162c; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: all 0.2s ease; z-index: 2; }
+    .profile-avatar-remove:hover { background: #f87171; transform: scale(1.08); }
+    .profile-avatar-remove.has-photo { display: flex; }
 
     /* AVATAR PREVIEW LIGHTBOX */
     .avatar-preview-overlay { display: none; position: fixed; inset: 0; background: rgba(6,8,20,0.85); backdrop-filter: blur(6px); z-index: 1000; align-items: center; justify-content: center; padding: 2rem; }
@@ -127,6 +130,8 @@
     .avatar-preview-close { position: absolute; top: -14px; right: -14px; width: 40px; height: 40px; border-radius: 50%; background: #12162c; border: 2px solid rgba(255,255,255,0.15); color: white; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease; }
     .avatar-preview-close:hover { background: #ef4444; border-color: #ef4444; transform: scale(1.08); }
     .avatar-preview-hint { margin-top: 1.25rem; color: rgba(255,255,255,0.55); font-size: 0.9rem; }
+    .avatar-preview-remove-btn { margin-top: 0.75rem; background: none; border: none; color: #f87171; font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: inherit; padding: 0.3rem 0.6rem; }
+    .avatar-preview-remove-btn:hover { text-decoration: underline; }
     .profile-name { font-size: 1.6rem; font-weight: 800; color: white; margin-bottom: 0.35rem; }
     .profile-email { font-size: 0.95rem; color: rgba(255,255,255,0.5); margin-bottom: 2rem; }
     .profile-membership { background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(236,72,153,0.15)); border: 1px solid rgba(99,102,241,0.3); border-radius: 16px; padding: 1.5rem; }
@@ -279,6 +284,7 @@
                 <div class="profile-avatar" id="profileAvatar">?</div>
               </div>
               <div class="profile-avatar-camera" onclick="event.stopPropagation(); triggerAvatarUpload()" title="Change photo">📷</div>
+              <div class="profile-avatar-remove" id="profileAvatarRemoveBtn" onclick="event.stopPropagation(); removeAvatarPhoto()" title="Remove photo">🗑️</div>
               <input type="file" id="avatarFileInput" accept="image/*" class="hidden" onchange="handleAvatarFile(event)">
             </div>
 
@@ -288,6 +294,7 @@
                 <button class="avatar-preview-close" onclick="closeAvatarPreview()" title="Close">✕</button>
                 <img class="avatar-preview-img" id="avatarPreviewImg" alt="Profile photo preview">
                 <div class="avatar-preview-hint">Click the camera icon to change your photo</div>
+                <button class="avatar-preview-remove-btn" onclick="removeAvatarPhoto()">🗑️ Remove photo</button>
               </div>
             </div>
 
@@ -323,7 +330,7 @@
 
               <div class="profile-field-edit hidden" id="emailOtpForm">
                 <div class="otp-sent-note" id="otpSentNote">Code sent to —</div>
-                <input type="text" class="form-input" id="emailOtpInput" placeholder="6-character code" maxlength="6" inputmode="text" autocapitalize="characters" style="text-transform:uppercase">
+                <input type="text" class="form-input" id="emailOtpInput" placeholder="6-digit code" maxlength="6" inputmode="numeric">
                 <div class="field-edit-actions">
                   <button class="field-btn-save" id="emailVerifyBtn" onclick="verifyEmailOtp()">Verify &amp; Update</button>
                   <button class="field-btn-cancel" onclick="cancelEmailEdit()">Cancel</button>
@@ -515,8 +522,11 @@
       // preview, but only when there's an actual photo — clicking initials
       // shouldn't open an empty lightbox.
       if (elId === 'profileAvatar') {
+        const hasPhoto = !!(user && user.profile_picture);
         const ring = document.getElementById('profileAvatarRing');
-        if (ring) ring.classList.toggle('has-photo', !!(user && user.profile_picture));
+        if (ring) ring.classList.toggle('has-photo', hasPhoto);
+        const removeBtn = document.getElementById('profileAvatarRemoveBtn');
+        if (removeBtn) removeBtn.classList.toggle('has-photo', hasPhoto);
       }
     }
 
@@ -629,6 +639,21 @@
       }
     }
 
+    async function removeAvatarPhoto() {
+      if (!currentUser || !currentUser.profile_picture) return; // nothing to remove
+      if (!confirm('Remove your profile photo?')) return;
+
+      try {
+        // Empty string tells the backend to explicitly clear profile_picture
+        // (as opposed to omitting the field, which leaves it untouched).
+        await saveProfile({ profile_picture: '' });
+        closeAvatarPreview();
+        showToast('Profile photo removed.');
+      } catch (err) {
+        showToast(err.message || 'Could not remove photo.', true);
+      }
+    }
+
     // ────────────────────────────────────────────
     // EDIT NAME
     // ────────────────────────────────────────────
@@ -737,7 +762,7 @@
 
     async function verifyEmailOtp() {
       const otp = document.getElementById('emailOtpInput').value.trim();
-      if (!otp) { showToast('Enter the 6-character code.', true); return; }
+      if (!otp) { showToast('Enter the 6-digit code.', true); return; }
       if (!pendingNewEmail) { showToast('Please request a new code.', true); return; }
 
       const btn = document.getElementById('emailVerifyBtn');
@@ -876,7 +901,16 @@
         });
 
         if (!res.ok) {
-          if (res.status === 401) { window.location.href = 'auth.html'; return; }
+          if (res.status === 401) {
+            // Stale/invalid token — clear it before redirecting, otherwise
+            // auth.html sees a token still sitting in localStorage and
+            // bounces straight back to dashboard.html, which hits 401 again,
+            // causing an infinite auth.html <-> dashboard.html redirect loop.
+            localStorage.removeItem('hv_token');
+            localStorage.removeItem('hv_user');
+            window.location.href = 'auth.html';
+            return;
+          }
           throw new Error('Failed to load dashboard');
         }
 
