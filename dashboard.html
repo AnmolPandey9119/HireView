@@ -404,8 +404,8 @@
               <label class="form-label">Confirm New Password</label>
               <input type="password" class="form-input" placeholder="Re-enter new password" id="confirmPasswordInput">
             </div>
-            <div class="password-hint">Password changing from Account Settings is coming soon. Need to reset it right now? Use "Forgot Password" on the login page.</div>
-            <button class="primary-btn" onclick="showComingSoon('Password update')">Update Password</button>
+            <div class="password-hint">Forgot your current password instead? Use "Forgot Password" on the login page.</div>
+            <button class="primary-btn" id="updatePasswordBtn" onclick="handleChangePassword()">Update Password</button>
           </div>
         </div>
       </div>
@@ -683,7 +683,57 @@
     }
 
     // ────────────────────────────────────────────
-    // CHANGE EMAIL (OTP verified)
+    // CHANGE PASSWORD
+    // ────────────────────────────────────────────
+    async function handleChangePassword() {
+      const currentPassword = document.getElementById('currentPasswordInput').value;
+      const newPassword = document.getElementById('newPasswordInput').value;
+      const confirmPassword = document.getElementById('confirmPasswordInput').value;
+
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        showToast('Please fill in all three fields.', true);
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        showToast('New passwords do not match.', true);
+        return;
+      }
+      if (newPassword.length < 6) {
+        showToast('New password must be at least 6 characters.', true);
+        return;
+      }
+
+      const btn = document.getElementById('updatePasswordBtn');
+      btn.disabled = true;
+      btn.textContent = 'Updating...';
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/auth/change-password`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ current_password: currentPassword, new_password: newPassword })
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          throw new Error(data.detail || 'Could not update password.');
+        }
+
+        document.getElementById('currentPasswordInput').value = '';
+        document.getElementById('newPasswordInput').value = '';
+        document.getElementById('confirmPasswordInput').value = '';
+        showToast('Password updated!');
+
+      } catch (err) {
+        showToast(err.message || 'Could not update password.', true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Update Password';
+      }
+    }
     // ────────────────────────────────────────────
     let pendingNewEmail = null;
     let resendCooldownTimer = null;

@@ -60,6 +60,12 @@ class ChangeEmailVerify(BaseModel):
     new_email: EmailStr
     otp: str
 
+class ChangePasswordRequest(BaseModel):
+    """Change password while already logged in — requires the current
+    password as proof, unlike the OTP-based forgot-password flow."""
+    current_password: str
+    new_password: str
+
 
 # ============================================================
 # OTP SCHEMAS

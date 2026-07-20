@@ -26,11 +26,9 @@ from models.schemas import (
     SendEmailOTPRequest, VerifyEmailOTPRequest,
     ForgotPasswordRequest, ForgotPasswordReset,
     UpdateProfileRequest, ChangeEmailRequest, ChangeEmailVerify,
+    ChangePasswordRequest,
 )
-from models.auth_utils import (
-    hash_password, verify_password, create_access_token, decode_access_token,
-    validate_password_strength,
-)
+from models.auth_utils import hash_password, verify_password, create_access_token, decode_access_token
 from models.otp_utils import create_otp, verify_otp, can_resend, mark_email_verified, consume_email_verified
 from routes.email_Service import send_otp_email
 
@@ -122,10 +120,6 @@ async def register(payload: UserRegister, db: Session = Depends(get_db)):
         if existing.is_verified:
             raise HTTPException(status_code=400, detail="Email already registered")
         # An old unverified row from a previous flow — reuse it
-        is_valid, error = validate_password_strength(payload.password)
-        if not is_valid:
-            raise HTTPException(status_code=400, detail=error)
-
         existing.name = payload.name
         existing.password_hash = hash_password(payload.password)
         existing.is_verified = True
@@ -134,9 +128,8 @@ async def register(payload: UserRegister, db: Session = Depends(get_db)):
         logger.info(f"New user registered: {existing.email}")
         return _issue_token(existing)
 
-    is_valid, error = validate_password_strength(payload.password)
-    if not is_valid:
-        raise HTTPException(status_code=400, detail=error)
+    if len(payload.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
 
     user = User(
         name=payload.name,
@@ -197,9 +190,8 @@ async def forgot_password_reset(payload: ForgotPasswordReset, db: Session = Depe
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect or expired code")
 
-    is_valid, error = validate_password_strength(payload.new_password)
-    if not is_valid:
-        raise HTTPException(status_code=400, detail=error)
+    if len(payload.new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
 
     success, error = verify_otp(db, payload.email, "reset_password", payload.otp)
     if not success:
@@ -264,6 +256,33 @@ async def update_profile(
     db.refresh(current_user)
     logger.info(f"Profile updated: {current_user.email}")
     return UserResponse.model_validate(current_user)
+
+
+# ============================================================
+# CHANGE PASSWORD — while logged in (requires current password)
+# For users who forgot their password entirely, see the OTP-based
+# forgot-password flow above instead.
+# ============================================================
+@router.post("/auth/change-password", response_model=MessageResponse)
+async def change_password(
+    payload: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if not verify_password(payload.current_password, current_user.password_hash):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+
+    if len(payload.new_password) < 6:
+        raise HTTPException(status_code=400, detail="New password must be at least 6 characters")
+
+    if verify_password(payload.new_password, current_user.password_hash):
+        raise HTTPException(status_code=400, detail="New password must be different from your current password")
+
+    current_user.password_hash = hash_password(payload.new_password)
+    db.commit()
+
+    logger.info(f"Password changed: {current_user.email}")
+    return MessageResponse(message="Password updated successfully.")
 
 
 # ============================================================
