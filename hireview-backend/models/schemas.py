@@ -27,6 +27,8 @@ class UserResponse(BaseModel):
     email: str
     is_verified: bool
     profile_picture: Optional[str] = None
+    subscription_plan: Optional[str] = None
+    subscription_active_until: Optional[datetime] = None
     created_at: datetime
 
     class Config:

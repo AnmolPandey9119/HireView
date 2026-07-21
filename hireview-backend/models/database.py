@@ -43,6 +43,15 @@ class User(Base):
     # Frontend resizes/compresses before upload — see MAX_PROFILE_PICTURE_BYTES
     # in config.py for the enforced size cap.
     profile_picture  = Column(Text, nullable=True)
+
+    # Subscription tracking (see HireView Pricing Plan Proposal — Weekly ₹99
+    # / Monthly ₹299, unlimited access, one-time pass, no auto-renewal).
+    # No purchase endpoint exists yet — these are set manually / by a future
+    # payment-gateway webhook once checkout is wired up. "plan" is 'weekly'
+    # or 'monthly'; access is valid up to (and hard-cuts off at) active_until.
+    subscription_plan         = Column(String, nullable=True)
+    subscription_active_until = Column(DateTime, nullable=True)
+
     created_at       = Column(DateTime, default=datetime.utcnow)
 
     # Relationships

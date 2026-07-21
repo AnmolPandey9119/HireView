@@ -241,7 +241,9 @@ async def get_dashboard_stats(
         "user": {
             "name": current_user.name,
             "email": current_user.email,
-            "profile_picture": current_user.profile_picture
+            "profile_picture": current_user.profile_picture,
+            "subscription_plan": current_user.subscription_plan,
+            "subscription_active_until": current_user.subscription_active_until
         },
         "stats": {
             "total_interviews": total,

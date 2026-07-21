@@ -137,15 +137,15 @@
     .profile-explore-btn { padding: 0.85rem 2rem; background: linear-gradient(135deg, #6366f1, #ec4899); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
     .profile-explore-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.6); }
 
-    /* PAYMENT / PLANS */
-    .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
+    /* PAYMENT — Weekly / Monthly subscription plans */
+    .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.5rem; max-width: 620px; margin-top: 1rem; }
     .plan-card { background: rgba(255,255,255,0.04); border: 2px solid rgba(99,102,241,0.2); border-radius: 20px; padding: 2rem 1.5rem; text-align: center; transition: all 0.3s ease; display: flex; flex-direction: column; }
     .plan-card:hover { transform: translateY(-4px); border-color: rgba(99,102,241,0.4); }
     .plan-card.featured { border-color: #6366f1; background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(236,72,153,0.08)); }
     .plan-badge { align-self: center; background: linear-gradient(135deg, #6366f1, #ec4899); color: white; font-size: 0.72rem; font-weight: 800; padding: 0.25rem 0.8rem; border-radius: 20px; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .plan-badge-outline { align-self: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.6); font-size: 0.72rem; font-weight: 800; padding: 0.25rem 0.8rem; border-radius: 20px; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.5px; }
     .plan-name { font-size: 1.15rem; font-weight: 800; color: white; margin-bottom: 0.5rem; }
     .plan-price { font-size: 2rem; font-weight: 800; color: white; margin-bottom: 0.25rem; }
-    .plan-price span { font-size: 0.9rem; font-weight: 500; color: rgba(255,255,255,0.5); }
     .plan-cycle { font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-bottom: 1.5rem; }
     .plan-features { list-style: none; text-align: left; margin-bottom: 1.75rem; flex: 1; }
     .plan-features li { padding: 0.5rem 0; font-size: 0.88rem; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 0.6rem; }
@@ -153,6 +153,7 @@
     .plan-btn:hover { background: rgba(255,255,255,0.12); }
     .plan-btn.primary { background: linear-gradient(135deg, #6366f1, #ec4899); border: none; box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
     .plan-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.6); }
+    .plans-footnote { max-width: 620px; font-size: 0.82rem; color: rgba(255,255,255,0.4); line-height: 1.6; margin-top: 1.5rem; }
 
     /* PASSWORD */
     .password-card { max-width: 480px; background: rgba(255,255,255,0.04); border: 1px solid rgba(99,102,241,0.2); border-radius: 20px; padding: 2.5rem; margin-top: 1rem; }
@@ -345,48 +346,39 @@
 
         <div class="page" id="paymentPage">
           <div class="section-title">Payment and Subscription</div>
-          <div class="dashboard-sub" style="margin-bottom:1.5rem">Choose the plan that fits how often you interview.</div>
+          <div class="dashboard-sub" style="margin-bottom:1.75rem">Both plans unlock unlimited interviews — Private and Government sector, all features. One-time pass, doesn't auto-renew.</div>
 
           <div class="plans-grid">
             <div class="plan-card">
-              <div class="plan-name">Free</div>
-              <div class="plan-price">₹0</div>
-              <div class="plan-cycle">forever</div>
+              <div class="plan-badge-outline">Exam-Crunch</div>
+              <div class="plan-name">Weekly</div>
+              <div class="plan-price">₹99</div>
+              <div class="plan-cycle">7 days · ~₹14.1/day</div>
               <ul class="plan-features">
-                <li>✅ 3 free interviews</li>
-                <li>✅ Basic AI feedback</li>
-                <li>✅ Interview history</li>
+                <li>✅ Unlimited interviews</li>
+                <li>✅ Private &amp; Government sector</li>
+                <li>✅ All features unlocked</li>
+                <li>✅ One-time pass — no auto-renewal</li>
               </ul>
-              <button class="plan-btn" disabled style="opacity:0.6;cursor:default">Current Plan</button>
+              <button class="plan-btn" onclick="showComingSoon('Weekly plan checkout')">Get Weekly</button>
             </div>
 
             <div class="plan-card featured">
-              <div class="plan-badge">Most Popular</div>
-              <div class="plan-name">Pro</div>
-              <div class="plan-price">₹499<span>/mo</span></div>
-              <div class="plan-cycle">billed monthly</div>
+              <div class="plan-badge">Best Value</div>
+              <div class="plan-name">Monthly</div>
+              <div class="plan-price">₹299</div>
+              <div class="plan-cycle">30 days · ~₹10/day</div>
               <ul class="plan-features">
                 <li>✅ Unlimited interviews</li>
-                <li>✅ Advanced AI feedback</li>
-                <li>✅ Government sector prep</li>
-                <li>✅ Cheating/integrity report</li>
+                <li>✅ Private &amp; Government sector</li>
+                <li>✅ All features unlocked</li>
+                <li>✅ One-time pass — no auto-renewal</li>
               </ul>
-              <button class="plan-btn primary" onclick="showComingSoon('Pro plan checkout')">Upgrade to Pro</button>
-            </div>
-
-            <div class="plan-card">
-              <div class="plan-name">Premium</div>
-              <div class="plan-price">₹1,499<span>/mo</span></div>
-              <div class="plan-cycle">billed monthly</div>
-              <ul class="plan-features">
-                <li>✅ Everything in Pro</li>
-                <li>✅ Priority AI response</li>
-                <li>✅ Multilingual interviews</li>
-                <li>✅ 1:1 resume review</li>
-              </ul>
-              <button class="plan-btn" onclick="showComingSoon('Premium plan checkout')">Upgrade to Premium</button>
+              <button class="plan-btn primary" onclick="showComingSoon('Monthly plan checkout')">Get Monthly</button>
             </div>
           </div>
+
+          <div class="plans-footnote">Access ends exactly at your plan's expiry — you'll get a heads-up notification beforehand (2 days before for Weekly, 7 days before for Monthly), then can purchase again anytime.</div>
         </div>
 
         <div class="page" id="passwordPage">
