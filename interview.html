@@ -345,9 +345,8 @@
               <div class="answer-section">
                 <label class="form-label">Your Answer</label>
                 <div id="speechStatus" class="speech-status">🎙️ Listening... speak now</div>
-                <textarea id="answerInput" class="answer-textarea" placeholder="Type your answer or use the microphone..." rows="5"></textarea>
+                <textarea id="answerInput" class="answer-textarea" placeholder="Type your answer or use the microphone..." rows="5" oninput="noteSpeechActivity()"></textarea>
                 <div class="answer-actions">
-                  <button class="speak-btn" id="speakBtn" onclick="toggleSpeech()">🎙️ Start Speaking</button>
                   <button class="secondary-btn" onclick="skipQuestion()">Skip</button>
                   <button class="primary-btn" style="width:auto;padding:0.9rem 2rem;" onclick="submitAnswer()">Submit Answer</button>
                 </div>

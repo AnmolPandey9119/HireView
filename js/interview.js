@@ -1191,10 +1191,10 @@ function stopListening() {
   }
 }
 
-function toggleSpeech() {
-  if (isListening) stopListening();
-  else autoStartListening();
-}
+// Manual mic control removed entirely — autoStartListening/stopListening are
+// system-driven only (fired around each question and answer). Previously a
+// "Start/Stop Speaking" button let candidates kill the silence watchdog and
+// sit silent indefinitely with zero consequence; that control no longer exists.
 
 // ════════════════════════════════════════════════
 // AI INTERVIEWER — GROQ
@@ -1469,7 +1469,6 @@ async function endInterview(autoEnded = false) {
   document.getElementById('questionNumber').textContent = '✅ Done';
 
   document.getElementById('answerInput').disabled = true;
-  document.getElementById('speakBtn').disabled = true;
   document.querySelector('.secondary-btn').disabled = true;
   document.querySelector('.primary-btn[onclick="submitAnswer()"]').disabled = true;
 
