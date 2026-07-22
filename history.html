@@ -65,6 +65,20 @@
     .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
     .loading-shimmer { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 18px; height: 80px; margin-bottom: 1rem; }
     @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    .strengths-improve-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; }
+
+    @media (max-width: 768px) {
+      .page-title { font-size: 1.4rem; }
+      .history-card-header { padding: 1.25rem; }
+      .history-role { font-size: 0.95rem; }
+      .history-meta { width: 100%; justify-content: space-between; }
+      .scores-row { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+      .score-chip { padding: 0.5rem; }
+      .score-chip-value { font-size: 1.1rem; }
+      .strengths-grid,
+      .strengths-improve-grid { grid-template-columns: 1fr; }
+      .feedback-section, .qa-section { padding: 1.25rem; }
+    }
   </style>
 </head>
 <body>
@@ -149,7 +163,7 @@
           </div>
           <div class="feedback-summary">${feedback.summary || ''}</div>
           ${strengths || improve ? `
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem">
+            <div class="strengths-improve-grid">
               <div>
                 <div style="font-size:0.78rem;font-weight:700;color:#22c55e;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.5px">Strengths</div>
                 ${strengths}

@@ -170,3 +170,49 @@
 
    /* CHARACTER COUNTER */
    .char-counter { font-size: 0.8rem; color: rgba(255,255,255,0.4); text-align: right; margin-top: 0.5rem; }
+
+   /* ════════════════════════════════════════════════
+      RESPONSIVE — MOBILE (≤768px)
+      ════════════════════════════════════════════════ */
+   @media (max-width: 768px) {
+     .main-content { padding: 5.5rem 1rem 2rem; }
+
+     /* Auth */
+     .auth-card { padding: 2rem 1.25rem; border-radius: 18px; }
+     .auth-logo-text { font-size: 1.6rem; }
+     .auth-title { font-size: 1.35rem; }
+
+     /* Setup / cards */
+     .interview-setup { padding: 1.75rem 1.25rem; border-radius: 18px; }
+     .setup-title { font-size: 1.5rem; margin-bottom: 1.75rem; }
+
+     /* Grids that were fixed to 2 columns */
+     .form-row,
+     .sector-selector,
+     .biodata-option-group { grid-template-columns: 1fr; gap: 0.75rem; }
+     .sector-card { padding: 1.5rem 1rem; }
+
+     /* Active interview layout — stack camera above questions */
+     .interview-content { grid-template-columns: 1fr; gap: 1.25rem; }
+     .interview-header-bar { flex-direction: column; align-items: flex-start; gap: 1rem; padding: 1.25rem; }
+     .interview-info-bar { width: 100%; justify-content: space-between; gap: 1rem; }
+     .end-interview-btn { width: 100%; }
+     .camera-section { padding: 1.25rem; }
+     .question-card { padding: 1.5rem 1.25rem; }
+     .question-text { font-size: 1.2rem; }
+     .answer-section { padding: 1.25rem; }
+     .answer-actions { justify-content: stretch; }
+     .answer-actions button { flex: 1; }
+
+     /* Post-interview results page (rendered by interview.js) */
+     .results-container { padding: 1.5rem 0.75rem !important; }
+     .results-score-grid { grid-template-columns: 1fr !important; }
+     .integrity-flags-grid { grid-template-columns: 1fr 1fr !important; }
+   }
+
+   @media (max-width: 420px) {
+     .main-content { padding: 5rem 0.75rem 1.5rem; }
+     .auth-card { padding: 1.5rem 1rem; }
+     .interview-setup { padding: 1.5rem 1rem; }
+     .question-card, .answer-section { padding: 1.25rem 1rem; }
+   }

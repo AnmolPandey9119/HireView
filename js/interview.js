@@ -1586,7 +1586,7 @@ function showFeedbackScreen(feedback) {
           ${ir.verdict} — ${ir.integrity_score}/100
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;font-size:0.85rem">
+      <div class="integrity-flags-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;font-size:0.85rem">
         <div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:0.75rem;text-align:center">
           <div style="font-size:1.4rem;font-weight:800;color:${ir.tab_switches > 0 ? '#f87171' : '#22c55e'}">${ir.tab_switches}</div>
           <div style="color:rgba(255,255,255,0.5);font-size:0.78rem">Tab Switches</div>
@@ -1609,7 +1609,7 @@ function showFeedbackScreen(feedback) {
     </div>` : '';
 
   document.getElementById('activeInterviewPage').innerHTML = `
-    <div style="max-width:800px;margin:0 auto;padding:2rem 1rem">
+    <div class="results-container" style="max-width:800px;margin:0 auto;padding:2rem 1rem">
       <div style="text-align:center;margin-bottom:2.5rem">
         <div style="font-size:3rem;font-weight:800;color:${scoreColor}">${score}/10</div>
         <div style="font-size:1.1rem;color:rgba(255,255,255,0.6);margin-top:0.5rem">Overall Score</div>
@@ -1619,7 +1619,7 @@ function showFeedbackScreen(feedback) {
         <div style="font-weight:700;margin-bottom:1rem">📋 Summary</div>
         <p style="color:rgba(255,255,255,0.75);line-height:1.7;margin:0">${feedback.summary}</p>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+      <div class="results-score-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
         <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(99,102,241,0.2);border-radius:14px;padding:1.5rem">
           <div style="font-size:0.8rem;color:rgba(255,255,255,0.5);font-weight:600;text-transform:uppercase;margin-bottom:0.5rem">Technical</div>
           <div style="font-size:2rem;font-weight:800;color:#6366f1">${feedback.technical_score}/10</div>
@@ -1629,7 +1629,7 @@ function showFeedbackScreen(feedback) {
           <div style="font-size:2rem;font-weight:800;color:#ec4899">${feedback.soft_skills_score}/10</div>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+      <div class="results-score-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
         <div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:14px;padding:1.5rem">
           <div style="font-weight:700;color:#22c55e;margin-bottom:0.75rem">✅ Strengths</div>
           <ul style="margin:0;padding-left:1.25rem;color:rgba(255,255,255,0.75);line-height:1.8;font-size:0.9rem">${strengthsList}</ul>
