@@ -52,11 +52,20 @@
                             <option value="finance_banking">Finance & Banking (Private)</option>
                             <option value="marketing_sales">Marketing & Sales</option>
                             <option value="design_product">Design & Product</option>
+                            <option value="other">Other (not listed)</option>
                         </select>
+                    </div>
+                    <div class="form-group" id="privateDomainCustomGroup" style="display:none;">
+                        <label class="form-label">Specify Job Domain</label>
+                        <input type="text" id="privateDomainCustom" class="select-input" placeholder="e.g. EdTech, Healthcare Tech, Legal">
                     </div>
                     <div class="form-group" id="privateRoleGroup" style="display:none;">
                         <label class="form-label">Job Role</label>
-                        <select id="privateRole" class="select-input"></select>
+                        <select id="privateRole" class="select-input" onchange="togglePrivateRoleCustom()"></select>
+                    </div>
+                    <div class="form-group" id="privateRoleCustomGroup" style="display:none;">
+                        <label class="form-label">Specify Job Role</label>
+                        <input type="text" id="privateRoleCustom" class="select-input" placeholder="e.g. Growth Hacker, ML Ops Engineer">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Interview Language</label>
@@ -80,6 +89,39 @@
                         </div>
                         <div id="resumeUploadedInfo" style="display:none"></div>
                     </div>
+
+                    <div class="setup-section-divider">Job Description <span style="color:rgba(255,255,255,0.4);font-weight:500;font-size:0.85rem">(Optional — crash-prep for a specific job)</span></div>
+                    <div class="form-group">
+                        <div class="biodata-option-group">
+                            <div class="biodata-option" id="jdPasteOption" onclick="selectJdOption('paste')">
+                                <span class="biodata-option-icon">📝</span>
+                                <span class="biodata-option-text">Paste JD Text</span>
+                            </div>
+                            <div class="biodata-option" id="jdUploadOption" onclick="selectJdOption('upload')">
+                                <span class="biodata-option-icon">📤</span>
+                                <span class="biodata-option-text">Upload JD File</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- JD Paste -->
+                    <div id="jdPasteSection" class="form-group" style="display:none;">
+                        <textarea id="jdTextInput" class="select-input" rows="6" style="resize:vertical;font-family:inherit;line-height:1.5" placeholder="Paste the job description here — responsibilities, required skills, etc." oninput="handleJdTextInput(event)"></textarea>
+                    </div>
+                    <!-- JD Upload -->
+                    <div id="jdUploadSection" class="form-group" style="display:none;">
+                        <div class="resume-upload-zone" id="jdDropZone">
+                            <input type="file" id="jdFileInput" accept=".pdf,.txt,.doc,.docx" onchange="handleJdUpload(event)">
+                            <span class="resume-upload-icon">📋</span>
+                            <div class="resume-upload-title">Drop the job description here or click to browse</div>
+                            <div class="resume-upload-hint">PDF, TXT, DOC, DOCX · Max 5MB</div>
+                        </div>
+                        <div id="jdParsingIndicator" class="resume-parsing-indicator" style="display:none">
+                            <div class="resume-parsing-dots"><span></span><span></span><span></span></div>
+                            <span>Reading the job description…</span>
+                        </div>
+                        <div id="jdUploadedInfo" style="display:none"></div>
+                    </div>
+
                     <div id="setupError" class="error-message"></div>
                     <button class="primary-btn" onclick="handleInterviewStart('private')">Begin Interview</button>
                 </div>

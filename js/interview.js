@@ -57,6 +57,12 @@ let biodataFileName = '';
 let biodataFileSize = 0;
 let biodataSource = null; // 'upload' or 'form'
 
+// Job Description (JD) — optional, private sector only
+let jdText = '';
+let jdFileName = '';
+let jdFileSize = 0;
+let jdSource = null; // 'paste' or 'upload'
+
 // Job role options
 const privateDomains = {
   technology: [
@@ -110,6 +116,22 @@ function goBackToSector() {
   biodataFileName = '';
   biodataFileSize = 0;
   biodataSource = null;
+
+  jdText = '';
+  jdFileName = '';
+  jdFileSize = 0;
+  jdSource = null;
+  const jdTextInput = document.getElementById('jdTextInput');
+  if (jdTextInput) jdTextInput.value = '';
+  const jdFileInput = document.getElementById('jdFileInput');
+  if (jdFileInput) jdFileInput.value = '';
+  ['jdPasteOption','jdUploadOption'].forEach(id => document.getElementById(id)?.classList.remove('selected'));
+  const jdPasteSection = document.getElementById('jdPasteSection');
+  const jdUploadSection = document.getElementById('jdUploadSection');
+  if (jdPasteSection) jdPasteSection.style.display = 'none';
+  if (jdUploadSection) jdUploadSection.style.display = 'none';
+  const jdUploadedInfo = document.getElementById('jdUploadedInfo');
+  if (jdUploadedInfo) jdUploadedInfo.style.display = 'none';
 }
 
 // ════════════════════════════════════════════════
@@ -119,16 +141,51 @@ function updatePrivateRoles() {
   const domain = document.getElementById('privateDomain').value;
   const roleSelect = document.getElementById('privateRole');
   const roleGroup = document.getElementById('privateRoleGroup');
-  
+  const domainCustomGroup = document.getElementById('privateDomainCustomGroup');
+  const roleCustomGroup = document.getElementById('privateRoleCustomGroup');
+
+  if (domain === 'other') {
+    // Fully custom domain — role also has to be typed, no predefined list applies
+    domainCustomGroup.style.display = 'block';
+    roleGroup.style.display = 'none';
+    roleCustomGroup.style.display = 'block';
+    return;
+  }
+  domainCustomGroup.style.display = 'none';
+
   if (domain) {
     roleGroup.style.display = 'block';
     roleSelect.innerHTML = '<option value="">Select a role</option>';
     privateDomains[domain].forEach(role => {
       roleSelect.innerHTML += `<option value="${role}">${role}</option>`;
     });
+    roleSelect.innerHTML += `<option value="__other__">Other (specify below)</option>`;
+    roleCustomGroup.style.display = 'none';
   } else {
     roleGroup.style.display = 'none';
+    roleCustomGroup.style.display = 'none';
   }
+}
+
+function togglePrivateRoleCustom() {
+  const roleCustomGroup = document.getElementById('privateRoleCustomGroup');
+  roleCustomGroup.style.display = document.getElementById('privateRole').value === '__other__' ? 'block' : 'none';
+}
+
+// Resolves the final job domain/role, whether picked from the dropdown or typed as custom
+function getPrivateJobDomain() {
+  const domainSelect = document.getElementById('privateDomain');
+  if (domainSelect.value === 'other') return document.getElementById('privateDomainCustom').value.trim();
+  if (!domainSelect.value) return '';
+  return domainSelect.options[domainSelect.selectedIndex].text; // human-readable label, e.g. "HR & Management"
+}
+
+function getPrivateJobRole() {
+  const domain = document.getElementById('privateDomain').value;
+  if (domain === 'other') return document.getElementById('privateRoleCustom').value.trim();
+  const roleVal = document.getElementById('privateRole').value;
+  if (roleVal === '__other__') return document.getElementById('privateRoleCustom').value.trim();
+  return roleVal;
 }
 
 function updateGovernmentRoles() {
@@ -168,6 +225,103 @@ function selectBiodataOption(option) {
 }
 
 // ════════════════════════════════════════════════
+// JOB DESCRIPTION (JD) OPTIONS — PRIVATE SECTOR, OPTIONAL
+// ════════════════════════════════════════════════
+function selectJdOption(option) {
+  jdSource = option;
+
+  document.getElementById('jdPasteOption').classList.remove('selected');
+  document.getElementById('jdUploadOption').classList.remove('selected');
+
+  if (option === 'paste') {
+    document.getElementById('jdPasteOption').classList.add('selected');
+    document.getElementById('jdPasteSection').style.display = 'block';
+    document.getElementById('jdUploadSection').style.display = 'none';
+  } else {
+    document.getElementById('jdUploadOption').classList.add('selected');
+    document.getElementById('jdUploadSection').style.display = 'block';
+    document.getElementById('jdPasteSection').style.display = 'none';
+  }
+}
+
+function handleJdTextInput(event) {
+  jdText = event.target.value;
+}
+
+function handleJdUpload(event) {
+  const file = event.target.files[0];
+  if (file) processJdFile(file);
+}
+
+async function processJdFile(file) {
+  const maxSize = 5 * 1024 * 1024;
+  if (file.size > maxSize) { showSetupError('JD file is too large (max 5 MB)'); return; }
+
+  const allowed = ['application/pdf', 'text/plain', 'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+  if (!allowed.includes(file.type) && !file.name.match(/\.(pdf|txt|doc|docx)$/i)) {
+    showSetupError('Unsupported file type. Use PDF, TXT, or DOC/DOCX.'); return;
+  }
+
+  jdFileName = file.name;
+  jdFileSize = file.size;
+  jdText = '';
+
+  document.getElementById('jdParsingIndicator').style.display = 'flex';
+  document.getElementById('jdUploadedInfo').style.display = 'none';
+
+  try {
+    if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+      jdText = await file.text();
+    } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+      jdText = await extractPdfText(file);
+    } else {
+      jdText = await extractDocxText(file);
+    }
+
+    if (!jdText || jdText.trim().length < 20) {
+      showSetupError('Could not extract text from the JD. Try a PDF or TXT version.');
+      document.getElementById('jdParsingIndicator').style.display = 'none';
+      return;
+    }
+    showJdUploaded();
+  } catch (err) {
+    console.error('JD parsing error:', err);
+    const msg = err && err.message === 'legacy_doc_unsupported'
+      ? 'Old .doc format is not supported. Please upload a .docx, PDF, or TXT file.'
+      : 'Failed to read the file. Please try a PDF, DOCX, or TXT.';
+    showSetupError(msg);
+    document.getElementById('jdParsingIndicator').style.display = 'none';
+  }
+}
+
+function showJdUploaded() {
+  document.getElementById('jdParsingIndicator').style.display = 'none';
+  const sizeLabel = jdFileSize < 1024 * 1024
+    ? `${(jdFileSize / 1024).toFixed(1)} KB`
+    : `${(jdFileSize / (1024 * 1024)).toFixed(1)} MB`;
+  const info = document.getElementById('jdUploadedInfo');
+  info.style.display = 'block';
+  info.innerHTML = `
+    <div class="resume-uploaded">
+      <div class="resume-uploaded-icon">✅</div>
+      <div class="resume-uploaded-info">
+        <div class="resume-uploaded-name">📋 ${jdFileName}</div>
+        <div class="resume-uploaded-size">${sizeLabel} · ${jdText.trim().split(/\s+/).length.toLocaleString()} words extracted</div>
+      </div>
+      <button class="resume-remove-btn" onclick="removeJd()">Remove</button>
+    </div>`;
+}
+
+function removeJd() {
+  jdText = '';
+  jdFileName = '';
+  jdFileSize = 0;
+  document.getElementById('jdFileInput').value = '';
+  document.getElementById('jdUploadedInfo').style.display = 'none';
+}
+
+// ════════════════════════════════════════════════
 // BIODATA UPLOAD & PARSING
 // ════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
@@ -180,6 +334,18 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault(); resumeZone.classList.remove('drag-over');
       const file = e.dataTransfer.files[0];
       if (file) processResumeFile(file);
+    });
+  }
+
+  // JD drop zone for private sector (optional)
+  const jdZone = document.getElementById('jdDropZone');
+  if (jdZone) {
+    jdZone.addEventListener('dragover', e => { e.preventDefault(); jdZone.classList.add('drag-over'); });
+    jdZone.addEventListener('dragleave', () => jdZone.classList.remove('drag-over'));
+    jdZone.addEventListener('drop', e => {
+      e.preventDefault(); jdZone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) processJdFile(file);
     });
   }
 
@@ -574,8 +740,12 @@ async function handleInterviewStart(sector) {
   let candidateSummary = null;
 
   if (sector === 'private') {
-    jobTitle = document.getElementById('privateRole').value;
-    if (!jobTitle) { showSetupError('Please select a job role first.'); return; }
+    const domainVal = document.getElementById('privateDomain').value;
+    if (!domainVal) { showSetupError('Please select a job domain first.'); return; }
+    if (domainVal === 'other' && !getPrivateJobDomain()) { showSetupError('Please specify your job domain.'); return; }
+
+    jobTitle = getPrivateJobRole();
+    if (!jobTitle) { showSetupError('Please select or specify a job role.'); return; }
     if (!resumeText) { showSetupError('Please upload your resume first.'); return; }
     selectedLanguage = document.getElementById('interviewLanguagePrivate').value;
   } else {
@@ -937,8 +1107,11 @@ RULES:
 - Never add preamble like "Sure!" or "Great question!" — just ask directly.
 - If the candidate says they want to end, are being nonsensical, or clearly not engaging seriously, respond with exactly: INTERVIEW_END_REQUESTED`;
   } else {
-    const jobTitle = document.getElementById('privateRole').value;
-    return `You are ${INTERVIEWER_NAME}, an experienced and friendly but rigorous interviewer conducting a real mock interview for the role of "${jobTitle}".
+    const jobTitle = getPrivateJobRole();
+    const jobDomain = getPrivateJobDomain();
+    const hasJd = jdText && jdText.trim().length >= 20;
+
+    return `You are ${INTERVIEWER_NAME}, an experienced and friendly but rigorous interviewer conducting a real mock interview for the role of "${jobTitle}"${jobDomain ? ` in the ${jobDomain} domain` : ''}.
 
 ${privateLangLine}
 
@@ -946,15 +1119,16 @@ Candidate's resume:
 """
 ${resumeText.slice(0, 3000)}
 """
+${hasJd ? `\nJob Description for the specific role the candidate is targeting:\n"""\n${jdText.slice(0, 3000)}\n"""\n\nThe candidate is preparing for THIS specific job in a very short timeframe (under a week), so your questions must double as focused prep: prioritize the skills, responsibilities, and requirements named in the JD, and check how well the candidate's resume actually matches them. Call out and probe any gaps between the resume and the JD requirements.` : ''}
 
 INTERVIEW STRUCTURE — follow this strictly:
 1. INTRODUCTION (first 1-2 questions): Ask the candidate to introduce themselves or walk you through their background. Keep it warm and welcoming.
-2. BASIC QUESTIONS (next 3-4 questions): Ask simple, foundational questions about their skills, education, and experience mentioned in the resume.
-3. DEEP DIVE (remaining questions): Gradually increase difficulty. Ask specific technical or situational questions based on their resume and how well they have been answering.
+2. BASIC QUESTIONS (next 3-4 questions): Ask simple, foundational questions about their skills, education, and experience mentioned in the resume${hasJd ? ', keeping an eye on what the JD asks for' : ''}.
+3. DEEP DIVE (remaining questions): Gradually increase difficulty. Ask specific technical or situational questions based on${hasJd ? ' the job description first, then' : ''} their resume and how well they have been answering.
 
 RULES:
 - Ask exactly ONE question at a time. Never combine multiple questions.
-- Always base questions on the candidate's actual resume — never ask generic unrelated questions.
+- Always base questions on the candidate's actual resume${hasJd ? ' AND the job description above — weight the JD\'s specific requirements heavily, since the candidate has very little time to prepare and needs realistic, targeted practice' : ''} — never ask generic unrelated questions.
 - If the candidate's answer is vague or incomplete, ask a focused cross-question on the SAME point before moving on.
 - If the candidate answers well, increase difficulty. If they struggle, ease back slightly.
 - Keep each question to 1-3 sentences maximum.
