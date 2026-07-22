@@ -740,12 +740,24 @@ async function handleInterviewStart(sector) {
   let candidateSummary = null;
 
   if (sector === 'private') {
+    const hasJd = jdText && jdText.trim().length >= 20;
     const domainVal = document.getElementById('privateDomain').value;
-    if (!domainVal) { showSetupError('Please select a job domain first.'); return; }
-    if (domainVal === 'other' && !getPrivateJobDomain()) { showSetupError('Please specify your job domain.'); return; }
 
-    jobTitle = getPrivateJobRole();
-    if (!jobTitle) { showSetupError('Please select or specify a job role.'); return; }
+    if (!hasJd) {
+      // No JD given — domain and role stay mandatory, same as before
+      if (!domainVal) { showSetupError('Please select a job domain first.'); return; }
+      if (domainVal === 'other' && !getPrivateJobDomain()) { showSetupError('Please specify your job domain.'); return; }
+      jobTitle = getPrivateJobRole();
+      if (!jobTitle) { showSetupError('Please select or specify a job role.'); return; }
+    } else {
+      // JD given — domain/role become optional; fall back to a safe label the backend accepts
+      if (domainVal === 'other' && !getPrivateJobDomain()) { showSetupError('Please specify your job domain, or clear it and rely on the JD.'); return; }
+      if (domainVal && domainVal !== 'other') {
+        const roleVal = document.getElementById('privateRole').value;
+        if (roleVal === '__other__' && !getPrivateJobRole()) { showSetupError('Please specify your job role, or clear it and rely on the JD.'); return; }
+      }
+      jobTitle = getPrivateJobRole() || 'Role as per uploaded Job Description';
+    }
     if (!resumeText) { showSetupError('Please upload your resume first.'); return; }
     selectedLanguage = document.getElementById('interviewLanguagePrivate').value;
   } else {
@@ -1110,8 +1122,11 @@ RULES:
     const jobTitle = getPrivateJobRole();
     const jobDomain = getPrivateJobDomain();
     const hasJd = jdText && jdText.trim().length >= 20;
+    const roleLine = jobTitle
+      ? `the role of "${jobTitle}"${jobDomain ? ` in the ${jobDomain} domain` : ''}`
+      : (hasJd ? 'the role described in the job description below' : 'the role described in the candidate\'s resume');
 
-    return `You are ${INTERVIEWER_NAME}, an experienced and friendly but rigorous interviewer conducting a real mock interview for the role of "${jobTitle}"${jobDomain ? ` in the ${jobDomain} domain` : ''}.
+    return `You are ${INTERVIEWER_NAME}, an experienced and friendly but rigorous interviewer conducting a real mock interview for ${roleLine}.
 
 ${privateLangLine}
 
