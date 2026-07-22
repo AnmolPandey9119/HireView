@@ -321,7 +321,10 @@
               </div>
               <div class="camera-controls">
                 <button class="control-btn active" id="toggleCameraBtn" onclick="toggleCamera()">📷 Camera On</button>
-                <button class="control-btn active" id="toggleMicBtn" onclick="toggleMic()">🎤 Mic On</button>
+                <button class="control-btn active" id="toggleMicBtn" onclick="toggleMic()" title="Pauses your answer transcription. Room audio is still monitored for integrity purposes throughout the interview.">🎤 Mic On</button>
+              </div>
+              <div style="font-size:0.72rem;color:rgba(255,255,255,0.35);margin-top:0.35rem;line-height:1.4">
+                🔒 For interview integrity, background audio is monitored throughout the session even when your mic is toggled off.
               </div>
               <div class="confidence-meter">
                 <div class="confidence-label">

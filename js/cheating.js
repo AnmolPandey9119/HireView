@@ -74,6 +74,80 @@ function stopFaceDetection() {
   console.log('Face detection stopped.');
 }
 
+// ════════════════════════════════════════════════
+// BACKGROUND INTEGRITY AUDIO MONITOR
+// Runs for the whole interview, independent of the "Mic On/Off" UI toggle
+// and independent of whether SpeechRecognition is actively capturing an
+// answer. It's a volume-level heuristic (RMS of the raw mic signal), NOT
+// speaker identification — it flags sustained voice-level audio activity
+// during moments that aren't the candidate's turn to speak (i.e. while
+// Arjun is talking, or while the candidate has muted/hasn't started
+// answering yet). That's a signal worth a human reviewing, not proof of
+// cheating by itself — thresholds below are a starting point and should be
+// tuned against real mic/room conditions before relying on them.
+// ════════════════════════════════════════════════
+let monitorAudioCtx = null;
+let monitorAnalyser = null;
+let monitorDataArray = null;
+let monitorTimerId = null;
+let offTurnVoiceMs = 0;
+let offTurnFlagCount = 0;
+const OFF_TURN_ENERGY_THRESHOLD = 0.02; // heuristic RMS threshold — tune after real testing
+const OFF_TURN_FLAG_MS = 4000;          // ~4s of sustained off-turn activity before it counts as one flag
+
+function startIntegrityAudioMonitor() {
+  if (!mediaStream || monitorAudioCtx) return;
+  try {
+    monitorAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const source = monitorAudioCtx.createMediaStreamSource(mediaStream);
+    monitorAnalyser = monitorAudioCtx.createAnalyser();
+    monitorAnalyser.fftSize = 2048;
+    monitorDataArray = new Uint8Array(monitorAnalyser.fftSize);
+    source.connect(monitorAnalyser);
+
+    const tick = () => {
+      if (interviewEnded) { stopIntegrityAudioMonitor(); return; }
+      monitorAnalyser.getByteTimeDomainData(monitorDataArray);
+      let sumSquares = 0;
+      for (let i = 0; i < monitorDataArray.length; i++) {
+        const v = (monitorDataArray[i] - 128) / 128;
+        sumSquares += v * v;
+      }
+      const rms = Math.sqrt(sumSquares / monitorDataArray.length);
+
+      const isCandidateTurn = isListening && micOn; // candidate is actively expected to be speaking
+      if (!isCandidateTurn && rms > OFF_TURN_ENERGY_THRESHOLD) {
+        offTurnVoiceMs += 100;
+        if (offTurnVoiceMs >= OFF_TURN_FLAG_MS) {
+          offTurnVoiceMs = 0;
+          offTurnFlagCount++;
+          cheatSignals.push({ type: 'off_turn_audio', count: offTurnFlagCount, time: getElapsedMinutes() });
+          if (offTurnFlagCount > 3) {
+            showCheatWarning('Background voice activity detected while it was not your turn to speak.');
+          }
+        }
+      } else {
+        offTurnVoiceMs = Math.max(0, offTurnVoiceMs - 200);
+      }
+
+      monitorTimerId = setTimeout(tick, 100);
+    };
+    tick();
+  } catch (err) {
+    console.log('Integrity audio monitor unavailable:', err.message);
+  }
+}
+
+function stopIntegrityAudioMonitor() {
+  if (monitorTimerId) { clearTimeout(monitorTimerId); monitorTimerId = null; }
+  if (monitorAudioCtx) { try { monitorAudioCtx.close(); } catch (e) {} monitorAudioCtx = null; }
+}
+
+function getOffTurnAudioReport() {
+  if (offTurnFlagCount === 0) return null;
+  return { off_turn_flags: offTurnFlagCount };
+}
+
 function showCheatWarning(msg) {
   let warn = document.getElementById('cheatWarning');
   if (!warn) {
@@ -138,11 +212,13 @@ function getFullIntegrityReport() {
   const faceReport = getFaceDetectionReport();
   const timingReport = (typeof analyzeResponseTimingConsistency === 'function')
     ? analyzeResponseTimingConsistency() : null;
+  const audioReport = getOffTurnAudioReport();
   const totalFlags =
     tabSwitchCount +
     (windowBlurCount > 2 ? windowBlurCount - 2 : 0) +
     (faceReport?.multiple_face_detections || 0) +
-    (timingReport?.suspicious ? 3 : 0);
+    (timingReport?.suspicious ? 3 : 0) +
+    (audioReport?.off_turn_flags || 0) * 2;
   const integrityScore = Math.max(0, Math.min(100, 100 - totalFlags * 8));
   return {
     integrity_score: integrityScore,
@@ -150,6 +226,7 @@ function getFullIntegrityReport() {
     window_switches: windowBlurCount,
     face_detection: faceReport,
     response_timing: timingReport,
+    off_turn_audio: audioReport,
     total_flags: totalFlags,
     verdict: totalFlags === 0 ? 'Clean'
       : totalFlags <= 2 ? 'Minor Concerns'

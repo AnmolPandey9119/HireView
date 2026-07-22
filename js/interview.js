@@ -19,6 +19,12 @@ let speechBuffer = '';
 let questionStartTime = null;
 let responseTimes = [];
 
+// Silence watchdog — Arjun shouldn't wait forever for an answer
+let silenceWatcherId = null;
+let lastSpeechActivityAt = null;
+const SILENCE_TIMEOUT_MS = 45000; // 45 seconds
+let answerInFlight = false; // guards against double-advancing (manual submit racing the timeout)
+
 // ════════════════════════════════════════════════
 // GOVERNMENT SECTOR — REGIONAL LANGUAGE SUPPORT
 // Each entry: speechLang = BCP-47 code used for both TTS voice
@@ -840,6 +846,7 @@ async function setupCameraAndMic() {
     setupSpeechRecognition();
     if (typeof setupFaceDetection === 'function') setupFaceDetection();
     setupCheatDetection();
+    if (typeof startIntegrityAudioMonitor === 'function') startIntegrityAudioMonitor();
     startInterviewTimer();
 
     setTimeout(() => {
@@ -895,10 +902,18 @@ function toggleCamera() {
 function toggleMic() {
   if (!mediaStream) return;
   micOn = !micOn;
-  mediaStream.getAudioTracks().forEach(track => track.enabled = micOn);
+  // NOTE: we deliberately do NOT disable the raw audio track anymore.
+  // "Mic Off" only pauses answer capture (speech-to-text into the answer
+  // box) — the background integrity monitor (see cheating.js) keeps
+  // listening to the room the whole time, so this must be disclosed to
+  // candidates up front (consent notice on the setup screen).
   const btn = document.getElementById('toggleMicBtn');
   btn.textContent = micOn ? '🎤 Mic On' : '🎤 Mic Off';
   btn.classList.toggle('active', micOn);
+
+  if (!micOn && isListening) {
+    stopListening(); // pause transcription; candidate presses "Start Speaking" again once mic is back on
+  }
 }
 
 // ════════════════════════════════════════════════
@@ -980,6 +995,7 @@ function setupSpeechRecognition() {
   recognition.lang = getLangConfig().speechLang;
 
   recognition.onresult = (event) => {
+    noteSpeechActivity(); // any result — interim or final — counts as "still talking"
     let interimText = '';
     for (let i = event.resultIndex; i < event.results.length; i++) {
       const t = event.results[i][0].transcript;
@@ -997,36 +1013,107 @@ function setupSpeechRecognition() {
 
   recognition.onerror = (event) => {
     console.log('Speech error:', event.error);
-    if (event.error === 'not-allowed') return;
-    // अगर mic active है और error आई तो थोड़ी देर बाद restart
+    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') return;
+    recognitionRunning = false;
+    // Restart quickly — a long gap here is exactly what causes missed words
+    // when the browser's recognition session drops mid-sentence.
     if (isListening && !interviewEnded) {
-      setTimeout(() => startFreshRecognition(), 800);
+      setTimeout(() => startFreshRecognition(), 150);
     }
   };
 
   recognition.onend = () => {
     recognitionRunning = false;
-    // सिर्फ तब restart करो जब user बोल रहा हो
+    // Restart immediately (no artificial delay) so a self-restart by the
+    // browser (continuous sessions time out on their own) doesn't create a
+    // silent gap while the candidate is still mid-sentence.
     if (isListening && !interviewEnded) {
-      setTimeout(() => startFreshRecognition(), 300);
+      startFreshRecognition();
     }
   };
 }
 
 function startFreshRecognition() {
-  if (!recognition || interviewEnded) return;
-  if (recognitionRunning) {
-    try { recognition.abort(); } catch(e) {}
-    recognitionRunning = false;
-  }
-  setTimeout(() => {
-    try {
-      recognition.start();
-      recognitionRunning = true;
-    } catch(e) {
+  if (!recognition || interviewEnded || !isListening) return;
+  if (recognitionRunning) return; // already running — don't abort a live session, that discards audio mid-word
+  try {
+    recognition.start();
+    recognitionRunning = true;
+  } catch (e) {
+    // "already started" races can happen right as onend fires — retry shortly instead of losing the turn
+    if (e && e.name === 'InvalidStateError') {
+      setTimeout(() => startFreshRecognition(), 150);
+    } else {
       console.log('Recognition start error:', e.message);
     }
-  }, 100);
+  }
+}
+
+// ════════════════════════════════════════════════
+// SILENCE WATCHDOG — don't wait forever for an answer
+// ════════════════════════════════════════════════
+function armSilenceWatcher() {
+  clearSilenceWatcher();
+  lastSpeechActivityAt = Date.now();
+  silenceWatcherId = setInterval(() => {
+    if (!isListening || interviewEnded) { clearSilenceWatcher(); return; }
+    if (Date.now() - lastSpeechActivityAt >= SILENCE_TIMEOUT_MS) {
+      clearSilenceWatcher();
+      handleSilenceTimeout();
+    }
+  }, 1000);
+}
+
+function clearSilenceWatcher() {
+  if (silenceWatcherId) { clearInterval(silenceWatcherId); silenceWatcherId = null; }
+}
+
+function noteSpeechActivity() {
+  lastSpeechActivityAt = Date.now();
+}
+
+// Candidate went quiet for 45s straight — Arjun nudges and moves on, like a real interviewer would
+async function handleSilenceTimeout() {
+  if (interviewEnded || answerInFlight) return;
+  answerInFlight = true;
+
+  stopListening();
+  window.speechSynthesis.cancel();
+  trackResponseTime();
+
+  const answerInput = document.getElementById('answerInput');
+  const partialAnswer = (answerInput.value || speechBuffer).trim();
+  const questionText = document.getElementById('currentQuestion').textContent;
+
+  if (partialAnswer.length > 3) {
+    // They'd started answering — use what was captured instead of discarding it
+    await saveQAToBackend(questionText, partialAnswer);
+    conversationHistory.push({ role: 'user', content: partialAnswer });
+    answerInput.value = '';
+    speechBuffer = '';
+    await loadNextQuestion();
+    return;
+  }
+
+  await saveQAToBackend(questionText, '[No response within 45 seconds]');
+  conversationHistory.push({ role: 'user', content: '[The candidate did not respond within 45 seconds — treat this as if they did not know the answer and move on]' });
+  answerInput.value = '';
+  speechBuffer = '';
+
+  const nudges = selectedLanguage === 'hinglish'
+    ? [
+        'Koi baat nahi, isko chhodte hain — chalo agle sawaal par badhte hain.',
+        'Theek hai, lagta hai yeh thoda tricky tha. Chalo next question try karte hain.',
+        'Kaafi time ho gaya — hum is question ko yahin chhod dete hain aur aage badhte hain.'
+      ]
+    : [
+        "That's okay — let's move on to the next question.",
+        "No worries, let's try a different one instead.",
+        "Let's leave that one for now and keep moving."
+      ];
+  const nudgeMsg = nudges[Math.floor(Math.random() * nudges.length)];
+  document.getElementById('aiBubble').textContent = nudgeMsg;
+  speakAsInterviewer(nudgeMsg, async () => { await loadNextQuestion(); });
 }
 
 function autoStartListening() {
@@ -1045,7 +1132,8 @@ function autoStartListening() {
   setTimeout(() => {
     isListening = true;
     startFreshRecognition();
-  }, 400);
+    armSilenceWatcher();
+  }, 200);
 
   const btn = document.getElementById('speakBtn');
   if (btn) { btn.textContent = '🎙️ Mic Active'; btn.classList.add('active'); }
@@ -1059,6 +1147,7 @@ function autoStartListening() {
 function stopListening() {
   isListening = false;
   recognitionRunning = false;
+  clearSilenceWatcher();
   // recognition abort करो — Arjun बोलते वक्त सुनना बंद
   try { if (recognition) recognition.abort(); } catch(e) {}
 
@@ -1201,6 +1290,7 @@ async function loadFirstQuestion() {
 }
 
 async function loadNextQuestion() {
+  answerInFlight = false;
   trackQuestionStart();
   setAvatarThinking(true);
   document.getElementById('aiThinking').classList.add('show');
@@ -1247,7 +1337,6 @@ async function saveQAToBackend(questionText, answerText) {
 
 async function submitAnswer() {
   stopListening();
-  trackResponseTime();
 
   const answerInput = document.getElementById('answerInput');
   const answerText = (answerInput.value || speechBuffer).trim();
@@ -1258,6 +1347,10 @@ async function submitAnswer() {
     return;
   }
 
+  if (answerInFlight) return;
+  answerInFlight = true;
+  trackResponseTime();
+
   const questionText = document.getElementById('currentQuestion').textContent;
   await saveQAToBackend(questionText, answerText);
   conversationHistory.push({ role: 'user', content: answerText });
@@ -1267,6 +1360,10 @@ async function submitAnswer() {
 }
 
 async function skipQuestion() {
+  if (answerInFlight) return;
+  answerInFlight = true;
+  stopListening();
+
   const questionText = document.getElementById('currentQuestion').textContent;
   await saveQAToBackend(questionText, '[Skipped]');
   conversationHistory.push({ role: 'user', content: '[Candidate skipped this question]' });
@@ -1315,6 +1412,8 @@ async function endInterview(autoEnded = false) {
 
   clearInterval(timerInterval);
   isListening = false;
+  clearSilenceWatcher();
+  answerInFlight = false;
 
   // सिर्फ interview end पर recognition पूरी तरह बंद करो
   if (recognition) {
@@ -1323,6 +1422,7 @@ async function endInterview(autoEnded = false) {
   }
 
   if (typeof stopFaceDetection === 'function') stopFaceDetection();
+  if (typeof stopIntegrityAudioMonitor === 'function') stopIntegrityAudioMonitor();
   window.speechSynthesis.cancel();
 
   const closingMsg = autoEnded
