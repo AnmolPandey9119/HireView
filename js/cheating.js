@@ -8,6 +8,13 @@ let multipleFaceCount = 0;
 let totalFaceChecks = 0;
 let cheatSignals = [];
 
+// Camera presence — gates interview start and ends the session if the
+// candidate disappears from frame mid-interview
+let faceDetectionAvailable = false;
+let currentFaceCount = 0;
+let noFaceStartTime = null;
+const NO_FACE_TERMINATE_MS = 8000; // 8s continuously with nobody in frame → end interview
+
 function setupCheatDetection() {
   // Tab switching
   document.addEventListener('visibilitychange', () => {
@@ -15,7 +22,7 @@ function setupCheatDetection() {
       tabSwitchCount++;
       cheatSignals.push({ type: 'tab_switch', count: tabSwitchCount, time: getElapsedMinutes() });
       showCheatWarning(`Tab switch detected! (${tabSwitchCount} time${tabSwitchCount > 1 ? 's' : ''})`);
-      if (tabSwitchCount > 5) handleCheatLimitExceeded('tab_switch');
+      if (tabSwitchCount > 2) handleCheatLimitExceeded('tab_switch');
     }
   });
 
@@ -27,9 +34,8 @@ function setupCheatDetection() {
     if (!interviewEnded && blurTrackingActive) {
       windowBlurCount++;
       cheatSignals.push({ type: 'window_blur', count: windowBlurCount, time: getElapsedMinutes() });
-      if (windowBlurCount > 3) {
-        showCheatWarning(`Window switched ${windowBlurCount} times — please stay on this page.`);
-      }
+      showCheatWarning(`Window switched ${windowBlurCount} times — please stay on this page.`);
+      if (windowBlurCount > 2) handleCheatLimitExceeded('window_blur');
     }
   });
 } // ← setupCheatDetection यहाँ बंद होता है
@@ -47,10 +53,24 @@ async function setupFaceDetection() {
       locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`
     });
     faceDetection.setOptions({ model: 'short', minDetectionConfidence: 0.5 });
+    faceDetectionAvailable = true;
     faceDetection.onResults((results) => {
       if (interviewEnded) return;
       totalFaceChecks++;
       const faceCount = results.detections ? results.detections.length : 0;
+      currentFaceCount = faceCount;
+
+      if (faceCount === 0) {
+        if (!noFaceStartTime) noFaceStartTime = Date.now();
+        // Only auto-terminate once the interview has actually started (avoids
+        // false triggers during the initial camera-warmup / pre-start check)
+        if (interviewStartTime && Date.now() - noFaceStartTime >= NO_FACE_TERMINATE_MS) {
+          handleCheatLimitExceeded('no_face');
+        }
+      } else {
+        noFaceStartTime = null;
+      }
+
       if (faceCount > 1) {
         multipleFaceCount++;
         cheatSignals.push({ type: 'multiple_faces', count: faceCount, time: getElapsedMinutes() });
@@ -72,6 +92,22 @@ async function setupFaceDetection() {
 
 function stopFaceDetection() {
   console.log('Face detection stopped.');
+}
+
+// Blocks interview start until a face is seen on camera (or gives up
+// gracefully if face detection itself isn't available in this browser —
+// we shouldn't block a real candidate just because MediaPipe failed to load).
+function waitForInitialFacePresence(timeoutMs = 15000) {
+  return new Promise((resolve) => {
+    const start = Date.now();
+    const check = () => {
+      if (!faceDetectionAvailable) { resolve(true); return; }
+      if (currentFaceCount > 0) { resolve(true); return; }
+      if (Date.now() - start >= timeoutMs) { resolve(false); return; }
+      setTimeout(check, 400);
+    };
+    check();
+  });
 }
 
 // ════════════════════════════════════════════════
@@ -115,7 +151,7 @@ function startIntegrityAudioMonitor() {
       }
       const rms = Math.sqrt(sumSquares / monitorDataArray.length);
 
-      const isCandidateTurn = isListening && micOn; // candidate is actively expected to be speaking
+      const isCandidateTurn = isListening; // candidate is actively expected to be speaking (mic is no longer user-toggleable)
       if (!isCandidateTurn && rms > OFF_TURN_ENERGY_THRESHOLD) {
         offTurnVoiceMs += 100;
         if (offTurnVoiceMs >= OFF_TURN_FLAG_MS) {
@@ -171,11 +207,23 @@ function handleCheatLimitExceeded(type) {
         ? 'Maafi chahta hoon, lekin multiple baar camera par ek se zyada log detect hue. Integrity violation ke kaaran session terminate ho raha hai.'
         : 'I am sorry, but multiple people were detected on camera more than 3 times. This violates our integrity policy — session terminated.'
     },
+    no_face: {
+      warning: '🚨 Interview Terminated — No one detected in front of the camera.',
+      arjun: selectedLanguage === 'hinglish'
+        ? 'Aap kaafi der se camera ke saamne nazar nahi aa rahe the. Integrity policy ke kaaran session terminate ho raha hai.'
+        : 'You were not visible on camera for too long. This violates our integrity policy — session terminated.'
+    },
     tab_switch: {
       warning: '🚨 Interview Terminated — Too many tab switches.',
       arjun: selectedLanguage === 'hinglish'
         ? 'Aapne bahut baar tab switch kiya hai. Integrity violation ke kaaran session terminate ho raha hai.'
         : 'You have switched tabs too many times. This is an integrity violation — session terminated.'
+    },
+    window_blur: {
+      warning: '🚨 Interview Terminated — Too many window switches.',
+      arjun: selectedLanguage === 'hinglish'
+        ? 'Aapne bahut baar window switch kiya hai. Integrity violation ke kaaran session terminate ho raha hai.'
+        : 'You have switched windows too many times. This is an integrity violation — session terminated.'
     }
   };
 

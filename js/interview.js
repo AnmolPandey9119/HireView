@@ -11,7 +11,6 @@ let warningGiven = false;
 let interviewEnded = false;
 let mediaStream = null;
 let cameraOn = true;
-let micOn = true;
 let recognition = null;
 let isListening = false;
 let recognitionRunning = false;
@@ -22,7 +21,7 @@ let responseTimes = [];
 // Silence watchdog — Arjun shouldn't wait forever for an answer
 let silenceWatcherId = null;
 let lastSpeechActivityAt = null;
-const SILENCE_TIMEOUT_MS = 45000; // 45 seconds
+const SILENCE_TIMEOUT_MS = 30000; // 30 seconds
 let answerInFlight = false; // guards against double-advancing (manual submit racing the timeout)
 
 // ════════════════════════════════════════════════
@@ -845,40 +844,19 @@ async function setupCameraAndMic() {
 
     setupSpeechRecognition();
     if (typeof setupFaceDetection === 'function') setupFaceDetection();
-    setupCheatDetection();
-    if (typeof startIntegrityAudioMonitor === 'function') startIntegrityAudioMonitor();
-    startInterviewTimer();
 
-    setTimeout(() => {
-      const settleMsg = selectedLanguage === 'hinglish'
-        ? `Namaste! Main ${INTERVIEWER_NAME} hoon. Kya aap comfortable hain? Sab settle ho gaya? Toh chaliye shuru karte hain.`
-        : `Hi there! I'm ${INTERVIEWER_NAME}. Hope everything's set on your end — camera, mic, all good? Great, let's get started!`;
+    document.getElementById('aiBubble').textContent = "Checking that I can see you clearly on camera before we begin...";
 
-      document.getElementById('aiBubble').textContent = settleMsg;
+    const facePresent = (typeof waitForInitialFacePresence === 'function')
+      ? await waitForInitialFacePresence()
+      : true;
 
-      const trySpeak = () => {
-        const voices = window.speechSynthesis.getVoices();
-        if (voices.length === 0) { setTimeout(trySpeak, 500); return; }
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(settleMsg);
-        const voice = pickVoice();
-        if (voice) utterance.voice = voice;
-        utterance.lang = getLangConfig().speechLang;
-        utterance.rate = 0.92;
-        utterance.pitch = 1.0;
-        const dot = document.getElementById('avatarDot');
-        const statusText = document.getElementById('avatarStatusText');
-        utterance.onstart = () => { dot.classList.add('speaking'); statusText.textContent = 'Speaking...'; };
-        utterance.onend = () => {
-          dot.classList.remove('speaking');
-          statusText.textContent = 'Listening...';
-          setTimeout(() => loadFirstQuestion(), 800);
-        };
-        utterance.onerror = () => setTimeout(() => loadFirstQuestion(), 800);
-        window.speechSynthesis.speak(utterance);
-      };
-      trySpeak();
-    }, 3000);
+    if (!facePresent) {
+      showFaceCheckFailed();
+      return;
+    }
+
+    beginInterviewSession();
 
   } catch (err) {
     console.error('Camera/mic error:', err);
@@ -890,6 +868,71 @@ async function setupCameraAndMic() {
   }
 }
 
+// Shown when the candidate isn't visible on camera within the initial check window
+function showFaceCheckFailed() {
+  document.getElementById('aiBubble').textContent =
+    "I can't see you clearly on camera. Please make sure you're well-lit and centered in frame, then try again.";
+
+  const container = document.getElementById('faceCheckRetryContainer');
+  if (!container) return;
+  container.innerHTML = '';
+  const retryBtn = document.createElement('button');
+  retryBtn.id = 'faceRetryBtn';
+  retryBtn.className = 'primary-btn';
+  retryBtn.textContent = "I'm Ready — Check Again";
+  retryBtn.onclick = async () => {
+    retryBtn.disabled = true;
+    retryBtn.textContent = 'Checking...';
+    const ok = await waitForInitialFacePresence(8000);
+    if (ok) {
+      container.innerHTML = '';
+      beginInterviewSession();
+    } else {
+      retryBtn.disabled = false;
+      retryBtn.textContent = "I'm Ready — Check Again";
+    }
+  };
+  container.appendChild(retryBtn);
+}
+
+// Camera confirmed — start the actual interview flow (cheat detection, timer, first question)
+function beginInterviewSession() {
+  setupCheatDetection();
+  if (typeof startIntegrityAudioMonitor === 'function') startIntegrityAudioMonitor();
+  startInterviewTimer();
+
+  setTimeout(() => {
+    const settleMsg = selectedLanguage === 'hinglish'
+      ? `Namaste! Main ${INTERVIEWER_NAME} hoon. Kya aap comfortable hain? Sab settle ho gaya? Toh chaliye shuru karte hain.`
+      : `Hi there! I'm ${INTERVIEWER_NAME}. Hope everything's set on your end — camera, mic, all good? Great, let's get started!`;
+
+    document.getElementById('aiBubble').textContent = settleMsg;
+
+    const trySpeak = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length === 0) { setTimeout(trySpeak, 500); return; }
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(settleMsg);
+      const voice = pickVoice();
+      if (voice) utterance.voice = voice;
+      utterance.lang = getLangConfig().speechLang;
+      utterance.rate = 0.92;
+      utterance.pitch = 1.0;
+      const dot = document.getElementById('avatarDot');
+      const statusText = document.getElementById('avatarStatusText');
+      utterance.onstart = () => { dot.classList.add('speaking'); statusText.textContent = 'Speaking...'; };
+      utterance.onend = () => {
+        dot.classList.remove('speaking');
+        statusText.textContent = 'Listening...';
+        setTimeout(() => loadFirstQuestion(), 800);
+      };
+      utterance.onerror = () => setTimeout(() => loadFirstQuestion(), 800);
+      window.speechSynthesis.speak(utterance);
+    };
+    trySpeak();
+  }, 3000);
+}
+
 function toggleCamera() {
   if (!mediaStream) return;
   cameraOn = !cameraOn;
@@ -899,22 +942,10 @@ function toggleCamera() {
   btn.classList.toggle('active', cameraOn);
 }
 
-function toggleMic() {
-  if (!mediaStream) return;
-  micOn = !micOn;
-  // NOTE: we deliberately do NOT disable the raw audio track anymore.
-  // "Mic Off" only pauses answer capture (speech-to-text into the answer
-  // box) — the background integrity monitor (see cheating.js) keeps
-  // listening to the room the whole time, so this must be disclosed to
-  // candidates up front (consent notice on the setup screen).
-  const btn = document.getElementById('toggleMicBtn');
-  btn.textContent = micOn ? '🎤 Mic On' : '🎤 Mic Off';
-  btn.classList.toggle('active', micOn);
-
-  if (!micOn && isListening) {
-    stopListening(); // pause transcription; candidate presses "Start Speaking" again once mic is back on
-  }
-}
+// Mic is no longer user-toggleable — the system alone decides when it's
+// listening for an answer (isListening, driven by autoStartListening/
+// stopListening). The raw audio track always stays live so every sound in
+// the room is captured for the full session, per integrity requirements.
 
 // ════════════════════════════════════════════════
 // VOICE — TTS
@@ -1095,8 +1126,8 @@ async function handleSilenceTimeout() {
     return;
   }
 
-  await saveQAToBackend(questionText, '[No response within 45 seconds]');
-  conversationHistory.push({ role: 'user', content: '[The candidate did not respond within 45 seconds — treat this as if they did not know the answer and move on]' });
+  await saveQAToBackend(questionText, '[No response within 30 seconds]');
+  conversationHistory.push({ role: 'user', content: '[The candidate did not respond within 30 seconds — treat this as if they did not know the answer and move on]' });
   answerInput.value = '';
   speechBuffer = '';
 
@@ -1556,7 +1587,7 @@ function showFeedbackScreen(feedback) {
           ${ir.verdict} — ${ir.integrity_score}/100
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;font-size:0.85rem">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;font-size:0.85rem">
         <div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:0.75rem;text-align:center">
           <div style="font-size:1.4rem;font-weight:800;color:${ir.tab_switches > 0 ? '#f87171' : '#22c55e'}">${ir.tab_switches}</div>
           <div style="color:rgba(255,255,255,0.5);font-size:0.78rem">Tab Switches</div>
@@ -1569,8 +1600,13 @@ function showFeedbackScreen(feedback) {
           <div style="font-size:1.4rem;font-weight:800;color:${(ir.face_detection?.multiple_face_detections || 0) > 0 ? '#f87171' : '#22c55e'}">${ir.face_detection?.multiple_face_detections || 0}</div>
           <div style="color:rgba(255,255,255,0.5);font-size:0.78rem">Multi-Face Flags</div>
         </div>
+        <div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:0.75rem;text-align:center">
+          <div style="font-size:1.4rem;font-weight:800;color:${(ir.off_turn_audio?.off_turn_flags || 0) > 0 ? '#f87171' : '#22c55e'}">${ir.off_turn_audio?.off_turn_flags || 0}</div>
+          <div style="color:rgba(255,255,255,0.5);font-size:0.78rem">Background Noise Flags</div>
+        </div>
       </div>
       ${ir.response_timing?.suspicious ? `<div style="margin-top:0.75rem;padding:0.75rem;background:rgba(239,68,68,0.1);border-radius:10px;font-size:0.85rem;color:#fca5a5">⚠️ Response timing was unusually consistent — possible AI assistance detected.</div>` : ''}
+      ${(ir.off_turn_audio?.off_turn_flags || 0) > 0 ? `<div style="margin-top:0.75rem;padding:0.75rem;background:rgba(239,68,68,0.1);border-radius:10px;font-size:0.85rem;color:#fca5a5">⚠️ Background voice or noise was detected ${ir.off_turn_audio.off_turn_flags} time${ir.off_turn_audio.off_turn_flags > 1 ? 's' : ''} while it was not the candidate's turn to speak — this may indicate someone else was present or assisting.</div>` : ''}
     </div>` : '';
 
   document.getElementById('activeInterviewPage').innerHTML = `
