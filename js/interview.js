@@ -25,6 +25,15 @@ let lastSpeechActivityAt = null;
 const SILENCE_TIMEOUT_MS = 30000; // 30 seconds
 let answerInFlight = false; // guards against double-advancing (manual submit racing the timeout)
 
+// Recognition health — some browsers (esp. Chrome) silently stop delivering
+// results in long continuous sessions WITHOUT ever firing onend or onerror,
+// leaving the mic looking "active" while nothing is actually being heard.
+// We proactively rotate sessions before that can happen, and keep a hard
+// fallback in case a rotation itself gets silently dropped.
+let lastRecognitionStartAt = null;
+const RECOGNITION_REFRESH_MS = 12000;       // rotate well before any browser-internal timeout
+const RECOGNITION_STUCK_GRACE_MS = 5000;    // extra grace before declaring a session truly stuck
+
 // ════════════════════════════════════════════════
 // GOVERNMENT SECTOR — REGIONAL LANGUAGE SUPPORT
 // Each entry: speechLang = BCP-47 code used for both TTS voice
@@ -1073,6 +1082,7 @@ function startFreshRecognition() {
   try {
     recognition.start();
     recognitionRunning = true;
+    lastRecognitionStartAt = Date.now();
   } catch (e) {
     // "already started" races can happen right as onend fires — retry shortly instead of losing the turn
     if (e && e.name === 'InvalidStateError') {
@@ -1091,6 +1101,26 @@ function armSilenceWatcher() {
   lastSpeechActivityAt = Date.now();
   silenceWatcherId = setInterval(() => {
     if (!isListening || interviewEnded) { clearSilenceWatcher(); return; }
+
+    // Proactively rotate the recognition session before it can hit the
+    // silent-death failure mode. .stop() (not .abort()) finalizes whatever
+    // was captured so far instead of discarding it — onend then restarts
+    // a fresh session automatically.
+    if (recognitionRunning && lastRecognitionStartAt &&
+        Date.now() - lastRecognitionStartAt >= RECOGNITION_REFRESH_MS) {
+      try { recognition.stop(); } catch (e) {}
+    }
+
+    // Hard fallback: if we think a session should be running but it's gone
+    // quiet for way longer than a rotation should ever take, something died
+    // silently without firing onend/onerror — force a clean restart.
+    if (recognitionRunning && lastRecognitionStartAt &&
+        Date.now() - lastRecognitionStartAt >= RECOGNITION_REFRESH_MS + RECOGNITION_STUCK_GRACE_MS) {
+      recognitionRunning = false;
+      try { recognition.abort(); } catch (e) {}
+      startFreshRecognition();
+    }
+
     if (Date.now() - lastSpeechActivityAt >= SILENCE_TIMEOUT_MS) {
       clearSilenceWatcher();
       handleSilenceTimeout();
