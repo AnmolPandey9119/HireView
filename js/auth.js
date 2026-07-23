@@ -94,7 +94,7 @@ async function handleLogin() {
 
     saveSession(data.access_token, data.user);
     updateLoggedInUser();
-    window.location.href = 'dashboard.html';
+    window.location.href = '/dashboard';
     
   } catch (err) {
     showAuthError('loginError', 'Could not reach server. Is the backend running?');
@@ -221,7 +221,7 @@ async function handleSignup() {
 
     saveSession(data.access_token, data.user);
     updateLoggedInUser();
-    window.location.href = 'dashboard.html';
+    window.location.href = '/dashboard';
 
   } catch (err) {
     showAuthError('signupError', 'Could not reach server. Is the backend running?');
@@ -327,7 +327,7 @@ function updateLoggedInUser() {
 window.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('loginPage')) {
     if (authToken && currentUser) {
-      window.location.href = 'dashboard.html';
+      window.location.href = '/dashboard';
     } else {
       const preferred = localStorage.getItem('hv_preferred_view');
       localStorage.removeItem('hv_preferred_view');

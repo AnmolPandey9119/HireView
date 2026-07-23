@@ -364,10 +364,10 @@
   <script src="js/cheating.js"></script>
   <script src="js/interview.js"></script>
   <script>
-    // Auth check — logged in नहीं है तो auth.html पर भेजें
+    // Auth check — logged in नहीं है तो /auth पर भेजें
     window.addEventListener('DOMContentLoaded', () => {
       if (!authToken) {
-        window.location.href = 'auth.html';
+        window.location.href = '/auth';
         return;
       }
       const el = document.getElementById('loggedInAs');
@@ -380,7 +380,7 @@
       currentUser = null;
       localStorage.removeItem('hv_token');
       localStorage.removeItem('hv_user');
-      window.location.href = 'auth.html';
+      window.location.href = '/auth';
     }
 
     // showPage helper (interview.js uses this)

@@ -461,7 +461,7 @@
 
   <!-- NAV -->
   <nav>
-    <a href="index.html" class="hv-logo-wrap">
+    <a href="/" class="hv-logo-wrap">
       <div class="hv-logo-ring-wrap">
         <div class="hv-ring hv-ring-1"></div>
         <div class="hv-ring hv-ring-2"></div>
@@ -750,7 +750,7 @@
     </div>
     <div style="display:flex;gap:1.5rem">
       <a href="#" onclick="goToAuth('loginPage');return false;">Login</a>
-      <a href="privacy.html">Privacy Policy</a>
+      <a href="/privacy">Privacy Policy</a>
       <a href="mailto:hireviewadmin@gmail.com">Contact</a>
       <a href="https://github.com/AnmolPandey9119/HireView">GitHub</a>
     </div>
@@ -770,17 +770,17 @@
 
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-    // Send visitors to auth.html on the right tab (login vs signup)
+    // Send visitors to /auth on the right tab (login vs signup)
     function goToAuth(targetView) {
       localStorage.setItem('hv_preferred_view', targetView);
-      window.location.href = 'auth.html';
+      window.location.href = '/auth';
     }
 
     // Already logged in? Skip the landing page entirely.
     window.addEventListener('DOMContentLoaded', () => {
       const token = localStorage.getItem('hv_token');
       if (token) {
-        window.location.href = 'dashboard.html';
+        window.location.href = '/dashboard';
       }
     });
 

@@ -1755,8 +1755,8 @@ function showFeedbackScreen(feedback) {
       </div>
       ${integritySection}
       <div style="text-align:center;margin-top:2rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-        <button onclick="window.location.href='dashboard.html'" style="padding:1rem 2rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;color:white;font-weight:700;font-size:1rem;cursor:pointer;font-family:inherit">📊 Dashboard</button>
-        <button onclick="window.location.href='interview.html'" style="padding:1rem 2.5rem;background:linear-gradient(135deg,#6366f1,#ec4899);border:none;border-radius:14px;color:white;font-weight:700;font-size:1rem;cursor:pointer;font-family:inherit">🔄 New Interview</button>
+        <button onclick="window.location.href = '/dashboard'" style="padding:1rem 2rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;color:white;font-weight:700;font-size:1rem;cursor:pointer;font-family:inherit">📊 Dashboard</button>
+        <button onclick="window.location.href='/interview'" style="padding:1rem 2.5rem;background:linear-gradient(135deg,#6366f1,#ec4899);border:none;border-radius:14px;color:white;font-weight:700;font-size:1rem;cursor:pointer;font-family:inherit">🔄 New Interview</button>
       </div>
     </div>`;
 }

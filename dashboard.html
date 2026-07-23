@@ -202,7 +202,7 @@
             <div class="dashboard-sub">Here's your interview progress</div>
           </div>
           <div class="header-actions">
-            <button class="start-btn" onclick="window.location.href='interview.html'">+ New Interview</button>
+            <button class="start-btn" onclick="window.location.href='/interview'">+ New Interview</button>
 
             <!-- Profile avatar + Google-style mini dropdown -->
             <div class="profile-widget" id="profileWidget">
@@ -415,14 +415,14 @@
   <script src="js/auth.js"></script>
   <script>
     // Auth check
-    if (!authToken) window.location.href = 'auth.html';
+    if (!authToken) window.location.href = '/auth';
 
     function handleLogout() {
       authToken = null;
       currentUser = null;
       localStorage.removeItem('hv_token');
       localStorage.removeItem('hv_user');
-      window.location.href = 'auth.html';
+      window.location.href = '/auth';
     }
 
     // ────────────────────────────────────────────
@@ -916,7 +916,7 @@
       }
 
       list.innerHTML = interviews.map(i => `
-        <div class="interview-card" onclick="window.location.href='history.html?id=${i.id}'">
+        <div class="interview-card" onclick="window.location.href='/history?id=${i.id}'">
           <div>
             <div class="interview-role">${i.role}</div>
             <div class="interview-date">📅 ${formatDate(i.started_at)}</div>
@@ -944,12 +944,12 @@
         if (!res.ok) {
           if (res.status === 401) {
             // Stale/invalid token — clear it before redirecting, otherwise
-            // auth.html sees a token still sitting in localStorage and
-            // bounces straight back to dashboard.html, which hits 401 again,
-            // causing an infinite auth.html <-> dashboard.html redirect loop.
+            // /auth sees a token still sitting in localStorage and
+            // bounces straight back to /dashboard, which hits 401 again,
+            // causing an infinite /auth <-> /dashboard redirect loop.
             localStorage.removeItem('hv_token');
             localStorage.removeItem('hv_user');
-            window.location.href = 'auth.html';
+            window.location.href = '/auth';
             return;
           }
           throw new Error('Failed to load dashboard');

@@ -92,8 +92,8 @@
         <div class="page-header">
           <div class="page-title">📋 Interview History</div>
           <div style="display:flex;gap:0.75rem">
-            <button class="back-btn" onclick="window.location.href='dashboard.html'">← Dashboard</button>
-            <button class="back-btn" onclick="window.location.href='interview.html'" style="background:rgba(99,102,241,0.2);border-color:rgba(99,102,241,0.4);color:#818cf8">+ New Interview</button>
+            <button class="back-btn" onclick="window.location.href = '/dashboard'">← Dashboard</button>
+            <button class="back-btn" onclick="window.location.href='/interview'" style="background:rgba(99,102,241,0.2);border-color:rgba(99,102,241,0.4);color:#818cf8">+ New Interview</button>
           </div>
         </div>
 
@@ -110,7 +110,7 @@
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
   <script>
-    if (!authToken) window.location.href = 'auth.html';
+    if (!authToken) window.location.href = '/auth';
 
     function formatDate(iso) {
       if (!iso) return '—';
@@ -291,7 +291,7 @@
         });
 
         if (!res.ok) {
-          if (res.status === 401) { window.location.href = 'auth.html'; return; }
+          if (res.status === 401) { window.location.href = '/auth'; return; }
           throw new Error('Failed to load history');
         }
 
