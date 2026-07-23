@@ -24,7 +24,7 @@ from typing import Optional
 import logging
 
 import config
-from models.database import get_db, User, Interview, InterviewQuestion, Feedback
+from models.database import get_db, User, Interview, InterviewQuestion, Feedback, SiteVisit
 from models.auth_utils import (
     hash_password, verify_password, create_access_token, decode_access_token,
     validate_password_strength,
@@ -81,6 +81,7 @@ async def admin_login(payload: AdminLogin):
 # ============================================================
 @router.get("/admin/stats")
 async def get_stats(db: Session = Depends(get_db), _admin=Depends(get_current_admin)):
+    visit_row = db.query(SiteVisit).first()
     return {
         "total_users": db.query(User).count(),
         "total_interviews": db.query(Interview).count(),
@@ -88,6 +89,7 @@ async def get_stats(db: Session = Depends(get_db), _admin=Depends(get_current_ad
         "verified_users": db.query(User).filter(User.is_verified == True).count(),  # noqa: E712
         "private_interviews": db.query(Interview).filter(Interview.sector == "private").count(),
         "government_interviews": db.query(Interview).filter(Interview.sector == "government").count(),
+        "total_visitors": visit_row.total_visits if visit_row else 0,
     }
 
 
@@ -106,14 +108,38 @@ async def list_government_domains(db: Session = Depends(get_db), _admin=Depends(
 # ============================================================
 # USERS — list / detail / update / delete
 # ============================================================
+def _user_serial_map(db: Session) -> dict:
+    """Maps real user.id -> stable 1,2,3... serial number, oldest-first.
+
+    Computed fresh on every request (not stored in the DB), so when a user
+    is deleted, everyone registered after them automatically shifts up by
+    one the next time this is computed. This is the SAME numbering shown
+    as `serial_no` in the Users tab, so it can be reused anywhere a user
+    needs to be referenced by a human-friendly, gap-free number (e.g. the
+    "User S.No." column on the Interviews tab) instead of the raw,
+    permanent database primary key.
+    """
+    users = db.query(User).order_by(User.id.asc()).all()
+    return {u.id: idx for idx, u in enumerate(users, start=1)}
+
+
+def _interview_serial_map(db: Session) -> dict:
+    """Maps real interview.id -> stable 1,2,3... serial number, oldest-first.
+
+    Same idea as `_user_serial_map`, but for interviews. It's computed over
+    ALL interviews (ignoring any sector/domain filter) so a given
+    interview's serial number stays the same no matter how the list is
+    currently filtered or sorted for display.
+    """
+    interviews = db.query(Interview).order_by(Interview.id.asc()).all()
+    return {i.id: idx for idx, i in enumerate(interviews, start=1)}
+
+
 @router.get("/admin/users")
 async def list_users(db: Session = Depends(get_db), _admin=Depends(get_current_admin)):
     # Ordered oldest-first so serial_no reflects registration order: 1, 2, 3, ...
-    # serial_no is computed fresh on every request (not stored in the DB), so
-    # when a user is deleted, everyone registered after them automatically
-    # shifts up by one the next time this list is loaded. `id` (the real,
-    # permanent database primary key) is kept separate and unchanged — it's
-    # what edit/delete actions actually use under the hood.
+    # `id` (the real, permanent database primary key) is kept separate and
+    # unchanged — it's what edit/delete actions actually use under the hood.
     users = db.query(User).order_by(User.id.asc()).all()
     return [
         {
@@ -135,13 +161,19 @@ async def get_user(user_id: int, db: Session = Depends(get_db), _admin=Depends(g
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    interview_serial_map = _interview_serial_map(db)
+
     return {
         "id": user.id,
+        "serial_no": _user_serial_map(db).get(user.id),
         "name": user.name,
         "email": user.email,
         "is_verified": user.is_verified,
         "created_at": user.created_at,
-        "interviews": [_serialize_interview(i, include_details=False) for i in user.interviews],
+        "interviews": [
+            _serialize_interview(i, include_details=False, serial_no=interview_serial_map.get(i.id))
+            for i in user.interviews
+        ],
     }
 
 
@@ -193,10 +225,17 @@ async def delete_user(user_id: int, db: Session = Depends(get_db), _admin=Depend
 # ============================================================
 # INTERVIEWS — list / detail / update / delete
 # ============================================================
-def _serialize_interview(interview: Interview, include_details: bool = True) -> dict:
+def _serialize_interview(
+    interview: Interview,
+    include_details: bool = True,
+    serial_no: Optional[int] = None,
+    user_serial_no: Optional[int] = None,
+) -> dict:
     data = {
         "id": interview.id,
+        "serial_no": serial_no,
         "user_id": interview.user_id,
+        "user_serial_no": user_serial_no,
         "role": interview.role,
         "difficulty": interview.difficulty,
         "status": interview.status,
@@ -252,7 +291,21 @@ async def list_interviews(
     if government_domain:
         query = query.filter(Interview.government_domain == government_domain)
     interviews = query.order_by(Interview.id.desc()).all()
-    return [_serialize_interview(i, include_details=False) for i in interviews]
+
+    # Built over the FULL unfiltered table so a given interview keeps the
+    # same serial number regardless of which sector/domain filter is applied.
+    interview_serial_map = _interview_serial_map(db)
+    user_serial_map = _user_serial_map(db)
+
+    return [
+        _serialize_interview(
+            i,
+            include_details=False,
+            serial_no=interview_serial_map.get(i.id),
+            user_serial_no=user_serial_map.get(i.user_id),
+        )
+        for i in interviews
+    ]
 
 
 @router.get("/admin/interviews/{interview_id}")
@@ -260,7 +313,12 @@ async def get_interview(interview_id: int, db: Session = Depends(get_db), _admin
     interview = db.query(Interview).filter(Interview.id == interview_id).first()
     if not interview:
         raise HTTPException(status_code=404, detail="Interview not found")
-    return _serialize_interview(interview, include_details=True)
+    return _serialize_interview(
+        interview,
+        include_details=True,
+        serial_no=_interview_serial_map(db).get(interview.id),
+        user_serial_no=_user_serial_map(db).get(interview.user_id),
+    )
 
 
 @router.put("/admin/interviews/{interview_id}")

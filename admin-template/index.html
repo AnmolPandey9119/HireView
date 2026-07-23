@@ -74,21 +74,46 @@
   .search-input:focus{outline:none;border-color:#6366f1;}
   .refresh-btn{padding:0.6rem 1rem;background:rgba(255,255,255,0.06);border:1px solid rgba(99,102,241,0.25);color:#fff;font-size:0.85rem;}
 
-  table{width:100%;border-collapse:collapse;background:rgba(255,255,255,0.03);border-radius:14px;overflow:hidden;}
+  /* Table sits inside a horizontally-scrollable wrapper so on narrow screens
+     only the table scrolls sideways — the topbar/tabs/toolbar above it stay
+     put and never cause the whole page to scroll horizontally. */
+  .table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:14px;
+              border:1px solid rgba(99,102,241,0.12);}
+  table{width:100%;min-width:640px;border-collapse:collapse;background:rgba(255,255,255,0.03);border-radius:14px;}
   thead th{text-align:left;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.04em;color:rgba(255,255,255,0.45);
-           padding:0.85rem 1rem;border-bottom:1px solid rgba(99,102,241,0.15);}
-  tbody td{padding:0.85rem 1rem;font-size:0.88rem;border-bottom:1px solid rgba(255,255,255,0.05);}
+           padding:0.85rem 1rem;border-bottom:1px solid rgba(99,102,241,0.15);white-space:nowrap;}
+  tbody td{padding:0.85rem 1rem;font-size:0.88rem;border-bottom:1px solid rgba(255,255,255,0.05);white-space:nowrap;}
   tbody tr:hover{background:rgba(99,102,241,0.06);}
-  .pill{display:inline-block;padding:0.2rem 0.65rem;border-radius:20px;font-size:0.72rem;font-weight:700;}
+  .pill{display:inline-block;padding:0.2rem 0.65rem;border-radius:20px;font-size:0.72rem;font-weight:700;white-space:nowrap;}
   .pill-green{background:rgba(34,197,94,0.15);color:#22c55e;}
   .pill-orange{background:rgba(251,146,60,0.15);color:#fb923c;}
   .pill-blue{background:rgba(99,102,241,0.18);color:#a5b4fc;}
   .row-actions{display:flex;gap:0.4rem;}
-  .icon-btn{padding:0.4rem 0.7rem;font-size:0.78rem;background:rgba(255,255,255,0.06);border:1px solid rgba(99,102,241,0.2);color:#fff;}
+  .icon-btn{padding:0.4rem 0.7rem;font-size:0.78rem;background:rgba(255,255,255,0.06);border:1px solid rgba(99,102,241,0.2);color:#fff;white-space:nowrap;}
   .icon-btn.danger{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.3);color:#f87171;}
   .icon-btn:hover{background:rgba(99,102,241,0.2);}
   .icon-btn.danger:hover{background:rgba(239,68,68,0.25);}
   .empty-state{text-align:center;padding:3rem 1rem;color:rgba(255,255,255,0.4);}
+
+  /* ---------- MOBILE ---------- */
+  @media (max-width:640px){
+    .topbar{padding:0.9rem 1rem;}
+    .brand-sub{display:none;}
+    .tabs{padding:0.9rem 1rem 0;gap:0.4rem;}
+    .tab{padding:0.5rem 0.8rem;font-size:0.78rem;}
+    .content{padding:1rem 1rem 2.5rem;}
+    .stat-grid{grid-template-columns:repeat(2,1fr);gap:0.6rem;}
+    .stat-card{padding:1rem;}
+    .stat-num{font-size:1.4rem;}
+    .toolbar{flex-direction:column;align-items:stretch;gap:0.6rem;}
+    .toolbar > div{flex-direction:column;align-items:stretch !important;}
+    .search-input{width:100%;min-width:0;}
+    .refresh-btn{width:100%;}
+    select.search-input{width:100%;}
+    .modal{padding:1.25rem;border-radius:16px;}
+    .modal-actions{flex-wrap:wrap;}
+    .modal-actions .btn{flex:1 1 auto;}
+  }
 
   /* ---------- MODAL ---------- */
   .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(5,6,15,0.75);backdrop-filter:blur(4px);z-index:50;
@@ -171,10 +196,12 @@
         <input class="search-input" id="userSearch" placeholder="Search by name or email…">
         <button class="btn refresh-btn" id="refreshUsers">Refresh</button>
       </div>
-      <table>
-        <thead><tr><th>S.No.</th><th>Name</th><th>Email</th><th>Verified</th><th>Interviews</th><th>Joined</th><th>Actions</th></tr></thead>
-        <tbody id="usersTbody"></tbody>
-      </table>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>S.No.</th><th>Name</th><th>Email</th><th>Verified</th><th>Interviews</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="usersTbody"></tbody>
+        </table>
+      </div>
       <div class="empty-state" id="usersEmpty" style="display:none;">No users found.</div>
     </div>
 
@@ -190,14 +217,16 @@
           </select>
         </div>
         <div style="display:flex;gap:0.6rem;">
-          <input class="search-input" id="interviewSearch" placeholder="Search by role or user ID…">
+          <input class="search-input" id="interviewSearch" placeholder="Search by role or user S.No.…">
           <button class="btn refresh-btn" id="refreshInterviews">Refresh</button>
         </div>
       </div>
-      <table>
-        <thead><tr><th>ID</th><th>User ID</th><th>Role</th><th>Sector</th><th>Difficulty</th><th>Status</th><th>Score</th><th>Started</th><th>Actions</th></tr></thead>
-        <tbody id="interviewsTbody"></tbody>
-      </table>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>S.No.</th><th>User S.No.</th><th>Role</th><th>Sector</th><th>Difficulty</th><th>Status</th><th>Score</th><th>Started</th><th>Actions</th></tr></thead>
+          <tbody id="interviewsTbody"></tbody>
+        </table>
+      </div>
       <div class="empty-state" id="interviewsEmpty" style="display:none;">No interviews found.</div>
     </div>
 
@@ -355,6 +384,7 @@ function togglePasswordVisibility(inputId, toggleEl) {
     try {
       const s = await api('/admin/stats');
       $('statGrid').innerHTML = `
+        <div class="stat-card"><div class="stat-num">${s.total_visitors}</div><div class="stat-label">Total Visitors</div></div>
         <div class="stat-card"><div class="stat-num">${s.total_users}</div><div class="stat-label">Total Users</div></div>
         <div class="stat-card"><div class="stat-num">${s.verified_users}</div><div class="stat-label">Verified Users</div></div>
         <div class="stat-card"><div class="stat-num">${s.total_interviews}</div><div class="stat-label">Total Interviews</div></div>
@@ -412,7 +442,7 @@ function togglePasswordVisibility(inputId, toggleEl) {
           u.interviews.map(i => `
             <div class="sub-block">
               <div class="sub-block-head">
-                <span>#${i.id} — ${escapeHtml(i.role)} (${escapeHtml(i.difficulty)})</span>
+                <span>#${i.serial_no} — ${escapeHtml(i.role)} (${escapeHtml(i.difficulty)})</span>
                 <span class="pill ${i.status === 'completed' ? 'pill-green' : 'pill-orange'}">${i.status}</span>
               </div>
               <div class="muted">Score: ${i.overall_score ?? '—'} · Started ${fmtDate(i.started_at)}</div>
@@ -463,8 +493,8 @@ function togglePasswordVisibility(inputId, toggleEl) {
   function renderInterviews(list){
     $('interviewsTbody').innerHTML = list.map(i => `
       <tr>
-        <td>${i.id}</td>
-        <td>${i.user_id}</td>
+        <td>${i.serial_no}</td>
+        <td>${i.user_serial_no ?? '—'}</td>
         <td>${escapeHtml(i.role)}</td>
         <td>${i.sector === 'government' ? '<span class="pill pill-blue">Government' + (i.government_domain ? ' · ' + escapeHtml(i.government_domain) : '') + '</span>' : '<span class="pill pill-green">Private</span>'}</td>
         <td>${escapeHtml(i.difficulty)}</td>
@@ -497,7 +527,10 @@ function togglePasswordVisibility(inputId, toggleEl) {
   function applyInterviewSearch(){
     const q = $('interviewSearch').value.toLowerCase();
     const filtered = q
-      ? currentInterviews.filter(i => i.role.toLowerCase().includes(q) || String(i.user_id).includes(q))
+      ? currentInterviews.filter(i =>
+          i.role.toLowerCase().includes(q) ||
+          String(i.user_serial_no).includes(q) ||
+          String(i.user_id).includes(q))
       : currentInterviews;
     renderInterviews(filtered);
   }

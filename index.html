@@ -746,6 +746,7 @@
     <div>
       <span style="font-weight:700;color:rgba(255,255,255,0.6)">HireView</span>
       &nbsp;·&nbsp; Built by <a href="https://linkedin.com/in/anmol-pandey-240105376">Anmol Pandey</a>
+      <span id="visitorCount" style="margin-left:1.75rem;color:rgba(255,255,255,0.45);">— visitors</span>
     </div>
     <div style="display:flex;gap:1.5rem">
       <a href="#" onclick="goToAuth('loginPage');return false;">Login</a>
@@ -782,6 +783,24 @@
         window.location.href = 'dashboard.html';
       }
     });
+
+    // ── VISITOR COUNTER ──
+    // Increments on every page open (not once per browser) — every visit
+    // to the site adds 1 to the total. Fails silently if the backend is
+    // unreachable — this is a nice-to-have, never blocks the page.
+    (function trackAndShowVisitorCount(){
+      const API = (typeof BACKEND_URL !== 'undefined' ? BACKEND_URL : '').replace(/\/$/, '') + '/api';
+      const countEl = document.getElementById('visitorCount');
+
+      const showCount = (n) => {
+        if (countEl) countEl.textContent = `${n.toLocaleString()} visitors`;
+      };
+
+      fetch(API + '/visits/track', { method: 'POST' })
+        .then((res) => res.json())
+        .then((data) => showCount(data.total_visits))
+        .catch(() => { if (countEl) countEl.textContent = ''; });
+    })();
   </script>
 
 </body>

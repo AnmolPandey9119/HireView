@@ -161,6 +161,20 @@ class Feedback(Base):
 
 
 # ============================================================
+# SITE VISIT COUNTER
+# A single row (id=1) holding a running total of website visits.
+# Incremented via an atomic UPDATE from routes/visits.py so
+# concurrent requests can't stomp on each other's count.
+# ============================================================
+class SiteVisit(Base):
+    __tablename__ = "site_visits"
+
+    id           = Column(Integer, primary_key=True, index=True)
+    total_visits = Column(Integer, default=0, nullable=False)
+    updated_at   = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+# ============================================================
 # CREATE ALL TABLES
 # ============================================================
 def init_db():
