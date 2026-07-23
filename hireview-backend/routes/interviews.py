@@ -116,7 +116,8 @@ async def save_feedback(
         engagement_score=payload.engagement_score,
         strengths=json.dumps(payload.strengths or []),
         areas_to_improve=json.dumps(payload.areas_to_improve or []),
-        next_steps=payload.next_steps
+        next_steps=payload.next_steps,
+        personal_note=payload.personal_note
     )
     db.add(feedback)
 
@@ -180,7 +181,8 @@ async def get_interview_detail(
             "engagement_score": feedback.engagement_score,
             "strengths": json.loads(feedback.strengths or "[]"),
             "areas_to_improve": json.loads(feedback.areas_to_improve or "[]"),
-            "next_steps": feedback.next_steps
+            "next_steps": feedback.next_steps,
+            "personal_note": feedback.personal_note
         }
 
     return {
@@ -290,7 +292,8 @@ async def get_interview_history(
                 "soft_skills_score": feedback.soft_skills_score,
                 "strengths": json.loads(feedback.strengths or "[]"),
                 "areas_to_improve": json.loads(feedback.areas_to_improve or "[]"),
-                "next_steps": feedback.next_steps
+                "next_steps": feedback.next_steps,
+                "personal_note": feedback.personal_note
             }
 
         result.append({

@@ -153,6 +153,7 @@ class Feedback(Base):
     strengths            = Column(Text, nullable=True)   # JSON string
     areas_to_improve     = Column(Text, nullable=True)   # JSON string
     next_steps           = Column(Text, nullable=True)
+    personal_note        = Column(Text, nullable=True)
 
     created_at           = Column(DateTime, default=datetime.utcnow)
 

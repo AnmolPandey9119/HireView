@@ -1597,20 +1597,33 @@ async function generateAndSaveFeedback() {
   document.getElementById('currentQuestion').textContent = 'Analyzing your performance...';
 
   try {
+    const candidateName = (currentUser && currentUser.name) ? currentUser.name.split(' ')[0] : null;
+
     const feedbackPrompt = [
       ...conversationHistory,
       {
         role: 'user',
-        content: `The interview is now complete. Based on the entire conversation, generate a detailed evaluation in this exact JSON format (respond with ONLY the JSON, no extra text):
+        content: `The interview is now complete. You are Arjun, the interviewer who just personally conducted this conversation. Write the candidate's evaluation report the way a thoughtful human interviewer would — specific, honest, and grounded in what actually happened in this conversation, not a generic template.
+
+Hard rules:
+- Every strength and area to improve MUST reference something concrete the candidate actually said or did in this conversation (a specific answer, example, explanation, or moment) — not a generic trait. Instead of "Good communication skills", write something like "Explained the caching approach clearly when asked about the second project, walking through the trade-offs step by step."
+- Do NOT use generic filler phrases ("good communication skills", "needs more depth", "strong problem-solving abilities", "keep practicing") unless immediately backed by a specific example from THIS conversation.
+- If the candidate gave a genuinely strong or memorable answer, or struggled visibly on something specific, call it out plainly.
+- The summary should read like a real assessment, not a corporate template — 2-3 sentences, no fluff.
+- "personal_note" is a short first-person message from you (Arjun) directly to the candidate${candidateName ? `, addressed to them as ${candidateName}` : ''} — warm, honest, human, 2-3 sentences, referencing one specific real moment from the conversation. Not generic encouragement — it should only make sense for THIS candidate's actual interview.
+- Scores must be consistent with the evidence you cite — don't inflate or soften them.
+
+Respond with ONLY this JSON, no extra text:
 {
   "overall_score": <1-10>,
   "hiring_recommendation": "<Strong Hire / Hire / Borderline / No Hire>",
-  "summary": "<2-3 sentence summary>",
+  "summary": "<2-3 sentence honest summary, specific to this candidate>",
   "technical_score": <1-10>,
   "soft_skills_score": <1-10>,
-  "strengths": ["<s1>", "<s2>", "<s3>"],
-  "areas_to_improve": ["<a1>", "<a2>", "<a3>"],
-  "next_steps": "<specific actionable advice>"
+  "strengths": ["<specific, evidence-based strength 1>", "<specific, evidence-based strength 2>", "<specific, evidence-based strength 3>"],
+  "areas_to_improve": ["<specific, evidence-based area 1>", "<specific, evidence-based area 2>", "<specific, evidence-based area 3>"],
+  "next_steps": "<specific, actionable advice tied to what you observed>",
+  "personal_note": "<short first-person note from Arjun to the candidate, referencing a real moment from this interview>"
 }`
       }
     ];
@@ -1623,8 +1636,11 @@ async function generateAndSaveFeedback() {
       feedback = {
         overall_score: 7, hiring_recommendation: 'Hire',
         summary: rawFeedback, technical_score: 7, soft_skills_score: 7,
-        strengths: ['Good communication'], areas_to_improve: ['Needs more depth'],
-        next_steps: 'Keep practicing!'
+        strengths: ['Stayed engaged and answered every question asked'], areas_to_improve: ['Some answers could have used a specific example'],
+        next_steps: 'Review the conversation transcript and think about where a concrete example would have strengthened your answer.',
+        personal_note: candidateName
+          ? `Thanks for the conversation, ${candidateName} — I ran into a formatting issue putting together the detailed notes, so this summary is a bit shorter than usual. The full transcript is saved to your history.`
+          : `Thanks for the conversation — I ran into a formatting issue putting together the detailed notes, so this summary is a bit shorter than usual. The full transcript is saved to your history.`
       };
     }
 
@@ -1656,6 +1672,16 @@ function showFeedbackScreen(feedback) {
   const recColor = rec.includes('Strong') ? '#22c55e' : rec === 'Hire' ? '#6366f1' : rec === 'Borderline' ? '#f59e0b' : '#ef4444';
   const strengthsList = (feedback.strengths || []).map(s => `<li>${s}</li>`).join('');
   const improveList = (feedback.areas_to_improve || []).map(a => `<li>${a}</li>`).join('');
+  const candidateName = (currentUser && currentUser.name) ? currentUser.name.split(' ')[0] : null;
+
+  const personalNoteSection = feedback.personal_note ? `
+    <div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(236,72,153,0.08));border:1px solid rgba(99,102,241,0.25);border-radius:18px;padding:1.75rem;margin-bottom:1.5rem;display:flex;gap:1rem;align-items:flex-start">
+      <div style="width:44px;height:44px;flex-shrink:0;border-radius:50%;background:linear-gradient(135deg,#6366f1,#ec4899);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem">A</div>
+      <div>
+        <div style="font-weight:700;margin-bottom:0.4rem;font-size:0.95rem">A note from Arjun</div>
+        <p style="margin:0;color:rgba(255,255,255,0.82);line-height:1.7;font-size:0.95rem;font-style:italic">"${feedback.personal_note}"</p>
+      </div>
+    </div>` : '';
 
   const ir = feedback.integrity_flags;
   const verdictColor = !ir || ir.verdict === 'Clean' ? '#22c55e' : ir.verdict === 'Minor Concerns' ? '#f59e0b' : '#ef4444';
@@ -1692,11 +1718,13 @@ function showFeedbackScreen(feedback) {
 
   document.getElementById('activeInterviewPage').innerHTML = `
     <div class="results-container" style="max-width:800px;margin:0 auto;padding:2rem 1rem">
-      <div style="text-align:center;margin-bottom:2.5rem">
+      <div style="text-align:center;margin-bottom:1.5rem">
+        <div style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin-bottom:1.25rem">${candidateName ? `Here's how your interview went, ${candidateName}` : "Here's how your interview went"}</div>
         <div style="font-size:3rem;font-weight:800;color:${scoreColor}">${score}/10</div>
         <div style="font-size:1.1rem;color:rgba(255,255,255,0.6);margin-top:0.5rem">Overall Score</div>
         <div style="display:inline-block;margin-top:1rem;padding:0.5rem 1.5rem;background:${recColor}22;border:1px solid ${recColor};border-radius:20px;color:${recColor};font-weight:700">${rec}</div>
       </div>
+      ${personalNoteSection}
       <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(99,102,241,0.2);border-radius:18px;padding:2rem;margin-bottom:1.5rem">
         <div style="font-weight:700;margin-bottom:1rem">📋 Summary</div>
         <p style="color:rgba(255,255,255,0.75);line-height:1.7;margin:0">${feedback.summary}</p>

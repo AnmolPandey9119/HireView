@@ -199,3 +199,4 @@ class FeedbackCreate(BaseModel):
     strengths: Optional[List[str]] = []
     areas_to_improve: Optional[List[str]] = []
     next_steps: Optional[str] = None
+    personal_note: Optional[str] = None
