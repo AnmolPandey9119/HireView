@@ -34,6 +34,20 @@ let lastRecognitionStartAt = null;
 const RECOGNITION_REFRESH_MS = 12000;       // rotate well before any browser-internal timeout
 const RECOGNITION_STUCK_GRACE_MS = 5000;    // extra grace before declaring a session truly stuck
 
+// Mic volume monitor — Web Speech API can't be fed a boosted/processed
+// stream directly, so instead of silently mishearing quiet speakers we
+// watch real mic input level and nudge the candidate to speak up/move
+// closer when they've been consistently faint for a few seconds.
+let audioContext = null;
+let audioAnalyser = null;
+let audioMonitorRafId = null;
+let lowVolumeStreakMs = 0;
+let lastVolumeSampleAt = null;
+let lowVolumeNudgedThisTurn = false;
+const LOW_VOLUME_RMS_THRESHOLD = 0.02;   // below this = "too quiet", above near-silence floor
+const NEAR_SILENCE_RMS_FLOOR = 0.003;    // ignore true silence (not speaking at all)
+const LOW_VOLUME_NUDGE_AFTER_MS = 4000;  // sustained faint speech before we say anything
+
 // ════════════════════════════════════════════════
 // GOVERNMENT SECTOR — REGIONAL LANGUAGE SUPPORT
 // Each entry: speechLang = BCP-47 code used for both TTS voice
@@ -844,7 +858,14 @@ async function handleInterviewStart(sector) {
 async function setupCameraAndMic() {
   try {
     if (mediaStream) return;
-    mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    mediaStream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true   // helps boost genuinely quiet speakers at the OS/browser level
+      }
+    });
     const video = document.getElementById('candidateVideo');
     video.srcObject = mediaStream;
     video.classList.add('active');
@@ -853,6 +874,7 @@ async function setupCameraAndMic() {
     startRecording();
 
     setupSpeechRecognition();
+    startVolumeMonitor();
     if (typeof setupFaceDetection === 'function') setupFaceDetection();
 
     document.getElementById('aiBubble').textContent = "Checking that I can see you clearly on camera before we begin...";
@@ -1028,6 +1050,24 @@ function speakAsInterviewer(text, onDoneCallback) {
 // ════════════════════════════════════════════════
 // SPEECH TO TEXT — simple and reliable
 // ════════════════════════════════════════════════
+// Chrome's recognizer often returns several candidate transcripts per
+// result with a confidence score each — the browser's own onresult only
+// ever surfaces alternative[0], which isn't always the best guess,
+// especially for quieter or slightly unclear speech. Scan all offered
+// alternatives and use whichever one the engine itself scored highest.
+function pickBestAlternative(result) {
+  let best = result[0];
+  for (let j = 1; j < result.length; j++) {
+    const alt = result[j];
+    // confidence is 0 when the browser doesn't report it — in that case
+    // stick with alternative[0] rather than treating 0 as "worse than 0".
+    if (typeof alt.confidence === 'number' && alt.confidence > (best.confidence || 0)) {
+      best = alt;
+    }
+  }
+  return best.transcript;
+}
+
 function setupSpeechRecognition() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { console.warn('Speech recognition not supported.'); return; }
@@ -1036,13 +1076,15 @@ function setupSpeechRecognition() {
   recognition.continuous = true;
   recognition.interimResults = true;
   recognition.lang = getLangConfig().speechLang;
+  recognition.maxAlternatives = 3; // let us pick the best-scoring guess, not just the engine's first pick
 
   recognition.onresult = (event) => {
     noteSpeechActivity(); // any result — interim or final — counts as "still talking"
     let interimText = '';
     for (let i = event.resultIndex; i < event.results.length; i++) {
-      const t = event.results[i][0].transcript;
-      if (event.results[i].isFinal) {
+      const result = event.results[i];
+      const t = pickBestAlternative(result);
+      if (result.isFinal) {
         speechBuffer += t + ' ';
       } else {
         interimText += t;
@@ -1094,8 +1136,81 @@ function startFreshRecognition() {
 }
 
 // ════════════════════════════════════════════════
-// SILENCE WATCHDOG — don't wait forever for an answer
+// MIC VOLUME MONITOR — nudge quiet speakers
+// Web Speech API grabs the mic itself; we can't hand it a boosted
+// stream. So instead we watch real input level from mediaStream and,
+// if the candidate has been speaking but consistently faint for a
+// few seconds, show a gentle on-screen hint to move closer / speak up.
 // ════════════════════════════════════════════════
+function startVolumeMonitor() {
+  if (!mediaStream || audioAnalyser) return;
+  try {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioContext.createMediaStreamSource(mediaStream);
+    audioAnalyser = audioContext.createAnalyser();
+    audioAnalyser.fftSize = 1024;
+    source.connect(audioAnalyser);
+
+    const data = new Uint8Array(audioAnalyser.fftSize);
+    lastVolumeSampleAt = Date.now();
+
+    const tick = () => {
+      audioMonitorRafId = requestAnimationFrame(tick);
+      if (!audioAnalyser) return;
+      audioAnalyser.getByteTimeDomainData(data);
+
+      // RMS of the waveform (0 = silence, ~0.02+ = normal speech)
+      let sumSquares = 0;
+      for (let i = 0; i < data.length; i++) {
+        const normalized = (data[i] - 128) / 128;
+        sumSquares += normalized * normalized;
+      }
+      const rms = Math.sqrt(sumSquares / data.length);
+
+      const now = Date.now();
+      const elapsed = now - (lastVolumeSampleAt || now);
+      lastVolumeSampleAt = now;
+
+      if (!isListening) { lowVolumeStreakMs = 0; return; }
+
+      if (rms > NEAR_SILENCE_RMS_FLOOR && rms < LOW_VOLUME_RMS_THRESHOLD) {
+        lowVolumeStreakMs += elapsed;
+      } else if (rms >= LOW_VOLUME_RMS_THRESHOLD) {
+        // Speaking at a healthy volume — reset the streak and clear any nudge
+        lowVolumeStreakMs = 0;
+        if (lowVolumeNudgedThisTurn) {
+          lowVolumeNudgedThisTurn = false;
+          const status = document.getElementById('speechStatus');
+          if (status && status.classList.contains('low-volume')) {
+            status.textContent = '🎙️ Listening... speak now';
+            status.className = 'speech-status listening';
+          }
+        }
+      }
+
+      if (!lowVolumeNudgedThisTurn && lowVolumeStreakMs >= LOW_VOLUME_NUDGE_AFTER_MS) {
+        lowVolumeNudgedThisTurn = true;
+        const status = document.getElementById('speechStatus');
+        if (status) {
+          status.textContent = "🔉 I'm hearing you very faintly — try moving a little closer to the mic or speaking a bit louder.";
+          status.className = 'speech-status low-volume';
+        }
+      }
+    };
+    tick();
+  } catch (e) {
+    console.log('Volume monitor unavailable:', e.message);
+  }
+}
+
+function stopVolumeMonitor() {
+  if (audioMonitorRafId) { cancelAnimationFrame(audioMonitorRafId); audioMonitorRafId = null; }
+  if (audioContext) { try { audioContext.close(); } catch (e) {} audioContext = null; }
+  audioAnalyser = null;
+  lowVolumeStreakMs = 0;
+  lowVolumeNudgedThisTurn = false;
+}
+
 function armSilenceWatcher() {
   clearSilenceWatcher();
   lastSpeechActivityAt = Date.now();
@@ -1191,6 +1306,10 @@ function autoStartListening() {
   speechBuffer = '';
   const textarea = document.getElementById('answerInput');
   if (textarea) textarea.value = '';
+
+  // Fresh turn — let the low-volume nudge re-trigger if needed for this answer
+  lowVolumeStreakMs = 0;
+  lowVolumeNudgedThisTurn = false;
 
   // थोड़ी देर बाद fresh start
   setTimeout(() => {
@@ -1533,6 +1652,7 @@ async function endInterview(autoEnded = false) {
     try { recognition.abort(); } catch(e) {}
     recognitionRunning = false;
   }
+  stopVolumeMonitor();
 
   if (typeof stopFaceDetection === 'function') stopFaceDetection();
   if (typeof stopIntegrityAudioMonitor === 'function') stopIntegrityAudioMonitor();
@@ -1755,8 +1875,8 @@ function showFeedbackScreen(feedback) {
       </div>
       ${integritySection}
       <div style="text-align:center;margin-top:2rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-        <button onclick="window.location.href = '/dashboard'" style="padding:1rem 2rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;color:white;font-weight:700;font-size:1rem;cursor:pointer;font-family:inherit">📊 Dashboard</button>
-        <button onclick="window.location.href='/interview'" style="padding:1rem 2.5rem;background:linear-gradient(135deg,#6366f1,#ec4899);border:none;border-radius:14px;color:white;font-weight:700;font-size:1rem;cursor:pointer;font-family:inherit">🔄 New Interview</button>
+        <button onclick="window.location.href='dashboard.html'" style="padding:1rem 2rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;color:white;font-weight:700;font-size:1rem;cursor:pointer;font-family:inherit">📊 Dashboard</button>
+        <button onclick="window.location.href='interview.html'" style="padding:1rem 2.5rem;background:linear-gradient(135deg,#6366f1,#ec4899);border:none;border-radius:14px;color:white;font-weight:700;font-size:1rem;cursor:pointer;font-family:inherit">🔄 New Interview</button>
       </div>
     </div>`;
 }
