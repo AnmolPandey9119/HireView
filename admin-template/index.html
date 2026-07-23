@@ -384,6 +384,7 @@ function togglePasswordVisibility(inputId, toggleEl) {
     try {
       const s = await api('/admin/stats');
       $('statGrid').innerHTML = `
+        <div class="stat-card"><div class="stat-num">${s.total_visitors}</div><div class="stat-label">Total Visitors</div></div>
         <div class="stat-card"><div class="stat-num">${s.total_users}</div><div class="stat-label">Total Users</div></div>
         <div class="stat-card"><div class="stat-num">${s.verified_users}</div><div class="stat-label">Verified Users</div></div>
         <div class="stat-card"><div class="stat-num">${s.total_interviews}</div><div class="stat-label">Total Interviews</div></div>

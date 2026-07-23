@@ -24,7 +24,7 @@ from typing import Optional
 import logging
 
 import config
-from models.database import get_db, User, Interview, InterviewQuestion, Feedback
+from models.database import get_db, User, Interview, InterviewQuestion, Feedback, SiteVisit
 from models.auth_utils import (
     hash_password, verify_password, create_access_token, decode_access_token,
     validate_password_strength,
@@ -81,6 +81,7 @@ async def admin_login(payload: AdminLogin):
 # ============================================================
 @router.get("/admin/stats")
 async def get_stats(db: Session = Depends(get_db), _admin=Depends(get_current_admin)):
+    visit_row = db.query(SiteVisit).first()
     return {
         "total_users": db.query(User).count(),
         "total_interviews": db.query(Interview).count(),
@@ -88,6 +89,7 @@ async def get_stats(db: Session = Depends(get_db), _admin=Depends(get_current_ad
         "verified_users": db.query(User).filter(User.is_verified == True).count(),  # noqa: E712
         "private_interviews": db.query(Interview).filter(Interview.sector == "private").count(),
         "government_interviews": db.query(Interview).filter(Interview.sector == "government").count(),
+        "total_visitors": visit_row.total_visits if visit_row else 0,
     }
 
 
