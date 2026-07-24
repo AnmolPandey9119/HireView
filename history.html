@@ -26,6 +26,7 @@
     .status-completed { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
     .status-in_progress { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
     .status-cheating_terminated { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+    .status-failed { background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid rgba(148,163,184,0.3); }
     .sector-badge { padding: 0.3rem 0.85rem; border-radius: 20px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
     .sector-government { background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.3); }
     .sector-private { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.12); }
@@ -237,8 +238,8 @@
       const container = document.getElementById('historyContainer');
 
       const relevant = interviews.filter(i =>
-        i.questions.length > 0 || i.feedback || 
-        i.status === 'completed' || i.status === 'cheating_terminated'
+        i.questions.length > 0 || i.feedback ||
+        i.status === 'completed' || i.status === 'cheating_terminated' || i.status === 'failed'
       );
 
       if (relevant.length === 0) {
@@ -251,9 +252,11 @@
         return;
       }
 
+      const nonExpandable = i => i.status === 'cheating_terminated' || i.status === 'failed';
+
       container.innerHTML = `<div class="history-list">${relevant.map(i => `
         <div class="history-card">
-         <div class="history-card-header" ${i.status !== 'cheating_terminated' ? `onclick="toggleCard(${i.id})"` : ''}>
+         <div class="history-card-header" ${!nonExpandable(i) ? `onclick="toggleCard(${i.id})"` : ''}>
             <div>
               <div class="history-role">${i.role}</div>
               <div class="history-date">📅 ${formatDate(i.started_at)}</div>
@@ -266,9 +269,10 @@
               <span class="status-badge status-${i.status}">
                 ${i.status === 'completed' ? '✅ Completed' 
                 : i.status === 'cheating_terminated' ? '🚨 Terminated'
+                : i.status === 'failed' ? '⚠️ Failed — not counted'
                 : '🔄 In Progress'}
               </span>
-              ${i.status !== 'cheating_terminated' ? `<span class="expand-icon" id="icon-${i.id}">▼</span>` : ''}
+              ${!nonExpandable(i) ? `<span class="expand-icon" id="icon-${i.id}">▼</span>` : ''}
             </div>
           </div>
           <div class="history-card-body" id="body-${i.id}">
@@ -276,6 +280,12 @@
               ? `<div style="padding:1.5rem;background:rgba(239,68,68,0.06);border-top:1px solid rgba(239,68,68,0.2)">
                   <div style="color:#f87171;font-weight:700;font-size:1rem;margin-bottom:0.5rem">🚨 Interview Terminated Due to Integrity Violation</div>
                   <div style="color:rgba(255,255,255,0.6);font-size:0.9rem;line-height:1.6">This interview was terminated because cheating signals were detected (tab switching or multiple faces on camera). No score or feedback is available for this session.</div>
+                </div>`
+              : i.status === 'failed'
+              ? `<div style="padding:1.5rem;background:rgba(148,163,184,0.06);border-top:1px solid rgba(148,163,184,0.2)">
+                  <div style="color:#94a3b8;font-weight:700;font-size:1rem;margin-bottom:0.5rem">⚠️ Interview Failed</div>
+                  <div style="color:rgba(255,255,255,0.6);font-size:0.9rem;line-height:1.6">${i.failure_reason || 'This session could not be completed due to a technical issue.'}</div>
+                  <div style="color:rgba(255,255,255,0.4);font-size:0.82rem;margin-top:0.75rem">This attempt was not your fault — it has NOT been counted against your free interviews.</div>
                 </div>`
               : `${renderGovInfo(i)}${renderFeedback(i.feedback)}${renderQA(i.questions)}`
             }

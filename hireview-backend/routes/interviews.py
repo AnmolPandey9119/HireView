@@ -8,16 +8,59 @@ import httpx
 import os
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 import json
 
 from models.database import get_db, Interview, InterviewQuestion, Feedback, User
-from models.schemas import InterviewCreate, QuestionAnswer, InterviewResponse, FeedbackCreate
+from models.schemas import InterviewCreate, QuestionAnswer, InterviewResponse, FeedbackCreate, FailInterviewRequest
 from routes.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+# Extra buffer (beyond the interview's own duration_limit) before we treat
+# a still-"in_progress" interview as abandoned rather than genuinely active.
+STALE_GRACE_SECONDS = 15 * 60  # 15 minutes
+
+
+# ============================================================
+# Auto-heal stale "in_progress" interviews
+# Runs on every read of dashboard/history/list so a candidate never
+# needs a cron job to clean this up. Any interview stuck in_progress
+# well past its own time limit gets marked "failed" with a real
+# reason instead of hanging forever — and stops eating the free quota.
+# ============================================================
+def _reconcile_stale_interviews(db: Session, user_id: int):
+    now = datetime.utcnow()
+    stuck = db.query(Interview).filter(
+        Interview.user_id == user_id,
+        Interview.status == "in_progress"
+    ).all()
+
+    changed = False
+    for interview in stuck:
+        limit = (interview.duration_limit or 300) + STALE_GRACE_SECONDS
+        if not interview.started_at or (now - interview.started_at).total_seconds() <= limit:
+            continue  # still genuinely within its active window
+
+        has_answers = db.query(InterviewQuestion).filter(
+            InterviewQuestion.interview_id == interview.id
+        ).first() is not None
+
+        interview.status = "failed"
+        interview.completed_at = now
+        interview.failure_reason = (
+            "Interview was interrupted mid-session and never finished — likely a network drop, "
+            "the browser/tab being closed, or a server error before the report could be generated."
+            if has_answers else
+            "Interview session never really started — likely a network issue, or the browser/tab "
+            "was closed right after the session was created."
+        )
+        changed = True
+
+    if changed:
+        db.commit()
 
 
 # ============================================================
@@ -138,6 +181,8 @@ async def list_interviews(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    _reconcile_stale_interviews(db, current_user.id)
+
     interviews = db.query(Interview).filter(
         Interview.user_id == current_user.id
     ).order_by(Interview.started_at.desc()).all()
@@ -198,6 +243,7 @@ async def get_interview_detail(
         "government_role": interview.government_role,
         "biodata_source": interview.biodata_source,
         "candidate_summary": interview.candidate_summary,
+        "failure_reason": interview.failure_reason,
         "questions": [
             {"question_text": q.question_text, "answer_text": q.answer_text, "order_index": q.order_index}
             for q in questions
@@ -214,11 +260,17 @@ async def get_dashboard_stats(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    _reconcile_stale_interviews(db, current_user.id)
+
     interviews = db.query(Interview).filter(
         Interview.user_id == current_user.id
     ).order_by(Interview.started_at.desc()).all()
 
-    total = len(interviews)
+    # "failed" sessions were wasted through no fault of the candidate's —
+    # they don't count as a used attempt, so they're excluded from both
+    # the total and the free-trial quota.
+    countable = [i for i in interviews if i.status != "failed"]
+    total = len(countable)
     completed = [i for i in interviews if i.status == 'completed']
     scores = [i.overall_score for i in completed if i.overall_score is not None]
 
@@ -236,7 +288,8 @@ async def get_dashboard_stats(
             "completed_at": i.completed_at.isoformat() if i.completed_at else None,
             "sector": i.sector,
             "government_domain": i.government_domain,
-            "government_role": i.government_role
+            "government_role": i.government_role,
+            "failure_reason": i.failure_reason
         })
 
     return {
@@ -266,10 +319,13 @@ async def get_interview_history(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # सिर्फ meaningful interviews दिखाएं — date wise, newest first
+    _reconcile_stale_interviews(db, current_user.id)
+
+    # completed + cheating_terminated + failed दिखाएं (failed भी दिखाना है ताकि
+    # user को पता रहे reason क्या था) — बस genuinely-active in_progress छुपाएं
     interviews = db.query(Interview).filter(
         Interview.user_id == current_user.id,
-        Interview.status.in_(["completed", "cheating_terminated"])
+        Interview.status.in_(["completed", "cheating_terminated", "failed"])
     ).order_by(Interview.started_at.desc()).all()
 
     result = []
@@ -307,6 +363,7 @@ async def get_interview_history(
             "government_domain": i.government_domain,
             "government_role": i.government_role,
             "candidate_summary": i.candidate_summary,
+            "failure_reason": i.failure_reason,
             "questions": [
                 {
                     "question_text": q.question_text,
@@ -318,6 +375,41 @@ async def get_interview_history(
         })
 
     return result
+
+
+# ============================================================
+# POST /api/interviews/{id}/fail — Frontend reports a failure reason
+# (network drop, API error, mic/cam issue, tab closed mid-session)
+# so the interview doesn't linger as "in_progress" forever, and
+# doesn't count against the free-trial quota.
+# ============================================================
+@router.post("/interviews/{interview_id}/fail")
+async def fail_interview(
+    interview_id: int,
+    payload: FailInterviewRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    interview = db.query(Interview).filter(
+        Interview.id == interview_id,
+        Interview.user_id == current_user.id
+    ).first()
+
+    if not interview:
+        raise HTTPException(status_code=404, detail="Interview not found")
+
+    # Already reached a final state (e.g. feedback saved right before the
+    # tab closed) — don't overwrite a real result with a late failure report.
+    if interview.status in ("completed", "cheating_terminated", "failed"):
+        return {"status": interview.status, "interview_id": interview_id}
+
+    interview.status = "failed"
+    interview.completed_at = datetime.utcnow()
+    interview.failure_reason = (payload.reason or "Interview could not be completed.").strip()[:500]
+    db.commit()
+
+    logger.info(f"Interview {interview_id} marked failed: {interview.failure_reason}")
+    return {"status": "failed", "interview_id": interview_id}
 
 
 # ============================================================

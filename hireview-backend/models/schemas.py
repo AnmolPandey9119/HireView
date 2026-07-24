@@ -118,6 +118,11 @@ class QuestionAnswer(BaseModel):
     answer_text: str
     order_index: int = 0
 
+class FailInterviewRequest(BaseModel):
+    """Frontend reports why an interview couldn't finish — network drop,
+    Groq/API error, mic/camera failure, tab closed mid-session, etc."""
+    reason: str
+
 class InterviewResponse(BaseModel):
     id: int
     role: str
@@ -132,6 +137,7 @@ class InterviewResponse(BaseModel):
     biodata: Optional[str]
     biodata_source: Optional[str]
     candidate_summary: Optional[str]
+    failure_reason: Optional[str] = None
 
     class Config:
         from_attributes = True

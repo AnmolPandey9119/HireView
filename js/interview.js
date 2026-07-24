@@ -9,6 +9,8 @@ let interviewStartTime = null;
 let timerInterval = null;
 let warningGiven = false;
 let interviewEnded = false;
+let interviewSucceeded = false; // true only once feedback is actually saved
+let sessionFailureReported = false; // guards against reporting /fail more than once
 let timeUpSignoffGiven = false;
 let mediaStream = null;
 let cameraOn = true;
@@ -1439,25 +1441,70 @@ ${hasJd ? `- A job description was provided above — you MUST ask questions tha
   }
 }
 
-async function callGroqAPI(messages) {
-  const res = await fetch(`${BACKEND_URL}/api/chat`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${authToken}`
-    },
-    body: JSON.stringify({
-      messages,
-      temperature: 0.85,
-      max_tokens: 800,
-      frequency_penalty: 0.4,
-      presence_penalty: 0.3
-    })
-  });
-  if (!res.ok) throw new Error(`Chat API error: ${res.status}`);
-  const data = await res.json();
-  return data.choices[0].message.content.trim();
+async function callGroqAPI(messages, _isRetry = false) {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        messages,
+        temperature: 0.85,
+        max_tokens: 800,
+        frequency_penalty: 0.4,
+        presence_penalty: 0.3
+      })
+    });
+    if (!res.ok) throw new Error(`Chat API error: ${res.status}`);
+    const data = await res.json();
+    return data.choices[0].message.content.trim();
+  } catch (err) {
+    // One quick retry so a transient network blip doesn't kill the whole
+    // session — only a genuine, repeated failure gets reported as failed.
+    if (!_isRetry) {
+      await new Promise(r => setTimeout(r, 1500));
+      return callGroqAPI(messages, true);
+    }
+    throw err;
+  }
 }
+
+// ════════════════════════════════════════════════
+// FAILURE REPORTING
+// Tells the backend exactly why an interview never finished, so it's
+// marked "failed" (with a real reason shown in history) right away
+// instead of being stuck as "in_progress" forever — and so it doesn't
+// eat into the candidate's free-trial quota.
+// ════════════════════════════════════════════════
+async function reportInterviewFailure(reason) {
+  if (sessionFailureReported || !currentInterviewId || interviewSucceeded) return;
+  sessionFailureReported = true;
+  try {
+    await fetch(`${BACKEND_URL}/api/interviews/${currentInterviewId}/fail`, {
+      method: 'POST',
+      keepalive: true, // lets the request survive a tab close / navigation
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ reason })
+    });
+  } catch (err) {
+    console.error('Could not report interview failure:', err);
+  }
+}
+
+// Candidate closes the tab, navigates away, or the browser crashes mid-session —
+// report it immediately instead of leaving the record stuck "in_progress".
+function handleUnexpectedExit() {
+  if (currentInterviewId && !interviewSucceeded && !sessionFailureReported) {
+    reportInterviewFailure('Candidate closed the tab or navigated away before the interview finished.');
+  }
+}
+window.addEventListener('pagehide', handleUnexpectedExit);
+window.addEventListener('beforeunload', handleUnexpectedExit);
 
 function setAvatarThinking(isThinking) {
   const dot = document.getElementById('avatarDot');
@@ -1482,7 +1529,9 @@ async function loadFirstQuestion() {
     speakAsInterviewer(question, null);
   } catch (err) {
     console.error('AI question error:', err);
-    document.getElementById('currentQuestion').textContent = 'Could not load question — check your Groq API key.';
+    document.getElementById('currentQuestion').textContent =
+      'Could not start the interview due to a connection issue. This session has been marked as failed and will NOT count against your free interviews — please try again.';
+    reportInterviewFailure('Could not reach the AI interviewer to load the first question (network or API error).');
   } finally {
     setAvatarThinking(false);
   }
@@ -1514,7 +1563,9 @@ async function loadNextQuestion() {
     speakAsInterviewer(question, null);
   } catch (err) {
     console.error('AI question error:', err);
-    document.getElementById('currentQuestion').textContent = 'Could not load next question.';
+    document.getElementById('currentQuestion').textContent =
+      'Lost connection to the AI interviewer. This session has been marked as failed and will NOT count against your free interviews — please start a new one.';
+    reportInterviewFailure('Lost connection to the AI interviewer mid-session while loading the next question.');
   } finally {
     setAvatarThinking(false);
     document.getElementById('aiThinking').classList.remove('show');
@@ -1777,11 +1828,14 @@ Respond with ONLY this JSON, no extra text:
       body: JSON.stringify(feedback)
     });
 
+    interviewSucceeded = true;
     showFeedbackScreen(feedback);
 
   } catch (err) {
     console.error('Feedback error:', err);
-    document.getElementById('currentQuestion').textContent = 'Could not generate feedback. Please check your connection.';
+    document.getElementById('currentQuestion').textContent =
+      "You completed the interview, but your report couldn't be generated due to a connection issue. This session has been marked as failed and will NOT count against your free interviews — please try again.";
+    reportInterviewFailure('Candidate completed the full interview, but the feedback report could not be generated or saved (network or API error).');
   }
 }
 

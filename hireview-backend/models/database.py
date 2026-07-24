@@ -91,11 +91,18 @@ class Interview(Base):
     difficulty      = Column(String, nullable=False)        # e.g. "medium"
     duration_limit  = Column(Integer, default=300)          # seconds
 
-    status          = Column(String, default="in_progress") # in_progress / completed
+    status          = Column(String, default="in_progress") # in_progress / completed / cheating_terminated / failed
     overall_score   = Column(Float, nullable=True)
 
     started_at      = Column(DateTime, default=datetime.utcnow)
     completed_at    = Column(DateTime, nullable=True)
+
+    # Set only when status == "failed" — human-readable reason the
+    # interview never finished (tab closed, network drop, API error,
+    # stale/abandoned session, etc). Shown in history so the candidate
+    # understands what happened; these interviews are excluded from
+    # the free-trial quota count since they were never the user's fault.
+    failure_reason  = Column(Text, nullable=True)
 
     # New fields for government sector
     sector               = Column(String, nullable=True, default="private")  # "private" or "government"
