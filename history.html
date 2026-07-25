@@ -14,7 +14,7 @@
   <style>
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
     .page-title { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .back-btn { padding: 0.75rem 1.25rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: rgba(255,255,255,0.7); font-weight: 600; cursor: pointer; font-family: inherit; font-size: 0.9rem; transition: all 0.2s ease; }
+    .back-btn { padding: 0.75rem 1.25rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: rgba(255,255,255,0.6); font-weight: 600; cursor: pointer; font-family: inherit; font-size: 0.9rem; transition: all 0.2s ease; }
     .back-btn:hover { background: rgba(255,255,255,0.1); }
 
     /* Interview List */
@@ -25,7 +25,7 @@
     .history-card-header { padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; flex-wrap: wrap; gap: 1rem; }
     .history-card-header:hover { background: rgba(255,255,255,0.02); }
     .history-role { font-weight: 700; font-size: 1.05rem; color: white; margin-bottom: 0.3rem; }
-    .history-date { font-size: 0.82rem; color: rgba(255,255,255,0.4); }
+    .history-date { font-size: 0.82rem; color: rgba(255,255,255,0.6); }
     .history-meta { display: flex; align-items: center; gap: 1rem; }
     .history-score { font-size: 1.5rem; font-weight: 800; }
     .status-badge { padding: 0.3rem 0.85rem; border-radius: 20px; font-size: 0.78rem; font-weight: 700; }
@@ -35,10 +35,10 @@
     .status-failed { background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid rgba(148,163,184,0.3); }
     .sector-badge { padding: 0.3rem 0.85rem; border-radius: 20px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
     .sector-government { background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.3); }
-    .sector-private { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.12); }
+    .sector-private { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.12); }
     .gov-info-box { background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; font-size: 0.88rem; color: rgba(255,255,255,0.75); line-height: 1.6; }
     .gov-info-label { font-size: 0.75rem; font-weight: 700; color: #818cf8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem; }
-    .expand-icon { color: rgba(255,255,255,0.4); font-size: 1.2rem; transition: transform 0.3s ease; flex-shrink: 0; }
+    .expand-icon { color: rgba(255,255,255,0.6); font-size: 1.2rem; transition: transform 0.3s ease; flex-shrink: 0; }
     .expand-icon.open { transform: rotate(180deg); }
 
     /* Expanded Content */
@@ -47,16 +47,16 @@
 
     /* Feedback Section */
     .feedback-section { padding: 1.5rem; border-bottom: 1px solid rgba(99,102,241,0.1); }
-    .feedback-title { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.5); margin-bottom: 1rem; }
+    .feedback-title { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.6); margin-bottom: 1rem; }
     .scores-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
     .score-chip { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 0.75rem; text-align: center; }
     .score-chip-value { font-size: 1.4rem; font-weight: 800; }
-    .score-chip-label { font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 0.2rem; }
+    .score-chip-label { font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-top: 0.2rem; }
     .rec-badge { display: inline-block; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.82rem; font-weight: 700; margin-bottom: 1rem; }
-    .feedback-summary { font-size: 0.9rem; color: rgba(255,255,255,0.7); line-height: 1.7; margin-bottom: 1rem; }
+    .feedback-summary { font-size: 0.9rem; color: rgba(255,255,255,0.6); line-height: 1.7; margin-bottom: 1rem; }
     .strengths-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; }
-    .strength-item { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 10px; padding: 0.75rem; font-size: 0.85rem; color: rgba(255,255,255,0.8); }
-    .improve-item { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 0.75rem; font-size: 0.85rem; color: rgba(255,255,255,0.8); }
+    .strength-item { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 10px; padding: 0.75rem; font-size: 0.85rem; color: rgba(255,255,255,0.6); }
+    .improve-item { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 0.75rem; font-size: 0.85rem; color: rgba(255,255,255,0.6); }
     .next-steps-box { background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-radius: 12px; padding: 1rem; font-size: 0.9rem; color: rgba(255,255,255,0.75); line-height: 1.6; }
     .personal-note-box { background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(236,72,153,0.08)); border: 1px solid rgba(99,102,241,0.25); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; display: flex; gap: 0.75rem; align-items: flex-start; }
     .personal-note-avatar { width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; background: linear-gradient(135deg,#6366f1,#ec4899); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; }
@@ -68,10 +68,10 @@
     .qa-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
     .qa-question { font-size: 0.9rem; font-weight: 700; color: #818cf8; margin-bottom: 0.5rem; line-height: 1.5; }
     .qa-answer { font-size: 0.88rem; color: rgba(255,255,255,0.65); line-height: 1.6; }
-    .qa-skipped { color: rgba(255,255,255,0.3); font-style: italic; }
-    .no-qa { font-size: 0.9rem; color: rgba(255,255,255,0.3); text-align: center; padding: 1rem 0; }
+    .qa-skipped { color: rgba(255,255,255,0.6); font-style: italic; }
+    .no-qa { font-size: 0.9rem; color: rgba(255,255,255,0.6); text-align: center; padding: 1rem 0; }
 
-    .empty-state { text-align: center; padding: 4rem 2rem; color: rgba(255,255,255,0.4); }
+    .empty-state { text-align: center; padding: 4rem 2rem; color: rgba(255,255,255,0.6); }
     .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
     .loading-shimmer { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 18px; height: 80px; margin-bottom: 1rem; }
     @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
@@ -160,7 +160,7 @@
               <div class="score-chip-label">Overall</div>
             </div>
             <div class="score-chip">
-              <div class="score-chip-value" style="color:#6366f1">${feedback.technical_score || '—'}/10</div>
+              <div class="score-chip-value" style="color:#818cf8">${feedback.technical_score || '—'}/10</div>
               <div class="score-chip-label">Technical</div>
             </div>
             <div class="score-chip">
@@ -313,7 +313,7 @@
               ? `<div style="padding:1.5rem;background:rgba(148,163,184,0.06);border-top:1px solid rgba(148,163,184,0.2)">
                   <div style="color:#94a3b8;font-weight:700;font-size:1rem;margin-bottom:0.5rem">⚠️ Interview Failed</div>
                   <div style="color:rgba(255,255,255,0.6);font-size:0.9rem;line-height:1.6">${i.failure_reason || 'This session could not be completed due to a technical issue.'}</div>
-                  <div style="color:rgba(255,255,255,0.4);font-size:0.82rem;margin-top:0.75rem">This attempt was not your fault — it has NOT been counted against your free interviews.</div>
+                  <div style="color:rgba(255,255,255,0.6);font-size:0.82rem;margin-top:0.75rem">This attempt was not your fault — it has NOT been counted against your free interviews.</div>
                 </div>`
               : `${renderGovInfo(i)}${renderFeedback(i.feedback)}${renderQA(i.questions)}`
             }

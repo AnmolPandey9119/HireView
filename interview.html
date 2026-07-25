@@ -23,8 +23,8 @@
         <div id="startInterviewPage" class="page active">
             <div class="interview-setup">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem">
-                    <div style="font-size:0.85rem;color:rgba(255,255,255,0.4)" id="loggedInAs"></div>
-                    <button onclick="handleLogout()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:rgba(255,255,255,0.5);font-size:0.8rem;padding:0.4rem 0.85rem;cursor:pointer;font-family:inherit">Logout</button>
+                    <div style="font-size:0.85rem;color:rgba(255,255,255,0.6)" id="loggedInAs"></div>
+                    <button onclick="handleLogout()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:rgba(255,255,255,0.6);font-size:0.8rem;padding:0.4rem 0.85rem;cursor:pointer;font-family:inherit">Logout</button>
                 </div>
                 <button class="back-btn" onclick="window.location.href='/dashboard'" style="margin-bottom:1rem">← Dashboard</button>
                 <h2 class="setup-title">Start New Interview</h2>
@@ -50,7 +50,7 @@
                 <div id="stepPrivate" class="setup-step" style="display:none;">
                     <button class="back-btn" onclick="goBackToSector()">← Back</button>
                     <div class="form-group">
-                        <label class="form-label">Job Domain <span style="color:rgba(255,255,255,0.4);font-weight:500;font-size:0.85rem">(optional if you provide a JD below)</span></label>
+                        <label class="form-label">Job Domain <span style="color:rgba(255,255,255,0.6);font-weight:500;font-size:0.85rem">(optional if you provide a JD below)</span></label>
                         <select id="privateDomain" class="select-input" onchange="updatePrivateRoles()">
                             <option value="">Select a domain</option>
                             <option value="technology">Technology</option>
@@ -82,7 +82,7 @@
                     </div>
                     <div class="setup-section-divider">Resume</div>
                     <div class="form-group">
-                        <label class="form-label">Upload Your Resume <span style="color:rgba(255,255,255,0.4);font-weight:500;font-size:0.85rem">PDF or plain text</span></label>
+                        <label class="form-label">Upload Your Resume <span style="color:rgba(255,255,255,0.6);font-weight:500;font-size:0.85rem">PDF or plain text</span></label>
                         <div class="resume-upload-zone" id="resumeDropZone">
                             <input type="file" id="resumeFileInput" accept=".pdf,.txt,.doc,.docx" onchange="handleResumeUpload(event)">
                             <span class="resume-upload-icon">📄</span>
@@ -96,7 +96,7 @@
                         <div id="resumeUploadedInfo" style="display:none"></div>
                     </div>
 
-                    <div class="setup-section-divider">Job Description <span style="color:rgba(255,255,255,0.4);font-weight:500;font-size:0.85rem">(Optional — crash-prep for a specific job)</span></div>
+                    <div class="setup-section-divider">Job Description <span style="color:rgba(255,255,255,0.6);font-weight:500;font-size:0.85rem">(Optional — crash-prep for a specific job)</span></div>
                     <div class="form-group">
                         <div class="biodata-option-group">
                             <div class="biodata-option" id="jdPasteOption" onclick="selectJdOption('paste')">
@@ -155,7 +155,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Interview Language</label>
-                        <div style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-bottom:0.5rem">Regional languages coming soon with premium voice support. Arjun will ask all questions and give feedback in this language. Voice quality for regional languages depends on your browser/device — text will always be correct even if the spoken voice sounds different.</div>
+                        <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:0.5rem">Regional languages coming soon with premium voice support. Arjun will ask all questions and give feedback in this language. Voice quality for regional languages depends on your browser/device — text will always be correct even if the spoken voice sounds different.</div>
                         <select id="interviewLanguageGov" class="select-input">
                           <option value="english" selected>English</option>
                           <option value="hinglish">Hinglish</option>
@@ -329,7 +329,7 @@
               <div class="camera-controls">
                 <button class="control-btn active" id="toggleCameraBtn" onclick="toggleCamera()">📷 Camera On</button>
               </div>
-              <div style="font-size:0.72rem;color:rgba(255,255,255,0.35);margin-top:0.35rem;line-height:1.4">
+              <div style="font-size:0.72rem;color:rgba(255,255,255,0.6);margin-top:0.35rem;line-height:1.4">
                 🔒 Your mic stays on for the full session — Arjun controls when it's actively capturing your answer, and all audio is monitored for interview integrity.
               </div>
               <div class="confidence-meter">
