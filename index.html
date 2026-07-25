@@ -52,7 +52,10 @@
     }
   }
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"></noscript>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -532,6 +535,7 @@
     </div>
   </nav>
 
+  <main>
   <!-- HERO -->
   <section class="hero">
     <div class="hero-glow"></div>
@@ -787,6 +791,8 @@
       <a href="#" onclick="goToAuth('signupPage');return false;" class="btn-primary" style="font-size:1.1rem;padding:1.15rem 3rem;">Start Interview with Arjun →</a>
     </div>
   </section>
+
+  </main>
 
   <!-- FOOTER -->
   <footer>
