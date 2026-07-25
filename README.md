@@ -2,7 +2,13 @@
 
 **Practice Like It's Real. Perform Like a Pro.**
 
+🔗 **Live:** [hireview-ai.vercel.app](https://hireview-ai.vercel.app)
+
 HireView is an AI-powered mock interview platform built for Indian job seekers. It conducts real, adaptive interviews using a conversational AI interviewer named Arjun, provides detailed feedback, and detects cheating using computer vision and behavioral signals.
+
+## Why HireView
+
+Most job seekers in India walk into interviews having never practiced one in a realistic setting — friends and family can't simulate real interview pressure, and generic question banks don't adapt to *your* resume or push back on vague answers. HireView fixes that: an AI interviewer that reads your resume, asks follow-up questions the way a real recruiter would, scores your performance honestly, and flags integrity issues the same way a proctored exam would — so practice actually prepares you for the real thing.
 
 ## Features
 
@@ -11,18 +17,32 @@ HireView is an AI-powered mock interview platform built for Indian job seekers. 
 - Voice-first — Arjun speaks questions aloud (browser TTS), candidate responds by speaking or typing
 - Resume-aware — questions tailored to the candidate's actual resume (PDF/TXT upload)
 - Adaptive difficulty, cross-questioning on vague answers, English + Hinglish support
+- Regional/multilingual interview flow for the Government Sector track, gated by an admin-managed list of government domains
+- Back-to-home navigation on the interview screen
 
 **Integrity Detection**
 - Tab switch detection, MediaPipe multi-face detection (HTTPS only), response-timing analysis, full integrity report per session
+- Interviews can be auto-terminated or flagged as failed when cheating is detected
 
 **Feedback & Analytics**
 - AI-generated scoring (overall / technical / soft skills), strengths & areas to improve
 - Interview recording (download or delete — never stored server-side)
-- Dashboard with progress tracking, full history with Q&A + feedback
+- Dashboard with progress tracking, full history with Q&A + feedback, and stale in-progress cleanup
 
-**Security**
+**Accounts & Security**
 - JWT auth, bcrypt password hashing (direct `bcrypt`, no passlib)
+- Email-based OTP verification on signup, forgot-password flow, and email-change flow (via a dedicated email service)
+- Profile management, including profile picture upload
 - Groq API key never touches the frontend — all AI calls are proxied through `/api/chat` on the backend
+
+**Monetization**
+- Free trial (3 interviews) plus a paid Practice Pack tier and a custom Institute/B2B tier; subscription fields tracked per user
+
+**Admin Panel**
+- Separate admin login and dashboard (`admin-template/`) to manage users, interviews, questions, feedback, platform stats, visitor counts, and the government-domain allow-list
+
+**Polish / SEO**
+- Custom favicon set, Open Graph/Twitter meta tags, canonical URLs, `robots.txt` + `sitemap.xml`, Google Search Console verification, mobile-responsive layout across all pages
 
 ## Tech Stack
 
@@ -34,7 +54,8 @@ HireView is an AI-powered mock interview platform built for Indian job seekers. 
 | Face Detection | MediaPipe Face Detection |
 | Backend | Python, FastAPI |
 | Database | SQLite (swap `DATABASE_URL` for Postgres in production if you outgrow SQLite on Render's free tier) |
-| Auth | JWT + bcrypt |
+| Auth | JWT + bcrypt + email OTP |
+| Email | Dedicated email service (OTP, password reset, email-change verification) |
 | Deployment | Render (backend) + Vercel (frontend) |
 
 ## Project Structure
@@ -46,30 +67,80 @@ HireView/
 ├── interview.html         # Interview screen
 ├── dashboard.html         # User dashboard
 ├── history.html           # Interview history
+├── privacy.html            # Privacy policy
+├── admin-template/
+│   └── index.html          # Admin panel UI
 ├── css/main.css
 ├── js/
-│   ├── config.js          # Backend URL, global state (no secrets)
-│   ├── auth.js             # Login, signup, logout
-│   ├── cheating.js         # Integrity detection
-│   └── interview.js        # Interview flow, AI calls, speech, feedback
-├── assets/avatar.mp4
-├── render.yaml             # Render blueprint (backend)
-├── vercel.json             # Vercel static-site config (frontend)
-├── .vercelignore
+│   ├── config.template.js  # Backend URL template, global state (no secrets)
+│   ├── auth.js              # Login, signup, OTP, forgot/change password & email
+│   ├── cheating.js          # Integrity detection
+│   └── interview.js         # Interview flow, AI calls, speech, feedback
+├── assets/                  # avatar video, favicons, OG image
+├── build.js                 # Vercel build step (injects config.js from env)
+├── robots.txt / sitemap.xml # SEO
+├── render.yaml              # Render blueprint (backend)
+├── vercel.json               # Vercel static-site config (frontend)
 └── hireview-backend/
-    ├── main.py             # FastAPI app entry point
-    ├── config.py           # Settings (reads env vars)
+    ├── main.py              # FastAPI app entry point
+    ├── config.py             # Settings (reads env vars)
     ├── requirements.txt
     ├── Procfile
     ├── models/
     │   ├── __init__.py
-    │   ├── database.py     # SQLAlchemy models
-    │   ├── schemas.py       # Pydantic schemas
-    │   └── auth_utils.py    # bcrypt hashing + JWT
+    │   ├── database.py       # SQLAlchemy models
+    │   ├── schemas.py         # Pydantic schemas
+    │   ├── auth_utils.py      # bcrypt hashing + JWT
+    │   └── otp_utils.py       # OTP generation/verification
     └── routes/
-        ├── auth.py          # Register, login, /me
-        └── interviews.py    # Interview CRUD, feedback, terminate, /chat proxy
+        ├── auth.py            # Register, login, /me, profile, OTP, password/email flows
+        ├── interviews.py      # Interview CRUD, feedback, terminate/fail, /chat proxy
+        ├── admin.py           # Admin auth, user/interview/question/feedback management
+        ├── visits.py          # Visitor tracking/count
+        └── email_Service.py   # Email sending (OTP, password reset, email change)
 ```
+
+## Getting Started (Local Development)
+
+**Prerequisites:** Python 3.11+, Node.js (for the frontend build step), a free [Groq API key](https://console.groq.com), and optionally a [Brevo](https://app.brevo.com) API key if you want OTP/password-reset emails to actually send locally.
+
+```bash
+git clone https://github.com/AnmolPandey9119/HireView.git
+cd HireView
+```
+
+### 1. Backend
+
+```bash
+cd hireview-backend
+python -m venv venv
+source venv/bin/activate      # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env          # fill in GROQ_API_KEY, SECRET_KEY (and BREVO_* if testing email)
+python main.py                # runs on http://localhost:8000, docs at /docs
+```
+
+`DATABASE_URL` is optional — leave it unset and it falls back to a local SQLite file under `hireview-backend/database/`.
+
+### 2. Frontend
+
+The real `js/config.js` is generated at deploy time by `build.js` and isn't committed to git, so for local dev you create it yourself from the template:
+
+```bash
+cd ..   # back to repo root
+cp js/config.template.js js/config.js
+```
+
+Open `js/config.js` and replace `__BACKEND_URL__` with `http://localhost:8000`, then serve the folder as static files:
+
+```bash
+python -m http.server 5500
+# or: npx serve .
+```
+
+Visit `http://localhost:5500/auth.html` to sign up / log in, `index.html` for the landing page, and `admin-template/index.html` for the admin panel (in production `build.js` renames this folder to a private random slug — locally the plain `admin-template/` path works fine).
+
+**Note:** speech recognition and face detection require HTTPS or `localhost` — they won't work over `file://` or plain HTTP on a non-localhost address.
 
 ## Deploying
 
@@ -93,47 +164,81 @@ Note: any `*.vercel.app` origin is already allowed via CORS regex, so preview de
 4. Deploy.
 5. If your Render backend URL ever changes, update `BACKEND_URL` in `js/config.js` and redeploy.
 
-### 3. Local development
-
-```bash
-# Backend
-cd hireview-backend
-python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env       # fill in GROQ_API_KEY, SECRET_KEY
-python main.py             # http://localhost:8000, docs at /docs
-```
-
-Open `auth.html` (or serve the folder with e.g. `python -m http.server 5500`) — `js/config.js` already points at your deployed Render URL, so for local backend testing temporarily change `BACKEND_URL` to `http://localhost:8000`.
-
-**Note:** speech recognition and face detection require HTTPS or `localhost` — they won't work over `file://` or plain HTTP on a non-localhost address.
-
 ## API Endpoints
+
+**Auth & Profile**
 
 | Method | Endpoint | Description |
 |---|---|---|
+| POST | `/api/auth/send-email-otp` | Send signup email OTP |
+| POST | `/api/auth/verify-email-otp` | Verify signup email OTP |
 | POST | `/api/auth/register` | Create account |
 | POST | `/api/auth/login` | Login |
+| POST | `/api/auth/forgot-password/request` | Request password reset |
+| POST | `/api/auth/forgot-password/reset` | Reset password |
 | GET | `/api/auth/me` | Current user |
+| PUT | `/api/auth/profile` | Update profile (incl. profile picture) |
+| POST | `/api/auth/change-password` | Change password |
+| POST | `/api/auth/change-email/request` | Request email change |
+| POST | `/api/auth/change-email/verify` | Verify new email |
+
+**Interviews**
+
+| Method | Endpoint | Description |
+|---|---|---|
 | POST | `/api/interviews` | Start interview |
+| GET | `/api/interviews` | List interviews |
+| GET | `/api/interviews/{id}` | Interview detail |
 | POST | `/api/interviews/{id}/questions` | Save Q&A |
 | POST | `/api/interviews/{id}/feedback` | Save feedback |
+| POST | `/api/interviews/{id}/fail` | Mark as failed |
 | POST | `/api/interviews/{id}/terminate` | Mark as cheating-terminated |
+| DELETE | `/api/interviews/cleanup` | Purge stale in-progress interviews (7+ days old) |
 | GET | `/api/dashboard` | User stats |
 | GET | `/api/history` | Interview history |
 | POST | `/api/chat` | Groq proxy (auth required, key stays server-side) |
-| DELETE | `/api/interviews/cleanup` | Purge stale in-progress interviews (7+ days old) |
+
+**Admin**
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/admin/login` | Admin login |
+| GET | `/api/admin/stats` | Platform stats |
+| GET | `/api/admin/government-domains` | Government-domain allow-list |
+| GET/PUT/DELETE | `/api/admin/users/{id}` | Manage a user |
+| GET/PUT/DELETE | `/api/admin/interviews/{id}` | Manage an interview |
+| PUT/DELETE | `/api/admin/questions/{id}` | Manage a question |
+| PUT/DELETE | `/api/admin/feedback/{id}` | Manage feedback |
+
+**Visits**
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/visits/track` | Record a site visit |
+| GET | `/api/visits/count` | Get visitor count |
 
 ## Roadmap
-- Razorpay payment integration
-- Email password reset (Resend)
 - Confidence meter & eye contact scoring (MediaPipe FaceMesh)
 - Personality & behavior detection (Vision AI)
-- Regional language support (Hindi, Bengali, Tamil, Telugu)
-- B2B institute dashboard
+- Expanded regional language support (Hindi, Bengali, Tamil, Telugu)
+- Razorpay payment integration
 
-## Built By
-Anmol Pandey — B.Tech CSE (AI/ML), GN Group of Institutes, Greater Noida
+## Team
+
+Built by a 4-person CSE team:
+- **Anmol Pandey** — [GitHub](https://github.com/AnmolPandey9119) · [LinkedIn](https://www.linkedin.com/in/anmol-pandey-240105376)
+- **Aryan Srivastava**
+- **Prateek Tripathi**
+- **Anshika Mishra**
+
+## Contact
+
+📧 [hireviewadmin@gmail.com](mailto:hireviewadmin@gmail.com)
+
+## License
+
+Proprietary — all rights reserved. Not licensed for reuse or redistribution without permission.
+
+---
 
 HireView is currently in active development. Feedback and contributions welcome.
