@@ -5,4 +5,4 @@ Disallow: /history
 Disallow: /interview
 Disallow: /admin-template
 
-Sitemap: https://hireview-seven.vercel.app/sitemap.xml
+Sitemap: https://hireview-ai.vercel.app/sitemap.xml
