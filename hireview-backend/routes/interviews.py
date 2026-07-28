@@ -468,10 +468,12 @@ async def cleanup_old_interviews(
 # .message.content) is unchanged no matter which provider answers.
 # ============================================================
 
-# Statuses worth failing over on: 429 (rate/quota), 5xx (provider down).
-# A 4xx like 400/401 is a real request/config problem — retrying on a
+# Statuses worth failing over on: 429 (rate/quota), 5xx (provider down),
+# 404 (model retired/renamed by the provider — a config problem on their
+# end, not a bad prompt, so it's worth trying the other provider).
+# A 4xx like 400/401 is a real request/auth problem — retrying on a
 # different provider won't fix a bad prompt or a bad key, so we don't.
-_FAILOVER_STATUSES = {429, 500, 502, 503, 504}
+_FAILOVER_STATUSES = {404, 429, 500, 502, 503, 504}
 
 
 async def _call_groq(messages: list, temperature: float, max_tokens: int) -> dict:
@@ -535,11 +537,11 @@ async def _call_gemini(messages: list, temperature: float, max_tokens: int) -> d
         raise RuntimeError("GEMINI_API_KEY not configured")
 
     system_instruction, contents = _messages_to_gemini(messages)
-    # gemini-2.5-flash-lite: current best free-tier daily quota for a Gemini
-    # text model as of mid-2026. Swap to gemini-2.5-flash for higher quality
-    # answers if the lower daily cap (250 req/day vs ~1000) is acceptable —
-    # check current limits at ai.google.dev, Google changes these often.
-    model = "gemini-2.5-flash-lite"
+    # gemini-2.5-flash-lite was retired for new API keys (Google now returns
+    # 404 "no longer available to new users") — gemini-3.1-flash-lite is
+    # Google's direct low-cost/low-latency successor. Check current model
+    # availability at ai.google.dev if this needs to change again.
+    model = "gemini-3.1-flash-lite"
 
     body = {
         "contents": contents,
@@ -563,7 +565,14 @@ async def _call_gemini(messages: list, temperature: float, max_tokens: int) -> d
         )
 
     if response.status_code != 200:
-        logger.error(f"Gemini fallback also failed: {response.status_code} {response.text[:300]}")
+        logger.warning(f"Gemini call failed: {response.status_code} {response.text[:300]}")
+        # Same failover contract as _call_groq: a retryable/provider-side
+        # status raises RuntimeError so the caller can fail over to Groq.
+        # Previously this always raised HTTPException here, which skipped
+        # the Groq fallback entirely and sent the raw error straight to
+        # the frontend — that's the bug that broke feedback generation.
+        if response.status_code in _FAILOVER_STATUSES:
+            raise RuntimeError(f"gemini_failover:{response.status_code}")
         raise HTTPException(status_code=response.status_code, detail="Gemini API error")
 
     data = response.json()
@@ -571,7 +580,9 @@ async def _call_gemini(messages: list, temperature: float, max_tokens: int) -> d
         text = data["candidates"][0]["content"]["parts"][0]["text"]
     except (KeyError, IndexError):
         logger.error(f"Unexpected Gemini response shape: {json.dumps(data)[:300]}")
-        raise HTTPException(status_code=502, detail="Gemini returned an unexpected response")
+        # Malformed response is also worth failing over on rather than
+        # hard-failing the whole request.
+        raise RuntimeError("gemini_failover:bad_response_shape")
 
     # Reshape to match what the Groq/OpenAI-style response looked like,
     # so js/interview.js's `data.choices[0].message.content` keeps working.
