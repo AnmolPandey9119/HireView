@@ -56,6 +56,36 @@ class User(Base):
 
     # Relationships
     interviews = relationship("Interview", back_populates="user", cascade="all, delete")
+    transactions = relationship("Transaction", back_populates="user", cascade="all, delete")
+
+
+# ============================================================
+# TRANSACTION TABLE
+# One row per successful (signature-verified) Razorpay payment.
+# This is the permanent purchase history — separate from
+# User.subscription_plan / subscription_active_until, which only
+# track the CURRENT active plan and get overwritten on renewal.
+# ============================================================
+class Transaction(Base):
+    __tablename__ = "transactions"
+
+    id                   = Column(Integer, primary_key=True, index=True)
+    user_id              = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    plan                 = Column(String, nullable=False)   # "weekly" or "monthly"
+    amount_paise         = Column(Integer, nullable=False)  # amount actually paid, in paise
+    currency             = Column(String, default="INR", nullable=False)
+
+    razorpay_order_id    = Column(String, nullable=False)
+    razorpay_payment_id  = Column(String, nullable=False, unique=True, index=True)
+
+    status               = Column(String, default="success", nullable=False)  # only successful payments are ever stored
+    active_until          = Column(DateTime, nullable=False)  # subscription_active_until AFTER this payment was applied
+
+    created_at           = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    user = relationship("User", back_populates="transactions")
 
 
 # ============================================================

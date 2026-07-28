@@ -29,7 +29,7 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from models.database import get_db, User
+from models.database import get_db, User, Transaction
 from routes.auth import get_current_user
 
 logger = logging.getLogger(__name__)
@@ -147,6 +147,22 @@ async def verify_payment(
 
     current_user.subscription_plan = plan
     current_user.subscription_active_until = base_time + timedelta(days=plan_info["days"])
+
+    # Record this as a permanent transaction — this is what powers the
+    # Payment & Subscription history list on the frontend. Unlike
+    # subscription_plan/active_until (which get overwritten on renewal),
+    # this row is never touched again.
+    db.add(Transaction(
+        user_id=current_user.id,
+        plan=plan,
+        amount_paise=plan_info["amount_paise"],
+        currency="INR",
+        razorpay_order_id=order_id,
+        razorpay_payment_id=payment_id,
+        status="success",
+        active_until=current_user.subscription_active_until
+    ))
+
     db.commit()
 
     logger.info(f"Payment verified: user {current_user.id}, plan {plan}, payment {payment_id}")
@@ -155,4 +171,40 @@ async def verify_payment(
         "status": "success",
         "plan": plan,
         "subscription_active_until": current_user.subscription_active_until.isoformat()
+    }
+
+
+# ============================================================
+# GET /api/payments/history
+# Returns the current user's past successful payments, most
+# recent first. Powers the "Payment & Subscription" history
+# list on the dashboard.
+# ============================================================
+@router.get("/payments/history")
+async def payment_history(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    transactions = (
+        db.query(Transaction)
+        .filter(Transaction.user_id == current_user.id)
+        .order_by(Transaction.created_at.desc())
+        .all()
+    )
+
+    return {
+        "transactions": [
+            {
+                "id": t.id,
+                "plan": t.plan,
+                "plan_label": PLANS.get(t.plan, {}).get("label", t.plan.title()),
+                "amount_paise": t.amount_paise,
+                "currency": t.currency,
+                "razorpay_payment_id": t.razorpay_payment_id,
+                "status": t.status,
+                "active_until": t.active_until.isoformat(),
+                "created_at": t.created_at.isoformat()
+            }
+            for t in transactions
+        ]
     }
