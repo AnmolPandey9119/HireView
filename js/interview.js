@@ -1455,7 +1455,7 @@ ${hasJd ? `- A job description was provided above — you MUST ask questions tha
   }
 }
 
-async function callGroqAPI(messages, _isRetry = false) {
+async function callGroqAPI(messages, _isRetry = false, task = 'interview') {
   try {
     const res = await fetch(`${BACKEND_URL}/api/chat`, {
       method: 'POST',
@@ -1465,6 +1465,7 @@ async function callGroqAPI(messages, _isRetry = false) {
       },
       body: JSON.stringify({
         messages,
+        task,
         temperature: 0.85,
         max_tokens: 800,
         frequency_penalty: 0.4,
@@ -1479,7 +1480,7 @@ async function callGroqAPI(messages, _isRetry = false) {
     // session — only a genuine, repeated failure gets reported as failed.
     if (!_isRetry) {
       await new Promise(r => setTimeout(r, 1500));
-      return callGroqAPI(messages, true);
+      return callGroqAPI(messages, true, task);
     }
     throw err;
   }
@@ -1813,7 +1814,7 @@ Respond with ONLY this JSON, no extra text:
       }
     ];
 
-    const rawFeedback = await callGroqAPI(feedbackPrompt);
+    const rawFeedback = await callGroqAPI(feedbackPrompt, false, 'feedback');
     let feedback;
     try {
       feedback = JSON.parse(rawFeedback.replace(/```json|```/g, '').trim());

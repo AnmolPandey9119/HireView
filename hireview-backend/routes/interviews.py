@@ -463,16 +463,23 @@ async def cleanup_old_interviews(
 
 
 # ============================================================
-# POST /api/chat — Groq API proxy (secure, key stays on server)
+# POST /api/chat — Groq API proxy, with Gemini as a free fallback
+# Both keys stay server-side; frontend contract (data.choices[0]
+# .message.content) is unchanged no matter which provider answers.
 # ============================================================
-@router.post("/chat")
-async def chat_with_groq(
-    request: dict,
-    current_user: User = Depends(get_current_user)
-):
+
+# Statuses worth failing over on: 429 (rate/quota), 5xx (provider down).
+# A 4xx like 400/401 is a real request/config problem — retrying on a
+# different provider won't fix a bad prompt or a bad key, so we don't.
+_FAILOVER_STATUSES = {429, 500, 502, 503, 504}
+
+
+async def _call_groq(messages: list, temperature: float, max_tokens: int) -> dict:
+    """Calls Groq. Raises RuntimeError on any failure so the caller can decide
+    whether to fail over to Gemini."""
     groq_key = os.environ.get("GROQ_API_KEY")
     if not groq_key:
-        raise HTTPException(status_code=500, detail="Groq API key not configured")
+        raise RuntimeError("GROQ_API_KEY not configured")
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
@@ -483,14 +490,123 @@ async def chat_with_groq(
             },
             json={
                 "model": "openai/gpt-oss-120b",
-                "messages": request.get("messages", []),
-                "temperature": request.get("temperature", 0.7),
-                "max_tokens": request.get("max_tokens", 800)
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens
             },
             timeout=30.0
         )
 
     if response.status_code != 200:
+        logger.warning(f"Groq call failed: {response.status_code} {response.text[:300]}")
+        if response.status_code in _FAILOVER_STATUSES:
+            raise RuntimeError(f"groq_failover:{response.status_code}")
         raise HTTPException(status_code=response.status_code, detail="Groq API error")
 
     return response.json()
+
+
+def _messages_to_gemini(messages: list):
+    """OpenAI-style [{role, content}, ...] -> Gemini's
+    (system_instruction_text_or_None, contents_list)."""
+    system_parts = []
+    contents = []
+    for m in messages:
+        role = m.get("role", "user")
+        text = m.get("content", "")
+        if role == "system":
+            system_parts.append(text)
+        elif role == "assistant":
+            contents.append({"role": "model", "parts": [{"text": text}]})
+        else:
+            contents.append({"role": "user", "parts": [{"text": text}]})
+    system_instruction = "\n\n".join(system_parts) if system_parts else None
+    return system_instruction, contents
+
+
+async def _call_gemini(messages: list, temperature: float, max_tokens: int) -> dict:
+    """Calls Gemini and reshapes the response into the same
+    {"choices": [{"message": {"role": "assistant", "content": "..."}}]}
+    shape the frontend already expects from Groq."""
+    gemini_key = os.environ.get("GEMINI_API_KEY")
+    if not gemini_key:
+        raise RuntimeError("GEMINI_API_KEY not configured")
+
+    system_instruction, contents = _messages_to_gemini(messages)
+    # gemini-2.5-flash-lite: current best free-tier daily quota for a Gemini
+    # text model as of mid-2026. Swap to gemini-2.5-flash for higher quality
+    # answers if the lower daily cap (250 req/day vs ~1000) is acceptable —
+    # check current limits at ai.google.dev, Google changes these often.
+    model = "gemini-2.5-flash-lite"
+
+    body = {
+        "contents": contents,
+        "generationConfig": {
+            "temperature": temperature,
+            "maxOutputTokens": max_tokens
+        }
+    }
+    if system_instruction:
+        body["system_instruction"] = {"parts": [{"text": system_instruction}]}
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+            headers={
+                "x-goog-api-key": gemini_key,
+                "Content-Type": "application/json"
+            },
+            json=body,
+            timeout=30.0
+        )
+
+    if response.status_code != 200:
+        logger.error(f"Gemini fallback also failed: {response.status_code} {response.text[:300]}")
+        raise HTTPException(status_code=response.status_code, detail="Gemini API error")
+
+    data = response.json()
+    try:
+        text = data["candidates"][0]["content"]["parts"][0]["text"]
+    except (KeyError, IndexError):
+        logger.error(f"Unexpected Gemini response shape: {json.dumps(data)[:300]}")
+        raise HTTPException(status_code=502, detail="Gemini returned an unexpected response")
+
+    # Reshape to match what the Groq/OpenAI-style response looked like,
+    # so js/interview.js's `data.choices[0].message.content` keeps working.
+    return {
+        "choices": [{"message": {"role": "assistant", "content": text}}],
+        "_provider": "gemini"  # harmless extra field, useful for debugging in logs/devtools
+    }
+
+
+@router.post("/chat")
+async def chat_with_groq(
+    request: dict,
+    current_user: User = Depends(get_current_user)
+):
+    messages = request.get("messages", [])
+    temperature = request.get("temperature", 0.7)
+    max_tokens = request.get("max_tokens", 800)
+    # "feedback" = the one-shot end-of-interview report (quality matters more
+    # than speed, so it goes to Gemini). Anything else = the live, turn-by-turn
+    # question flow (latency matters most, so it goes to Groq). Each provider
+    # still backs up the other so a single provider outage never breaks a session.
+    task = request.get("task", "interview")
+
+    if task == "feedback":
+        primary, primary_name = _call_gemini, "Gemini"
+        secondary, secondary_name = _call_groq, "Groq"
+    else:
+        primary, primary_name = _call_groq, "Groq"
+        secondary, secondary_name = _call_gemini, "Gemini"
+
+    try:
+        return await primary(messages, temperature, max_tokens)
+    except RuntimeError as e:
+        logger.warning(f"{primary_name} unavailable for task='{task}' ({e}) — falling back to {secondary_name}")
+
+    try:
+        return await secondary(messages, temperature, max_tokens)
+    except RuntimeError as e:
+        logger.error(f"{secondary_name} fallback also unavailable: {e}")
+        raise HTTPException(status_code=500, detail="No AI provider configured")
