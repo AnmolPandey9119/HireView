@@ -72,6 +72,29 @@ async def create_interview(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    # Resolve any abandoned in_progress sessions first so the quota count
+    # below is accurate (same reconciliation the dashboard already relies on).
+    _reconcile_stale_interviews(db, current_user.id)
+
+    now = datetime.utcnow()
+    has_active_subscription = bool(
+        current_user.subscription_active_until and current_user.subscription_active_until > now
+    )
+
+    if not has_active_subscription:
+        # "failed" sessions don't count against the quota — same rule the
+        # dashboard's interviews_remaining_free uses, so the two stay in sync.
+        used = db.query(Interview).filter(
+            Interview.user_id == current_user.id,
+            Interview.status != "failed"
+        ).count()
+
+        if used >= 3:
+            raise HTTPException(
+                status_code=402,
+                detail="You've used all 3 free interviews. Please purchase a plan to continue."
+            )
+
     interview = Interview(
         user_id=current_user.id,
         role=payload.role,

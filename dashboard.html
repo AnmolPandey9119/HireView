@@ -513,6 +513,16 @@
     // Auth check
     if (!authToken) window.location.href = '/auth';
 
+    // Deep-link from /interview's "View Plans" button when the free-trial
+    // quota was exceeded — jump straight to Payment & Subscription instead
+    // of leaving the user to find it themselves.
+    if (new URLSearchParams(window.location.search).get('openPayment') === '1') {
+      window.addEventListener('DOMContentLoaded', () => {
+        openBigPanel();
+        switchTab('paymentPage', document.querySelector('.sidebar-link[data-page="paymentPage"]'));
+      });
+    }
+
     function handleLogout() {
       authToken = null;
       currentUser = null;
