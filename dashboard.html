@@ -858,7 +858,13 @@
         const res = await fetch(`${BACKEND_URL}/api/payments/history`, {
           headers: { 'Authorization': `Bearer ${authToken}` }
         });
-        if (!res.ok) return; // fail quietly — history is a nice-to-have, not core flow
+        if (!res.ok) {
+          // Don't fail silently — log it so it's debuggable from DevTools
+          // Console/Network tab instead of just staying stuck on "No payments yet".
+          const errBody = await res.text().catch(() => '');
+          console.error(`[payments/history] request failed: ${res.status} ${errBody}`);
+          return;
+        }
         const data = await res.json();
         const transactions = data.transactions || [];
 
@@ -885,7 +891,7 @@
         emptyEl.classList.add('hidden');
         tableEl.classList.remove('hidden');
       } catch (err) {
-        // Silent — payment history isn't critical enough to toast an error over.
+        console.error('[payments/history] error:', err);
       }
     }
 
