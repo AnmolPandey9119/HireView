@@ -9,7 +9,7 @@ import logging
 
 import config
 from models.database import init_db
-from routes import auth, interviews, admin, visits
+from routes import auth, interviews, admin, visits, payments
 
 # ============================================================
 # LOGGING
@@ -52,6 +52,7 @@ app.include_router(auth.router, prefix="/api", tags=["Auth"])
 app.include_router(interviews.router, prefix="/api", tags=["Interviews"])
 app.include_router(admin.router, prefix="/api", tags=["Admin"])
 app.include_router(visits.router, prefix="/api", tags=["Visits"])
+app.include_router(payments.router, prefix="/api", tags=["Payments"])
 
 @app.get("/")
 async def root():

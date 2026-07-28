@@ -503,7 +503,9 @@ async def _call_groq(messages: list, temperature: float, max_tokens: int) -> dic
             raise RuntimeError(f"groq_failover:{response.status_code}")
         raise HTTPException(status_code=response.status_code, detail="Groq API error")
 
-    return response.json()
+    result = response.json()
+    result["_provider"] = "groq"  # harmless extra field, useful for debugging in logs/devtools
+    return result
 
 
 def _messages_to_gemini(messages: list):
@@ -601,12 +603,16 @@ async def chat_with_groq(
         secondary, secondary_name = _call_gemini, "Gemini"
 
     try:
-        return await primary(messages, temperature, max_tokens)
+        result = await primary(messages, temperature, max_tokens)
+        logger.info(f"/api/chat task='{task}' served by {primary_name}")
+        return result
     except RuntimeError as e:
         logger.warning(f"{primary_name} unavailable for task='{task}' ({e}) — falling back to {secondary_name}")
 
     try:
-        return await secondary(messages, temperature, max_tokens)
+        result = await secondary(messages, temperature, max_tokens)
+        logger.info(f"/api/chat task='{task}' served by {secondary_name} (fallback)")
+        return result
     except RuntimeError as e:
         logger.error(f"{secondary_name} fallback also unavailable: {e}")
         raise HTTPException(status_code=500, detail="No AI provider configured")
