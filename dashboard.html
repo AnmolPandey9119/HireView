@@ -374,7 +374,7 @@
                 <li>✅ All features unlocked</li>
                 <li>✅ One-time pass — no auto-renewal</li>
               </ul>
-              <button class="plan-btn" onclick="showComingSoon('Weekly plan checkout')">Get Weekly</button>
+              <button class="plan-btn" id="weeklyBtn" onclick="startCheckout('weekly', this)">Get Weekly</button>
             </div>
 
             <div class="plan-card featured">
@@ -388,7 +388,7 @@
                 <li>✅ All features unlocked</li>
                 <li>✅ One-time pass — no auto-renewal</li>
               </ul>
-              <button class="plan-btn primary" onclick="showComingSoon('Monthly plan checkout')">Get Monthly</button>
+              <button class="plan-btn primary" id="monthlyBtn" onclick="startCheckout('monthly', this)">Get Monthly</button>
             </div>
           </div>
 
@@ -420,6 +420,7 @@
 
   <div class="hv-toast" id="hvToast"></div>
 
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
   <script>
@@ -496,6 +497,103 @@
     }
     function showComingSoon(feature) {
       showToast(`${feature} is coming soon 🚧`, false);
+    }
+
+    // ────────────────────────────────────────────
+    // PAYMENT — Razorpay checkout for Weekly/Monthly plans
+    // ────────────────────────────────────────────
+    const PLAN_LABELS = { weekly: 'Weekly Plan (₹99)', monthly: 'Monthly Plan (₹299)' };
+
+    async function startCheckout(plan, btnEl) {
+      if (btnEl) { btnEl.disabled = true; btnEl.dataset.originalText = btnEl.textContent; btnEl.textContent = 'Please wait…'; }
+
+      try {
+        // 1. Ask our backend to create a Razorpay order for this plan.
+        const orderRes = await fetch(`${BACKEND_URL}/api/payments/create-order`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ plan })
+        });
+        if (!orderRes.ok) {
+          const err = await orderRes.json().catch(() => ({}));
+          throw new Error(err.detail || 'Could not start checkout. Please try again.');
+        }
+        const order = await orderRes.json();
+
+        // 2. Open Razorpay's Checkout popup with that order.
+        const options = {
+          key: order.key_id,
+          amount: order.amount,
+          currency: order.currency,
+          name: 'HireView',
+          description: order.plan_label,
+          order_id: order.order_id,
+          prefill: {
+            name: currentUser?.name || '',
+            email: currentUser?.email || ''
+          },
+          theme: { color: '#6366f1' },
+          handler: async function (response) {
+            // 3. Payment succeeded on Razorpay's side — verify it on OUR backend
+            // before treating the subscription as active.
+            try {
+              const verifyRes = await fetch(`${BACKEND_URL}/api/payments/verify`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify({
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                  plan
+                })
+              });
+              if (!verifyRes.ok) {
+                const err = await verifyRes.json().catch(() => ({}));
+                throw new Error(err.detail || 'Payment verification failed.');
+              }
+              const result = await verifyRes.json();
+
+              // Refresh local user state so subscription status is up to date
+              // without needing a full page reload.
+              if (currentUser) {
+                currentUser.subscription_plan = result.plan;
+                currentUser.subscription_active_until = result.subscription_active_until;
+                localStorage.setItem('hv_user', JSON.stringify(currentUser));
+              }
+
+              showToast(`${PLAN_LABELS[plan]} activated! 🎉`, false);
+            } catch (verifyErr) {
+              // Money was captured by Razorpay but our verification failed —
+              // this should be rare, but don't silently say "success" here.
+              showToast(verifyErr.message || 'Payment received but verification failed — contact support.', true);
+            } finally {
+              if (btnEl) { btnEl.disabled = false; btnEl.textContent = btnEl.dataset.originalText; }
+            }
+          },
+          modal: {
+            // User closed the popup without paying — just reset the button.
+            ondismiss: function () {
+              if (btnEl) { btnEl.disabled = false; btnEl.textContent = btnEl.dataset.originalText; }
+            }
+          }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function (response) {
+          showToast(response?.error?.description || 'Payment failed. Please try again.', true);
+          if (btnEl) { btnEl.disabled = false; btnEl.textContent = btnEl.dataset.originalText; }
+        });
+        rzp.open();
+      } catch (err) {
+        showToast(err.message || 'Something went wrong. Please try again.', true);
+        if (btnEl) { btnEl.disabled = false; btnEl.textContent = btnEl.dataset.originalText; }
+      }
     }
 
     // ────────────────────────────────────────────
