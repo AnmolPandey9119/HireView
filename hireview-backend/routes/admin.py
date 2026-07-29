@@ -19,12 +19,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import Optional
 import logging
 
 import config
-from models.database import get_db, User, Interview, InterviewQuestion, Feedback, SiteVisit
+from models.database import get_db, User, Interview, InterviewQuestion, Feedback, SiteVisit, Transaction
 from models.auth_utils import (
     hash_password, verify_password, create_access_token, decode_access_token,
     validate_password_strength,
@@ -87,6 +87,7 @@ async def get_stats(db: Session = Depends(get_db), _admin=Depends(get_current_ad
         "total_interviews": db.query(Interview).count(),
         "completed_interviews": db.query(Interview).filter(Interview.status == "completed").count(),
         "verified_users": db.query(User).filter(User.is_verified == True).count(),  # noqa: E712
+        "premium_users": db.query(User).filter(User.subscription_active_until > datetime.utcnow()).count(),
         "private_interviews": db.query(Interview).filter(Interview.sector == "private").count(),
         "government_interviews": db.query(Interview).filter(Interview.sector == "government").count(),
         "total_visitors": visit_row.total_visits if visit_row else 0,
@@ -135,6 +136,25 @@ def _interview_serial_map(db: Session) -> dict:
     return {i.id: idx for idx, i in enumerate(interviews, start=1)}
 
 
+def _membership_info(user: User) -> dict:
+    """Derives current membership status from subscription_plan/subscription_active_until.
+
+    A user only counts as an active member if BOTH a plan is set AND
+    active_until is still in the future — mirrors the same check the
+    public dashboard uses to decide whether to show the gold crown.
+    """
+    is_active = bool(
+        user.subscription_plan
+        and user.subscription_active_until
+        and user.subscription_active_until > datetime.utcnow()
+    )
+    return {
+        "is_premium": is_active,
+        "subscription_plan": user.subscription_plan,
+        "subscription_active_until": user.subscription_active_until,
+    }
+
+
 @router.get("/admin/users")
 async def list_users(db: Session = Depends(get_db), _admin=Depends(get_current_admin)):
     # Ordered oldest-first so serial_no reflects registration order: 1, 2, 3, ...
@@ -150,6 +170,7 @@ async def list_users(db: Session = Depends(get_db), _admin=Depends(get_current_a
             "is_verified": u.is_verified,
             "created_at": u.created_at,
             "interview_count": len(u.interviews),
+            **_membership_info(u),
         }
         for idx, u in enumerate(users, start=1)
     ]
@@ -162,6 +183,12 @@ async def get_user(user_id: int, db: Session = Depends(get_db), _admin=Depends(g
         raise HTTPException(status_code=404, detail="User not found")
 
     interview_serial_map = _interview_serial_map(db)
+    transactions = (
+        db.query(Transaction)
+        .filter(Transaction.user_id == user.id)
+        .order_by(Transaction.created_at.desc())
+        .all()
+    )
 
     return {
         "id": user.id,
@@ -170,6 +197,20 @@ async def get_user(user_id: int, db: Session = Depends(get_db), _admin=Depends(g
         "email": user.email,
         "is_verified": user.is_verified,
         "created_at": user.created_at,
+        **_membership_info(user),
+        "transactions": [
+            {
+                "id": t.id,
+                "plan": t.plan,
+                "amount_paise": t.amount_paise,
+                "currency": t.currency,
+                "status": t.status,
+                "active_until": t.active_until,
+                "created_at": t.created_at,
+                "razorpay_payment_id": t.razorpay_payment_id,
+            }
+            for t in transactions
+        ],
         "interviews": [
             _serialize_interview(i, include_details=False, serial_no=interview_serial_map.get(i.id))
             for i in user.interviews
