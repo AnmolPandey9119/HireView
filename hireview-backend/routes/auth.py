@@ -30,6 +30,7 @@ from models.schemas import (
 )
 from models.auth_utils import hash_password, verify_password, create_access_token, decode_access_token
 from models.otp_utils import create_otp, verify_otp, can_resend, mark_email_verified, consume_email_verified
+from models.email_utils import canonicalize_email, is_disposable_email
 from routes.email_Service import send_otp_email
 
 logger = logging.getLogger(__name__)
@@ -72,16 +73,21 @@ def _issue_token(user: User) -> Token:
 # ============================================================
 @router.post("/auth/send-email-otp", response_model=MessageResponse)
 async def send_email_otp(payload: SendEmailOTPRequest, db: Session = Depends(get_db)):
-    existing = db.query(User).filter(User.email == payload.email).first()
+    email = canonicalize_email(payload.email)
+
+    if is_disposable_email(email):
+        raise HTTPException(status_code=400, detail="Please use a permanent email address, not a temporary/disposable one.")
+
+    existing = db.query(User).filter(User.email == email).first()
     if existing and existing.is_verified:
         raise HTTPException(status_code=400, detail="This email is already registered. Please log in instead.")
 
-    allowed, wait_seconds = can_resend(db, payload.email, "register")
+    allowed, wait_seconds = can_resend(db, email, "register")
     if not allowed:
         raise HTTPException(status_code=429, detail=f"Please wait {wait_seconds}s before requesting another code.")
 
-    otp = create_otp(db, payload.email, "register")
-    sent = await send_otp_email(payload.email, otp, "register")
+    otp = create_otp(db, email, "register")
+    sent = await send_otp_email(email, otp, "register")
 
     if not sent and config.BREVO_API_KEY:
         raise HTTPException(status_code=502, detail="Could not send OTP email. Please try again.")
@@ -94,12 +100,14 @@ async def send_email_otp(payload: SendEmailOTPRequest, db: Session = Depends(get
 # ============================================================
 @router.post("/auth/verify-email-otp", response_model=MessageResponse)
 async def verify_email_otp(payload: VerifyEmailOTPRequest, db: Session = Depends(get_db)):
-    success, error = verify_otp(db, payload.email, "register", payload.otp)
+    email = canonicalize_email(payload.email)
+
+    success, error = verify_otp(db, email, "register", payload.otp)
     if not success:
         raise HTTPException(status_code=400, detail=error)
 
-    mark_email_verified(db, payload.email)
-    logger.info(f"Email verified (pre-signup): {payload.email}")
+    mark_email_verified(db, email)
+    logger.info(f"Email verified (pre-signup): {email}")
 
     return MessageResponse(message="Email verified successfully.")
 
@@ -109,13 +117,15 @@ async def verify_email_otp(payload: VerifyEmailOTPRequest, db: Session = Depends
 # ============================================================
 @router.post("/auth/register", response_model=Token)
 async def register(payload: UserRegister, db: Session = Depends(get_db)):
-    if not consume_email_verified(db, payload.email):
+    email = canonicalize_email(payload.email)
+
+    if not consume_email_verified(db, email):
         raise HTTPException(
             status_code=400,
             detail="Please verify your email with the OTP before creating your account."
         )
 
-    existing = db.query(User).filter(User.email == payload.email).first()
+    existing = db.query(User).filter(User.email == email).first()
     if existing:
         if existing.is_verified:
             raise HTTPException(status_code=400, detail="Email already registered")
@@ -133,7 +143,7 @@ async def register(payload: UserRegister, db: Session = Depends(get_db)):
 
     user = User(
         name=payload.name,
-        email=payload.email,
+        email=email,
         password_hash=hash_password(payload.password),
         is_verified=True,  # email was already verified in step 2
     )
@@ -150,7 +160,8 @@ async def register(payload: UserRegister, db: Session = Depends(get_db)):
 # ============================================================
 @router.post("/auth/login", response_model=Token)
 async def login(payload: UserLogin, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == payload.email).first()
+    email = canonicalize_email(payload.email)
+    user = db.query(User).filter(User.email == email).first()
 
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Incorrect email or password")
@@ -167,15 +178,16 @@ async def login(payload: UserLogin, db: Session = Depends(get_db)):
 # ============================================================
 @router.post("/auth/forgot-password/request", response_model=MessageResponse)
 async def forgot_password_request(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == payload.email).first()
+    email = canonicalize_email(payload.email)
+    user = db.query(User).filter(User.email == email).first()
 
     if user and user.is_verified:
-        allowed, wait_seconds = can_resend(db, payload.email, "reset_password")
+        allowed, wait_seconds = can_resend(db, email, "reset_password")
         if not allowed:
             raise HTTPException(status_code=429, detail=f"Please wait {wait_seconds}s before requesting another code.")
 
-        otp = create_otp(db, payload.email, "reset_password")
-        await send_otp_email(payload.email, otp, "reset_password", name=user.name)
+        otp = create_otp(db, email, "reset_password")
+        await send_otp_email(email, otp, "reset_password", name=user.name)
 
     # Same message whether or not the account exists — avoids leaking which emails are registered
     return MessageResponse(message="If that email is registered, a reset code has been sent.")
@@ -186,14 +198,15 @@ async def forgot_password_request(payload: ForgotPasswordRequest, db: Session = 
 # ============================================================
 @router.post("/auth/forgot-password/reset", response_model=MessageResponse)
 async def forgot_password_reset(payload: ForgotPasswordReset, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == payload.email).first()
+    email = canonicalize_email(payload.email)
+    user = db.query(User).filter(User.email == email).first()
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect or expired code")
 
     if len(payload.new_password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
 
-    success, error = verify_otp(db, payload.email, "reset_password", payload.otp)
+    success, error = verify_otp(db, email, "reset_password", payload.otp)
     if not success:
         raise HTTPException(status_code=400, detail=error)
 
@@ -294,9 +307,12 @@ async def change_email_request(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    new_email = payload.new_email.lower()
+    new_email = canonicalize_email(payload.new_email)
 
-    if new_email == current_user.email.lower():
+    if is_disposable_email(new_email):
+        raise HTTPException(status_code=400, detail="Please use a permanent email address, not a temporary/disposable one.")
+
+    if new_email == canonicalize_email(current_user.email):
         raise HTTPException(status_code=400, detail="That's already your current email")
 
     existing = db.query(User).filter(User.email == new_email).first()
@@ -325,7 +341,7 @@ async def change_email_verify(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    new_email = payload.new_email.lower()
+    new_email = canonicalize_email(payload.new_email)
 
     success, error = verify_otp(db, new_email, "change_email", payload.otp)
     if not success:
