@@ -21,12 +21,13 @@
 
 import hashlib
 import hmac
+import json
 import logging
 import os
 from datetime import datetime, timedelta
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from models.database import get_db, User, Transaction
@@ -105,6 +106,47 @@ async def create_order(
 # ============================================================
 # POST /api/payments/verify
 # ============================================================
+def _activate_subscription(db: Session, user: User, plan: str, order_id: str, payment_id: str) -> bool:
+    """Activates a plan for a user and logs the transaction.
+
+    Idempotent by razorpay_payment_id: if this payment was already recorded
+    (e.g. /verify handled it first and the webhook arrives right after, or
+    vice versa), this is a no-op so the user is never double-charged in
+    duration. Returns True if it activated something, False if it was
+    already processed.
+    """
+    existing = db.query(Transaction).filter(Transaction.razorpay_payment_id == payment_id).first()
+    if existing:
+        return False
+
+    plan_info = PLANS[plan]
+    now = datetime.utcnow()
+    # If they already have active time left on the same tier, extend from
+    # that instead of overwriting it (so an early renewal isn't wasted).
+    base_time = user.subscription_active_until
+    if not base_time or base_time < now:
+        base_time = now
+
+    user.subscription_plan = plan
+    user.subscription_active_until = base_time + timedelta(days=plan_info["days"])
+
+    db.add(Transaction(
+        user_id=user.id,
+        plan=plan,
+        amount_paise=plan_info["amount_paise"],
+        currency="INR",
+        razorpay_order_id=order_id,
+        razorpay_payment_id=payment_id,
+        status="success",
+        active_until=user.subscription_active_until
+    ))
+    db.commit()
+    return True
+
+
+# ============================================================
+# POST /api/payments/verify
+# ============================================================
 @router.post("/payments/verify")
 async def verify_payment(
     request: dict,
@@ -136,34 +178,10 @@ async def verify_payment(
         logger.warning(f"Razorpay signature mismatch for user {current_user.id}, order {order_id}")
         raise HTTPException(status_code=400, detail="Payment verification failed")
 
-    # Signature is genuine — activate the subscription.
-    plan_info = PLANS[plan]
-    now = datetime.utcnow()
-    # If they already have active time left on the same tier, extend from
-    # that instead of overwriting it (so an early renewal isn't wasted).
-    base_time = current_user.subscription_active_until
-    if not base_time or base_time < now:
-        base_time = now
-
-    current_user.subscription_plan = plan
-    current_user.subscription_active_until = base_time + timedelta(days=plan_info["days"])
-
-    # Record this as a permanent transaction — this is what powers the
-    # Payment & Subscription history list on the frontend. Unlike
-    # subscription_plan/active_until (which get overwritten on renewal),
-    # this row is never touched again.
-    db.add(Transaction(
-        user_id=current_user.id,
-        plan=plan,
-        amount_paise=plan_info["amount_paise"],
-        currency="INR",
-        razorpay_order_id=order_id,
-        razorpay_payment_id=payment_id,
-        status="success",
-        active_until=current_user.subscription_active_until
-    ))
-
-    db.commit()
+    # Signature is genuine — activate the subscription (idempotent: if the
+    # webhook already processed this payment_id, this just confirms it).
+    _activate_subscription(db, current_user, plan, order_id, payment_id)
+    db.refresh(current_user)
 
     logger.info(f"Payment verified: user {current_user.id}, plan {plan}, payment {payment_id}")
 
@@ -172,6 +190,74 @@ async def verify_payment(
         "plan": plan,
         "subscription_active_until": current_user.subscription_active_until.isoformat()
     }
+
+
+# ============================================================
+# POST /api/payments/webhook
+# Razorpay calls this server-to-server the moment a payment is
+# captured — independent of whether the user's browser stayed open
+# long enough to call /verify. This is the safety net: if the
+# frontend never calls /verify (tab closed, network drop, app
+# crash after paying), the subscription still activates here.
+#
+# Configure this URL in Razorpay Dashboard -> Webhooks, subscribed
+# to the "payment.captured" event, and set RAZORPAY_WEBHOOK_SECRET
+# in the environment to the secret shown there (different from the
+# API key secret).
+# ============================================================
+@router.post("/payments/webhook")
+async def razorpay_webhook(request: Request, db: Session = Depends(get_db)):
+    webhook_secret = os.environ.get("RAZORPAY_WEBHOOK_SECRET")
+    if not webhook_secret:
+        logger.error("RAZORPAY_WEBHOOK_SECRET not configured — rejecting webhook")
+        raise HTTPException(status_code=500, detail="Webhook not configured")
+
+    raw_body = await request.body()
+    signature = request.headers.get("X-Razorpay-Signature", "")
+
+    expected_signature = hmac.new(
+        webhook_secret.encode(),
+        raw_body,
+        hashlib.sha256
+    ).hexdigest()
+
+    if not hmac.compare_digest(expected_signature, signature):
+        logger.warning("Razorpay webhook signature mismatch — possible spoofed request")
+        raise HTTPException(status_code=400, detail="Invalid webhook signature")
+
+    try:
+        event = json.loads(raw_body)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid JSON payload")
+
+    if event.get("event") != "payment.captured":
+        # We only care about captured payments; acknowledge everything else
+        # so Razorpay doesn't keep retrying events we don't act on.
+        return {"status": "ignored"}
+
+    payment_entity = event.get("payload", {}).get("payment", {}).get("entity", {})
+    order_id   = payment_entity.get("order_id")
+    payment_id = payment_entity.get("id")
+    notes      = payment_entity.get("notes", {})
+    user_id    = notes.get("user_id")
+    plan       = notes.get("plan")
+
+    if not (order_id and payment_id and user_id and plan in PLANS):
+        logger.error(f"Webhook payment.captured missing expected fields: order={order_id} payment={payment_id} notes={notes}")
+        # Acknowledge with 200 anyway — this is a data problem on our side
+        # (e.g. an order created before notes were added), not something
+        # Razorpay retrying will fix.
+        return {"status": "skipped_missing_data"}
+
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    if not user:
+        logger.error(f"Webhook payment.captured for unknown user_id {user_id}, payment {payment_id}")
+        return {"status": "skipped_unknown_user"}
+
+    activated = _activate_subscription(db, user, plan, order_id, payment_id)
+    logger.info(f"Webhook payment.captured: user {user.id}, plan {plan}, payment {payment_id}, activated={activated}")
+
+    return {"status": "processed" if activated else "already_processed"}
 
 
 # ============================================================
