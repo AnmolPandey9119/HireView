@@ -199,7 +199,7 @@
     .profile-membership-title.is-gold { color: #fde68a; display: flex; align-items: center; justify-content: center; gap: 0.4rem; }
 
     /* Small crown chip next to the profile name once a plan is active */
-    .profile-gold-chip { display: none; align-items: center; gap: 0.3rem; background: linear-gradient(135deg, #facc15, #d97706); color: #1a1200; font-size: 0.72rem; font-weight: 800; padding: 0.2rem 0.65rem; border-radius: 20px; margin-left: 0.5rem; vertical-align: middle; }
+    .profile-gold-chip { display: none; align-items: center; justify-content: center; background: linear-gradient(135deg, #facc15, #d97706); color: #1a1200; font-size: 0.95rem; width: 1.7rem; height: 1.7rem; border-radius: 50%; margin-left: 0.5rem; vertical-align: middle; box-shadow: 0 0 0 2px rgba(250,204,21,0.25); }
     .profile-gold-chip.show { display: inline-flex; }
 
     /* PAYMENT HISTORY table */
@@ -404,7 +404,7 @@
             <div class="profile-field">
               <div class="profile-field-display" id="nameDisplay">
                 <span class="profile-name" id="profileName" style="margin-bottom:0">—</span>
-                <span class="profile-gold-chip" id="profileGoldChip">👑 Premium</span>
+                <span class="profile-gold-chip" id="profileGoldChip" title="Premium member">👑</span>
                 <button class="field-edit-btn" onclick="startEditName()" title="Edit name">✏️</button>
               </div>
               <div class="profile-field-edit hidden" id="nameEditForm">
