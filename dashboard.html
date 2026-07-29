@@ -199,7 +199,7 @@
     .profile-membership-title.is-gold { color: #fde68a; display: flex; align-items: center; justify-content: center; gap: 0.4rem; }
 
     /* Small crown chip next to the profile name once a plan is active */
-    .profile-gold-chip { display: none; align-items: center; justify-content: center; background: linear-gradient(135deg, #facc15, #d97706); color: #1a1200; font-size: 0.95rem; width: 1.7rem; height: 1.7rem; border-radius: 50%; margin-left: 0.5rem; vertical-align: middle; box-shadow: 0 0 0 2px rgba(250,204,21,0.25); }
+    .profile-gold-chip { display: none; align-items: center; gap: 0.3rem; background: linear-gradient(135deg, #facc15, #d97706); color: #1a1200; font-size: 0.72rem; font-weight: 800; padding: 0.2rem 0.65rem; border-radius: 20px; margin-left: 0.5rem; vertical-align: middle; }
     .profile-gold-chip.show { display: inline-flex; }
 
     /* PAYMENT HISTORY table */
@@ -217,6 +217,20 @@
 
     /* Toast */
     .hv-toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(26,31,58,0.95); border: 1px solid rgba(99,102,241,0.4); color: white; padding: 0.9rem 1.5rem; border-radius: 14px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 12px 35px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: all 0.3s ease; z-index: 999; }
+
+    /* LIMIT-EXCEEDED / PLAN-EXPIRED popup — shown the moment the user
+       clicks "+ New Interview" on the dashboard, before they fill out
+       the setup form. Mirrors the copy shown at the "Begin Interview"
+       step so the message is consistent everywhere. */
+    .limit-modal-backdrop { position: fixed; inset: 0; background: rgba(5,7,20,0.7); backdrop-filter: blur(3px); z-index: 800; display: none; align-items: center; justify-content: center; padding: 1.5rem; }
+    .limit-modal-backdrop.open { display: flex; }
+    .limit-modal { background: #12162c; border: 1px solid rgba(250,204,21,0.35); border-radius: 22px; box-shadow: 0 30px 90px rgba(0,0,0,0.6); max-width: 420px; width: 100%; padding: 2.25rem 2rem; text-align: center; }
+    .limit-modal-icon { font-size: 2.75rem; margin-bottom: 1rem; }
+    .limit-modal-title { font-size: 1.25rem; font-weight: 800; color: #fde68a; margin-bottom: 0.6rem; }
+    .limit-modal-sub { font-size: 0.9rem; color: rgba(255,255,255,0.65); line-height: 1.6; margin-bottom: 1.75rem; }
+    .limit-modal-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+    .limit-modal-btn-primary { padding: 0.75rem 1.6rem; background: linear-gradient(135deg,#6366f1,#ec4899); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.9rem; }
+    .limit-modal-btn-secondary { padding: 0.75rem 1.6rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; color: rgba(255,255,255,0.8); cursor: pointer; font-family: inherit; font-size: 0.9rem; }
     .hv-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     .hv-toast.error { border-color: rgba(239,68,68,0.5); }
 
@@ -254,7 +268,7 @@
           </div>
           <div class="header-actions">
             <button class="start-btn secondary-header-btn" onclick="window.location.href='/history'">📋 History</button>
-            <button class="start-btn" onclick="window.location.href='/interview'">+ New Interview</button>
+            <button class="start-btn" onclick="handleNewInterviewClick()">+ New Interview</button>
 
             <!-- Profile avatar + Google-style mini dropdown -->
             <div class="profile-widget" id="profileWidget">
@@ -321,6 +335,21 @@
     </main>
   </div>
 
+  <!-- Free-trial-exceeded / plan-expired popup — triggered from the
+       "+ New Interview" button on the dashboard itself, before the user
+       ever reaches the interview setup form. -->
+  <div class="limit-modal-backdrop" id="limitModalBackdrop" onclick="if (event.target === this) closeLimitModal()">
+    <div class="limit-modal">
+      <div class="limit-modal-icon" id="limitModalIcon">🔒</div>
+      <div class="limit-modal-title" id="limitModalTitle">Free interviews used up</div>
+      <div class="limit-modal-sub" id="limitModalSub">You've used all 3 free interviews. Please purchase a plan to continue.</div>
+      <div class="limit-modal-actions">
+        <button class="limit-modal-btn-secondary" onclick="closeLimitModal()">Maybe later</button>
+        <button class="limit-modal-btn-primary" onclick="goToPlansFromLimitModal()">View Plans</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Big account-management overlay (opens on "Manage your HireView Account") -->
   <div class="account-overlay-backdrop" id="accountBackdrop" onclick="closeBigPanel()"></div>
   <div class="account-big-panel" id="accountBigPanel">
@@ -375,7 +404,7 @@
             <div class="profile-field">
               <div class="profile-field-display" id="nameDisplay">
                 <span class="profile-name" id="profileName" style="margin-bottom:0">—</span>
-                <span class="profile-gold-chip" id="profileGoldChip" title="Premium member">👑</span>
+                <span class="profile-gold-chip" id="profileGoldChip">👑 Premium</span>
                 <button class="field-edit-btn" onclick="startEditName()" title="Edit name">✏️</button>
               </div>
               <div class="profile-field-edit hidden" id="nameEditForm">
@@ -521,6 +550,64 @@
         openBigPanel();
         switchTab('paymentPage', document.querySelector('.sidebar-link[data-page="paymentPage"]'));
       });
+    }
+
+    // Set by loadDashboard() from /api/dashboard's stats.interviews_remaining_free.
+    // null until the first successful load — treated as "don't know yet" so we
+    // never wrongly block a click before the data has arrived.
+    let remainingFreeInterviews = null;
+
+    // ────────────────────────────────────────────
+    // "+ New Interview" pre-check — runs BEFORE navigating to the setup
+    // form, so a user who has hit their limit finds out immediately
+    // instead of after filling in the whole form and clicking
+    // "Begin Interview". The backend still enforces this independently
+    // on POST /api/interviews — this is purely a faster, friendlier
+    // heads-up on the frontend.
+    // ────────────────────────────────────────────
+    function handleNewInterviewClick() {
+      const activeUntil = currentUser?.subscription_active_until ? new Date(currentUser.subscription_active_until) : null;
+      const hasActiveSubscription = !!(activeUntil && activeUntil.getTime() > Date.now());
+
+      if (hasActiveSubscription || remainingFreeInterviews === null || remainingFreeInterviews > 0) {
+        window.location.href = '/interview';
+        return;
+      }
+
+      // No active subscription and no free interviews left. If they've
+      // purchased a plan before (subscription_plan is set even after it
+      // lapses), the more accurate message is "your plan expired" rather
+      // than "you used your free trial".
+      const hadPlanBefore = !!currentUser?.subscription_plan;
+      showLimitModal(hadPlanBefore ? 'expired' : 'quota');
+    }
+
+    function showLimitModal(kind) {
+      const icon  = document.getElementById('limitModalIcon');
+      const title = document.getElementById('limitModalTitle');
+      const sub   = document.getElementById('limitModalSub');
+
+      if (kind === 'expired') {
+        icon.textContent = '⏳';
+        title.textContent = 'Your plan has expired';
+        sub.textContent = 'Your subscription has ended. Please renew a plan to continue taking unlimited interviews.';
+      } else {
+        icon.textContent = '🔒';
+        title.textContent = 'Free interviews used up';
+        sub.textContent = "You've used all 3 free interviews. Please purchase a plan to continue.";
+      }
+
+      document.getElementById('limitModalBackdrop').classList.add('open');
+    }
+
+    function closeLimitModal() {
+      document.getElementById('limitModalBackdrop').classList.remove('open');
+    }
+
+    function goToPlansFromLimitModal() {
+      closeLimitModal();
+      openBigPanel();
+      switchTab('paymentPage', document.querySelector('.sidebar-link[data-page="paymentPage"]'));
     }
 
     function handleLogout() {
@@ -1320,6 +1407,7 @@
 
         // Free trial banner
         renderFreeTrialBanner(data.stats.interviews_remaining_free, data.stats.total_interviews);
+        remainingFreeInterviews = data.stats.interviews_remaining_free;
 
         // Stats
         renderStats(data.stats);
