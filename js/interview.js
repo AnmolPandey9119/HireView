@@ -299,13 +299,14 @@ async function processJdFile(file) {
   jdText = '';
 
   document.getElementById('jdParsingIndicator').style.display = 'flex';
+  document.getElementById('jdParsingStatusText').textContent = 'Reading the job description…';
   document.getElementById('jdUploadedInfo').style.display = 'none';
 
   try {
     if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
       jdText = await file.text();
     } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-      jdText = await extractPdfText(file);
+      jdText = await extractPdfText(file, 'jdParsingStatusText');
     } else {
       jdText = await extractDocxText(file);
     }
@@ -422,13 +423,14 @@ async function processBiodataFile(file) {
   biodataText = '';
 
   document.getElementById('biodataParsingIndicator').style.display = 'flex';
+  document.getElementById('biodataParsingStatusText').textContent = 'Reading your biodata…';
   document.getElementById('biodataUploadedInfo').style.display = 'none';
 
   try {
     if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
       biodataText = await file.text();
     } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-      biodataText = await extractPdfText(file);
+      biodataText = await extractPdfText(file, 'biodataParsingStatusText');
     } else {
       biodataText = await extractDocxText(file);
     }
@@ -652,13 +654,14 @@ async function processResumeFile(file) {
   resumeText = '';
 
   document.getElementById('resumeParsingIndicator').style.display = 'flex';
+  document.getElementById('resumeParsingStatusText').textContent = 'Reading your resume…';
   document.getElementById('resumeUploadedInfo').style.display = 'none';
 
   try {
     if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
       resumeText = await file.text();
     } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-      resumeText = await extractPdfText(file);
+      resumeText = await extractPdfText(file, 'resumeParsingStatusText');
     } else {
       resumeText = await extractDocxText(file);
     }
@@ -679,7 +682,7 @@ async function processResumeFile(file) {
   }
 }
 
-async function extractPdfText(file) {
+async function extractPdfText(file, statusElId) {
   if (!window.pdfjsLib) {
     await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
     window.pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -687,13 +690,55 @@ async function extractPdfText(file) {
   }
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
   let text = '';
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
     text += content.items.map(item => item.str).join(' ') + '\n';
   }
-  return text;
+
+  // If pdf.js found a real embedded text layer, we're done — this is
+  // the fast path and covers the vast majority of resumes.
+  if (text.trim().length >= 30) {
+    return text;
+  }
+
+  // No usable text layer — this is the case that was breaking for
+  // scanned resumes and heavily-designed PDFs (Canva/Illustrator/some
+  // Acrobat exports), where the "text" on the page is actually pixels,
+  // not real text objects. Fall back to OCR: render each page to a
+  // canvas image and read it with Tesseract.
+  if (statusElId) {
+    const el = document.getElementById(statusElId);
+    if (el) el.textContent = 'No text layer found — reading it as an image (this can take up to a minute)…';
+  }
+
+  if (!window.Tesseract) {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js');
+  }
+
+  let ocrText = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    // Higher scale = sharper render = more accurate OCR, at the cost of
+    // speed. 2x is a reasonable balance for a resume-length document.
+    const viewport = page.getViewport({ scale: 2 });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+    if (statusElId) {
+      const el = document.getElementById(statusElId);
+      if (el) el.textContent = `Reading page ${i} of ${pdf.numPages} with OCR…`;
+    }
+
+    const { data } = await window.Tesseract.recognize(canvas, 'eng');
+    ocrText += (data.text || '') + '\n';
+  }
+
+  return ocrText;
 }
 
 async function extractDocxText(file) {
