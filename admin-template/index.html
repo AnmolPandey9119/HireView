@@ -92,6 +92,8 @@
   .pill-green{background:rgba(34,197,94,0.15);color:#22c55e;}
   .pill-orange{background:rgba(251,146,60,0.15);color:#fb923c;}
   .pill-blue{background:rgba(99,102,241,0.18);color:#a5b4fc;}
+  .pill-gold{background:linear-gradient(135deg,#facc15,#d97706);color:#1a1200;}
+  .pill-gray{background:rgba(148,163,184,0.15);color:#94a3b8;}
   .row-actions{display:flex;gap:0.4rem;}
   .icon-btn{padding:0.4rem 0.7rem;font-size:0.78rem;background:rgba(255,255,255,0.06);border:1px solid rgba(99,102,241,0.2);color:#fff;white-space:nowrap;}
   .icon-btn.danger{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.3);color:#f87171;}
@@ -202,7 +204,7 @@
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>S.No.</th><th>Name</th><th>Email</th><th>Verified</th><th>Interviews</th><th>Joined</th><th>Actions</th></tr></thead>
+          <thead><tr><th>S.No.</th><th>Name</th><th>Email</th><th>Verified</th><th>Membership</th><th>Interviews</th><th>Joined</th><th>Actions</th></tr></thead>
           <tbody id="usersTbody"></tbody>
         </table>
       </div>
@@ -254,6 +256,7 @@
         </span>
       </div>
     </div>
+    <div id="userDetailMembership"></div>
     <div id="userDetailInterviews"></div>
     <div class="modal-actions">
       <button class="btn btn-danger" id="deleteUserBtn">Delete User</button>
@@ -391,6 +394,7 @@ function togglePasswordVisibility(inputId, toggleEl) {
         <div class="stat-card"><div class="stat-num">${s.total_visitors}</div><div class="stat-label">Total Visitors</div></div>
         <div class="stat-card"><div class="stat-num">${s.total_users}</div><div class="stat-label">Total Users</div></div>
         <div class="stat-card"><div class="stat-num">${s.verified_users}</div><div class="stat-label">Verified Users</div></div>
+        <div class="stat-card"><div class="stat-num">${s.premium_users}</div><div class="stat-label">👑 Premium Users</div></div>
         <div class="stat-card"><div class="stat-num">${s.total_interviews}</div><div class="stat-label">Total Interviews</div></div>
         <div class="stat-card"><div class="stat-num">${s.completed_interviews}</div><div class="stat-label">Completed Interviews</div></div>
         <div class="stat-card"><div class="stat-num">${s.private_interviews}</div><div class="stat-label">Private Sector</div></div>
@@ -402,6 +406,12 @@ function togglePasswordVisibility(inputId, toggleEl) {
   // ---------- USERS ----------
   function fmtDate(d){ return d ? new Date(d).toLocaleDateString() : '—'; }
 
+  function membershipPill(u){
+    if (!u.is_premium) return '<span class="pill pill-gray">Free</span>';
+    const planLabel = u.subscription_plan ? u.subscription_plan.charAt(0).toUpperCase() + u.subscription_plan.slice(1) : 'Premium';
+    return `<span class="pill pill-gold" title="Active till ${fmtDate(u.subscription_active_until)}">👑 ${planLabel}</span>`;
+  }
+
   function renderUsers(list){
     $('usersTbody').innerHTML = list.map(u => `
       <tr>
@@ -409,6 +419,7 @@ function togglePasswordVisibility(inputId, toggleEl) {
         <td>${escapeHtml(u.name)}</td>
         <td>${escapeHtml(u.email)}</td>
         <td>${u.is_verified ? '<span class="pill pill-green">Verified</span>' : '<span class="pill pill-orange">Unverified</span>'}</td>
+        <td>${membershipPill(u)}</td>
         <td>${u.interview_count}</td>
         <td>${fmtDate(u.created_at)}</td>
         <td class="row-actions">
@@ -441,6 +452,28 @@ function togglePasswordVisibility(inputId, toggleEl) {
       $('editUserEmail').value = u.email;
       $('editUserVerified').checked = u.is_verified;
       $('editUserPassword').value = '';
+
+      $('userDetailMembership').innerHTML = `
+        <div class="sub-label" style="margin:1rem 0 0.5rem;">Membership</div>
+        <div class="sub-block">
+          <div class="sub-block-head">
+            <span>${membershipPill(u)}</span>
+            ${u.is_premium ? `<span class="muted">Valid till ${fmtDate(u.subscription_active_until)}</span>` : ''}
+          </div>
+        </div>
+        ${u.transactions.length ? `
+          <div class="sub-label" style="margin:0.75rem 0 0.5rem;">Payment History (${u.transactions.length})</div>
+          ${u.transactions.map(t => `
+            <div class="sub-block">
+              <div class="sub-block-head">
+                <span>${t.plan.charAt(0).toUpperCase() + t.plan.slice(1)} — ₹${(t.amount_paise / 100).toFixed(2)}</span>
+                <span class="pill pill-green">${t.status}</span>
+              </div>
+              <div class="muted">Paid ${fmtDate(t.created_at)} · Active till ${fmtDate(t.active_until)} · ${t.razorpay_payment_id}</div>
+            </div>`).join('')}
+        ` : '<p class="muted" style="margin-top:0.5rem;">No payments yet.</p>'}
+      `;
+
       $('userDetailInterviews').innerHTML = u.interviews.length
         ? `<div class="sub-label" style="margin:1rem 0 0.5rem;">Interviews (${u.interviews.length})</div>` +
           u.interviews.map(i => `
