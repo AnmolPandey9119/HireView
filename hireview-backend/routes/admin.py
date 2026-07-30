@@ -136,22 +136,55 @@ def _interview_serial_map(db: Session) -> dict:
     return {i.id: idx for idx, i in enumerate(interviews, start=1)}
 
 
-def _membership_info(user: User) -> dict:
-    """Derives current membership status from subscription_plan/subscription_active_until.
+def _latest_transaction_map(db: Session) -> dict:
+    """user_id -> that user's most recent Transaction row.
 
-    A user only counts as an active member if BOTH a plan is set AND
-    active_until is still in the future — mirrors the same check the
-    public dashboard uses to decide whether to show the gold crown.
+    One query for the whole user list, instead of a per-user query in a
+    loop — same batching pattern as _user_serial_map/_interview_serial_map
+    above.
+    """
+    txns = db.query(Transaction).order_by(Transaction.created_at.desc()).all()
+    latest = {}
+    for t in txns:
+        if t.user_id not in latest:  # first time we see this user = most recent, since already sorted desc
+            latest[t.user_id] = t
+    return latest
+
+
+def _membership_info(user: User, latest_txn: Transaction = None) -> dict:
+    """Derives current membership status from subscription_plan/subscription_active_until,
+    plus when the current/most recent plan was actually purchased (from Transaction).
+
+    membership_status is one of:
+      "active"  — subscription_plan is set AND subscription_active_until is in the future
+      "expired" — subscription_plan is set but subscription_active_until has passed
+                  (someone who WAS a paying member, distinct from someone who never paid)
+      "never"   — subscription_plan was never set at all
+
+    "active" only requires BOTH a plan AND a still-future active_until — mirrors
+    the same check the public dashboard uses to decide whether to show the gold crown.
     """
     is_active = bool(
         user.subscription_plan
         and user.subscription_active_until
         and user.subscription_active_until > datetime.utcnow()
     )
+
+    if user.subscription_plan and user.subscription_active_until:
+        membership_status = "active" if is_active else "expired"
+    else:
+        membership_status = "never"
+
     return {
         "is_premium": is_active,
+        "membership_status": membership_status,
         "subscription_plan": user.subscription_plan,
         "subscription_active_until": user.subscription_active_until,
+        # When the current (or most recently held) plan was actually
+        # bought — each purchase resets active_until to "now + plan days"
+        # at the moment of payment, so the latest transaction's
+        # created_at IS the start of the current/last active window.
+        "membership_started_at": latest_txn.created_at if latest_txn else None,
     }
 
 
@@ -161,6 +194,7 @@ async def list_users(db: Session = Depends(get_db), _admin=Depends(get_current_a
     # `id` (the real, permanent database primary key) is kept separate and
     # unchanged — it's what edit/delete actions actually use under the hood.
     users = db.query(User).order_by(User.id.asc()).all()
+    latest_txns = _latest_transaction_map(db)
     return [
         {
             "serial_no": idx,
@@ -170,7 +204,7 @@ async def list_users(db: Session = Depends(get_db), _admin=Depends(get_current_a
             "is_verified": u.is_verified,
             "created_at": u.created_at,
             "interview_count": len(u.interviews),
-            **_membership_info(u),
+            **_membership_info(u, latest_txns.get(u.id)),
         }
         for idx, u in enumerate(users, start=1)
     ]
@@ -197,7 +231,7 @@ async def get_user(user_id: int, db: Session = Depends(get_db), _admin=Depends(g
         "email": user.email,
         "is_verified": user.is_verified,
         "created_at": user.created_at,
-        **_membership_info(user),
+        **_membership_info(user, transactions[0] if transactions else None),
         "transactions": [
             {
                 "id": t.id,

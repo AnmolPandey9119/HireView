@@ -406,10 +406,30 @@ function togglePasswordVisibility(inputId, toggleEl) {
   // ---------- USERS ----------
   function fmtDate(d){ return d ? new Date(d).toLocaleDateString() : '—'; }
 
-  function membershipPill(u){
-    if (!u.is_premium) return '<span class="pill pill-gray">Free</span>';
-    const planLabel = u.subscription_plan ? u.subscription_plan.charAt(0).toUpperCase() + u.subscription_plan.slice(1) : 'Premium';
-    return `<span class="pill pill-gold" title="Active till ${fmtDate(u.subscription_active_until)}">👑 ${planLabel}</span>`;
+  // Renders the whole "Membership" table cell — not just a pill — so
+  // the started/ended dates are visible at a glance instead of hidden
+  // behind a hover tooltip, and an EXPIRED former member looks visibly
+  // different from someone who never subscribed at all.
+  function membershipCell(u){
+    const planLabel = u.subscription_plan ? u.subscription_plan.charAt(0).toUpperCase() + u.subscription_plan.slice(1) : '';
+
+    if (u.membership_status === 'active') {
+      return `
+        <span class="pill pill-gold">👑 ${planLabel}</span>
+        <div class="muted" style="font-size:0.72rem;margin-top:0.25rem;white-space:nowrap;">
+          Since ${fmtDate(u.membership_started_at)} · Till ${fmtDate(u.subscription_active_until)}
+        </div>`;
+    }
+
+    if (u.membership_status === 'expired') {
+      return `
+        <span class="pill pill-orange">⏳ Expired</span>
+        <div class="muted" style="font-size:0.72rem;margin-top:0.25rem;white-space:nowrap;">
+          ${planLabel} · ended ${fmtDate(u.subscription_active_until)}
+        </div>`;
+    }
+
+    return '<span class="pill pill-gray">Free</span>';
   }
 
   function renderUsers(list){
@@ -419,7 +439,7 @@ function togglePasswordVisibility(inputId, toggleEl) {
         <td>${escapeHtml(u.name)}</td>
         <td>${escapeHtml(u.email)}</td>
         <td>${u.is_verified ? '<span class="pill pill-green">Verified</span>' : '<span class="pill pill-orange">Unverified</span>'}</td>
-        <td>${membershipPill(u)}</td>
+        <td>${membershipCell(u)}</td>
         <td>${u.interview_count}</td>
         <td>${fmtDate(u.created_at)}</td>
         <td class="row-actions">
@@ -457,8 +477,7 @@ function togglePasswordVisibility(inputId, toggleEl) {
         <div class="sub-label" style="margin:1rem 0 0.5rem;">Membership</div>
         <div class="sub-block">
           <div class="sub-block-head">
-            <span>${membershipPill(u)}</span>
-            ${u.is_premium ? `<span class="muted">Valid till ${fmtDate(u.subscription_active_until)}</span>` : ''}
+            <span>${membershipCell(u)}</span>
           </div>
         </div>
         ${u.transactions.length ? `
