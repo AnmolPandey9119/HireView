@@ -24,7 +24,7 @@ from typing import Optional
 import logging
 
 import config
-from models.database import get_db, User, Interview, InterviewQuestion, Feedback, SiteVisit, Transaction
+from models.database import get_db, User, Interview, InterviewQuestion, Feedback, SiteVisit, Transaction, to_utc_iso
 from models.auth_utils import (
     hash_password, verify_password, create_access_token, decode_access_token,
     validate_password_strength,
@@ -179,12 +179,12 @@ def _membership_info(user: User, latest_txn: Transaction = None) -> dict:
         "is_premium": is_active,
         "membership_status": membership_status,
         "subscription_plan": user.subscription_plan,
-        "subscription_active_until": user.subscription_active_until,
+        "subscription_active_until": to_utc_iso(user.subscription_active_until),
         # When the current (or most recently held) plan was actually
         # bought — each purchase resets active_until to "now + plan days"
         # at the moment of payment, so the latest transaction's
         # created_at IS the start of the current/last active window.
-        "membership_started_at": latest_txn.created_at if latest_txn else None,
+        "membership_started_at": to_utc_iso(latest_txn.created_at) if latest_txn else None,
     }
 
 
@@ -202,7 +202,7 @@ async def list_users(db: Session = Depends(get_db), _admin=Depends(get_current_a
             "name": u.name,
             "email": u.email,
             "is_verified": u.is_verified,
-            "created_at": u.created_at,
+            "created_at": to_utc_iso(u.created_at),
             "interview_count": len(u.interviews),
             **_membership_info(u, latest_txns.get(u.id)),
         }
@@ -230,7 +230,7 @@ async def get_user(user_id: int, db: Session = Depends(get_db), _admin=Depends(g
         "name": user.name,
         "email": user.email,
         "is_verified": user.is_verified,
-        "created_at": user.created_at,
+        "created_at": to_utc_iso(user.created_at),
         **_membership_info(user, transactions[0] if transactions else None),
         "transactions": [
             {
@@ -239,8 +239,8 @@ async def get_user(user_id: int, db: Session = Depends(get_db), _admin=Depends(g
                 "amount_paise": t.amount_paise,
                 "currency": t.currency,
                 "status": t.status,
-                "active_until": t.active_until,
-                "created_at": t.created_at,
+                "active_until": to_utc_iso(t.active_until),
+                "created_at": to_utc_iso(t.created_at),
                 "razorpay_payment_id": t.razorpay_payment_id,
             }
             for t in transactions
@@ -315,8 +315,8 @@ def _serialize_interview(
         "difficulty": interview.difficulty,
         "status": interview.status,
         "overall_score": interview.overall_score,
-        "started_at": interview.started_at,
-        "completed_at": interview.completed_at,
+        "started_at": to_utc_iso(interview.started_at),
+        "completed_at": to_utc_iso(interview.completed_at),
         "sector": interview.sector,
         "government_domain": interview.government_domain,
         "government_role": interview.government_role,

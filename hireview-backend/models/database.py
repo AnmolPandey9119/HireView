@@ -7,9 +7,29 @@
 from sqlalchemy import create_engine, Column, Integer, String, Float, Text, DateTime, ForeignKey, Boolean, inspect, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
-from datetime import datetime
+from datetime import datetime, timezone
 
 import config
+
+
+def to_utc_iso(dt):
+    """Serializes a datetime to an ISO string the browser will parse correctly.
+
+    Every timestamp in this app is stored via datetime.utcnow(), which
+    returns a "naive" datetime (no timezone attached) that nonetheless
+    represents UTC. Calling .isoformat() on that directly produces a string
+    like "2026-07-30T05:49:12" with no "Z"/offset — JavaScript's Date parser
+    then treats a string like that as LOCAL time instead of UTC, so it never
+    gets shifted to the viewer's actual timezone (e.g. IST) and the raw UTC
+    value gets displayed as-is. Attaching tzinfo=utc before formatting fixes
+    that: the string becomes "...T05:49:12+00:00", which every JS Date
+    parser correctly converts to the browser's local time.
+    """
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.isoformat()
 
 # ============================================================
 # DATABASE SETUP

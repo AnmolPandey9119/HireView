@@ -4,9 +4,21 @@
 # Defines request/response shapes for the API
 # ============================================================
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_serializer
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
+
+
+def _serialize_utc(dt: Optional[datetime]) -> Optional[str]:
+    """See models/database.py:to_utc_iso — same fix, needed here too because
+    these Pydantic response models serialize datetimes independently of the
+    plain-dict endpoints (FastAPI calls .isoformat() on the naive UTC
+    datetime otherwise, which the browser then misreads as local time)."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.isoformat()
 
 
 # ============================================================
@@ -30,6 +42,10 @@ class UserResponse(BaseModel):
     subscription_plan: Optional[str] = None
     subscription_active_until: Optional[datetime] = None
     created_at: datetime
+
+    @field_serializer('subscription_active_until', 'created_at')
+    def _fix_timezone(self, dt: Optional[datetime]) -> Optional[str]:
+        return _serialize_utc(dt)
 
     class Config:
         from_attributes = True
@@ -138,6 +154,10 @@ class InterviewResponse(BaseModel):
     biodata_source: Optional[str]
     candidate_summary: Optional[str]
     failure_reason: Optional[str] = None
+
+    @field_serializer('started_at', 'completed_at')
+    def _fix_timezone(self, dt: Optional[datetime]) -> Optional[str]:
+        return _serialize_utc(dt)
 
     class Config:
         from_attributes = True

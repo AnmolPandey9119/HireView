@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import logging
 import json
 
-from models.database import get_db, Interview, InterviewQuestion, Feedback, User
+from models.database import get_db, Interview, InterviewQuestion, Feedback, User, to_utc_iso
 from models.schemas import InterviewCreate, QuestionAnswer, InterviewResponse, FeedbackCreate, FailInterviewRequest
 from routes.auth import get_current_user
 
@@ -259,8 +259,8 @@ async def get_interview_detail(
         "difficulty": interview.difficulty,
         "status": interview.status,
         "overall_score": interview.overall_score,
-        "started_at": interview.started_at,
-        "completed_at": interview.completed_at,
+        "started_at": to_utc_iso(interview.started_at),
+        "completed_at": to_utc_iso(interview.completed_at),
         "sector": interview.sector,
         "government_domain": interview.government_domain,
         "government_role": interview.government_role,
@@ -307,8 +307,8 @@ async def get_dashboard_stats(
             "role": i.role,
             "status": i.status,
             "overall_score": i.overall_score,
-            "started_at": i.started_at.isoformat() if i.started_at else None,
-            "completed_at": i.completed_at.isoformat() if i.completed_at else None,
+            "started_at": to_utc_iso(i.started_at),
+            "completed_at": to_utc_iso(i.completed_at),
             "sector": i.sector,
             "government_domain": i.government_domain,
             "government_role": i.government_role,
@@ -321,7 +321,7 @@ async def get_dashboard_stats(
             "email": current_user.email,
             "profile_picture": current_user.profile_picture,
             "subscription_plan": current_user.subscription_plan,
-            "subscription_active_until": current_user.subscription_active_until
+            "subscription_active_until": to_utc_iso(current_user.subscription_active_until)
         },
         "stats": {
             "total_interviews": total,
@@ -380,8 +380,8 @@ async def get_interview_history(
             "role": i.role,
             "status": i.status,
             "overall_score": i.overall_score,
-            "started_at": i.started_at.isoformat() if i.started_at else None,
-            "completed_at": i.completed_at.isoformat() if i.completed_at else None,
+            "started_at": to_utc_iso(i.started_at),
+            "completed_at": to_utc_iso(i.completed_at),
             "sector": i.sector,
             "government_domain": i.government_domain,
             "government_role": i.government_role,

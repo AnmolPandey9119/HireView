@@ -12,11 +12,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/main.css">
   <style>
-    .dashboard-header { margin-bottom: 2.5rem; }
-    .dashboard-header-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem; }
+    .dashboard-header { margin-bottom: 2.5rem; display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; }
     .dashboard-welcome { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     .dashboard-sub { color: rgba(255,255,255,0.6); font-size: 0.95rem; margin-top: 0.25rem; }
-    .header-actions { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+    .header-actions { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-left: auto; }
     .start-btn { padding: 0.85rem 1.75rem; background: linear-gradient(135deg, #6366f1, #ec4899); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
     .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.6); }
     .start-btn.secondary-header-btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); box-shadow: none; }
@@ -134,7 +133,9 @@
       .mini-dropdown { width: 260px; right: -0.5rem; }
       .profile-card { padding: 2rem 1.25rem; }
       .password-card { padding: 1.75rem 1.25rem; }
-      .header-actions { width: 100%; flex-direction: column; align-items: stretch; }
+      .dashboard-header-text { order: 1; flex: 1 1 auto; min-width: 0; }
+      .profile-widget { order: 2; margin-left: auto; }
+      .header-actions { order: 3; width: 100%; flex-direction: column; align-items: stretch; margin-left: 0; }
       .start-btn { width: 100%; }
     }
 
@@ -262,41 +263,40 @@
       <div class="content-wrapper">
 
         <div class="dashboard-header">
-          <div class="dashboard-header-row">
-            <div>
-              <div class="dashboard-welcome"><span id="welcomeText">Welcome back!</span></div>
-              <div class="dashboard-sub">Here's your interview progress</div>
-            </div>
-
-            <!-- Profile avatar + Google-style mini dropdown — always
-                 anchored next to the greeting, on its own row, so it
-                 never gets swept into the action-buttons stack on
-                 narrow/mobile screens. -->
-            <div class="profile-widget" id="profileWidget">
-              <button class="profile-trigger" id="profileTrigger" onclick="toggleMiniDropdown()" aria-label="Account menu">
-                <div class="avatar-wrap">
-                  <div class="profile-trigger-avatar" id="headerAvatar">?</div>
-                  <span class="avatar-crown-badge" id="headerCrownBadge">👑</span>
-                </div>
-              </button>
-
-              <div class="mini-dropdown" id="miniDropdown">
-                <div class="mini-dropdown-email" id="miniEmail">—</div>
-                <div class="avatar-wrap">
-                  <div class="mini-dropdown-avatar" id="miniAvatar">?</div>
-                  <span class="avatar-crown-badge" id="miniCrownBadge">👑</span>
-                </div>
-                <div class="mini-dropdown-greeting" id="miniGreeting">Hi!</div>
-                <button class="manage-account-btn" onclick="openBigPanel()">Manage your HireView Account</button>
-                <div class="mini-dropdown-divider"></div>
-                <button class="mini-dropdown-signout" onclick="handleLogout()">🚪 Sign out</button>
-              </div>
-            </div>
+          <div class="dashboard-header-text">
+            <div class="dashboard-welcome"><span id="welcomeText">Welcome back!</span></div>
+            <div class="dashboard-sub">Here's your interview progress</div>
           </div>
 
           <div class="header-actions">
             <button class="start-btn secondary-header-btn" onclick="window.location.href='/history'">📋 History</button>
             <button class="start-btn" onclick="handleNewInterviewClick()">+ New Interview</button>
+          </div>
+
+          <!-- Profile avatar + Google-style mini dropdown. On desktop this
+               sits inline at the far right, next to the action buttons
+               (original layout). On mobile, CSS `order` pulls it up next
+               to the greeting instead, so it never gets swept into the
+               action-buttons stack — see the max-width:720px rules below. -->
+          <div class="profile-widget" id="profileWidget">
+            <button class="profile-trigger" id="profileTrigger" onclick="toggleMiniDropdown()" aria-label="Account menu">
+              <div class="avatar-wrap">
+                <div class="profile-trigger-avatar" id="headerAvatar">?</div>
+                <span class="avatar-crown-badge" id="headerCrownBadge">👑</span>
+              </div>
+            </button>
+
+            <div class="mini-dropdown" id="miniDropdown">
+              <div class="mini-dropdown-email" id="miniEmail">—</div>
+              <div class="avatar-wrap">
+                <div class="mini-dropdown-avatar" id="miniAvatar">?</div>
+                <span class="avatar-crown-badge" id="miniCrownBadge">👑</span>
+              </div>
+              <div class="mini-dropdown-greeting" id="miniGreeting">Hi!</div>
+              <button class="manage-account-btn" onclick="openBigPanel()">Manage your HireView Account</button>
+              <div class="mini-dropdown-divider"></div>
+              <button class="mini-dropdown-signout" onclick="handleLogout()">🚪 Sign out</button>
+            </div>
           </div>
         </div>
 

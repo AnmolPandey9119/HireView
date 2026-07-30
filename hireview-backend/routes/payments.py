@@ -30,7 +30,7 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from models.database import get_db, User, Transaction
+from models.database import get_db, User, Transaction, to_utc_iso
 from routes.auth import get_current_user
 
 logger = logging.getLogger(__name__)
@@ -188,7 +188,7 @@ async def verify_payment(
     return {
         "status": "success",
         "plan": plan,
-        "subscription_active_until": current_user.subscription_active_until.isoformat()
+        "subscription_active_until": to_utc_iso(current_user.subscription_active_until)
     }
 
 
@@ -288,8 +288,8 @@ async def payment_history(
                 "currency": t.currency,
                 "razorpay_payment_id": t.razorpay_payment_id,
                 "status": t.status,
-                "active_until": t.active_until.isoformat(),
-                "created_at": t.created_at.isoformat()
+                "active_until": to_utc_iso(t.active_until),
+                "created_at": to_utc_iso(t.created_at)
             }
             for t in transactions
         ]
