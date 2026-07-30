@@ -12,10 +12,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/main.css">
   <style>
-    .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem; }
+    .dashboard-header { margin-bottom: 2.5rem; }
+    .dashboard-header-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem; }
     .dashboard-welcome { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     .dashboard-sub { color: rgba(255,255,255,0.6); font-size: 0.95rem; margin-top: 0.25rem; }
-    .header-actions { display: flex; gap: 1rem; align-items: center; }
+    .header-actions { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
     .start-btn { padding: 0.85rem 1.75rem; background: linear-gradient(135deg, #6366f1, #ec4899); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
     .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.6); }
     .start-btn.secondary-header-btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); box-shadow: none; }
@@ -133,7 +134,6 @@
       .mini-dropdown { width: 260px; right: -0.5rem; }
       .profile-card { padding: 2rem 1.25rem; }
       .password-card { padding: 1.75rem 1.25rem; }
-      .dashboard-header { flex-direction: column; align-items: flex-start; }
       .header-actions { width: 100%; flex-direction: column; align-items: stretch; }
       .start-btn { width: 100%; }
     }
@@ -199,7 +199,7 @@
     .profile-membership-title.is-gold { color: #fde68a; display: flex; align-items: center; justify-content: center; gap: 0.4rem; }
 
     /* Small crown chip next to the profile name once a plan is active */
-    .profile-gold-chip { display: none; align-items: center; justify-content: center; background: linear-gradient(135deg, #facc15, #d97706); color: #1a1200; font-size: 0.95rem; width: 1.7rem; height: 1.7rem; border-radius: 50%; margin-left: 0.5rem; vertical-align: middle; box-shadow: 0 0 0 2px rgba(250,204,21,0.25); }
+    .profile-gold-chip { display: none; align-items: center; gap: 0.3rem; background: linear-gradient(135deg, #facc15, #d97706); color: #1a1200; font-size: 0.72rem; font-weight: 800; padding: 0.2rem 0.65rem; border-radius: 20px; margin-left: 0.5rem; vertical-align: middle; }
     .profile-gold-chip.show { display: inline-flex; }
 
     /* PAYMENT HISTORY table */
@@ -262,15 +262,16 @@
       <div class="content-wrapper">
 
         <div class="dashboard-header">
-          <div>
-            <div class="dashboard-welcome"><span id="welcomeText">Welcome back!</span></div>
-            <div class="dashboard-sub">Here's your interview progress</div>
-          </div>
-          <div class="header-actions">
-            <button class="start-btn secondary-header-btn" onclick="window.location.href='/history'">📋 History</button>
-            <button class="start-btn" onclick="handleNewInterviewClick()">+ New Interview</button>
+          <div class="dashboard-header-row">
+            <div>
+              <div class="dashboard-welcome"><span id="welcomeText">Welcome back!</span></div>
+              <div class="dashboard-sub">Here's your interview progress</div>
+            </div>
 
-            <!-- Profile avatar + Google-style mini dropdown -->
+            <!-- Profile avatar + Google-style mini dropdown — always
+                 anchored next to the greeting, on its own row, so it
+                 never gets swept into the action-buttons stack on
+                 narrow/mobile screens. -->
             <div class="profile-widget" id="profileWidget">
               <button class="profile-trigger" id="profileTrigger" onclick="toggleMiniDropdown()" aria-label="Account menu">
                 <div class="avatar-wrap">
@@ -291,6 +292,11 @@
                 <button class="mini-dropdown-signout" onclick="handleLogout()">🚪 Sign out</button>
               </div>
             </div>
+          </div>
+
+          <div class="header-actions">
+            <button class="start-btn secondary-header-btn" onclick="window.location.href='/history'">📋 History</button>
+            <button class="start-btn" onclick="handleNewInterviewClick()">+ New Interview</button>
           </div>
         </div>
 
@@ -404,7 +410,7 @@
             <div class="profile-field">
               <div class="profile-field-display" id="nameDisplay">
                 <span class="profile-name" id="profileName" style="margin-bottom:0">—</span>
-                <span class="profile-gold-chip" id="profileGoldChip" title="Premium member">👑</span>
+                <span class="profile-gold-chip" id="profileGoldChip">👑 Premium</span>
                 <button class="field-edit-btn" onclick="startEditName()" title="Edit name">✏️</button>
               </div>
               <div class="profile-field-edit hidden" id="nameEditForm">
