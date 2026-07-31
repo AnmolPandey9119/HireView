@@ -128,7 +128,7 @@
     }
 
     function getScoreColor(score) {
-      if (!score) return 'rgba(255,255,255,0.3)';
+      if (score == null) return 'rgba(255,255,255,0.3)';
       if (score >= 8) return '#22c55e';
       if (score >= 6) return '#f59e0b';
       return '#ef4444';
@@ -156,15 +156,15 @@
           <div class="feedback-title">📊 Feedback Report</div>
           <div class="scores-row">
             <div class="score-chip">
-              <div class="score-chip-value" style="color:${getScoreColor(feedback.overall_score)}">${feedback.overall_score || '—'}/10</div>
+              <div class="score-chip-value" style="color:${getScoreColor(feedback.overall_score)}">${feedback.overall_score ?? '—'}/10</div>
               <div class="score-chip-label">Overall</div>
             </div>
             <div class="score-chip">
-              <div class="score-chip-value" style="color:#818cf8">${feedback.technical_score || '—'}/10</div>
+              <div class="score-chip-value" style="color:#818cf8">${feedback.technical_score ?? '—'}/10</div>
               <div class="score-chip-label">Technical</div>
             </div>
             <div class="score-chip">
-              <div class="score-chip-value" style="color:#ec4899">${feedback.soft_skills_score || '—'}/10</div>
+              <div class="score-chip-value" style="color:#ec4899">${feedback.soft_skills_score ?? '—'}/10</div>
               <div class="score-chip-label">Soft Skills</div>
             </div>
           </div>
@@ -292,7 +292,7 @@
             <div class="history-meta">
               ${getSectorBadge(i)}
               <div class="history-score" style="color:${getScoreColor(i.overall_score)}">
-                ${i.overall_score ? `${i.overall_score}/10` : '—'}
+                ${i.overall_score != null ? `${i.overall_score}/10` : '—'}
               </div>
               <span class="status-badge status-${i.status}">
                 ${i.status === 'completed' ? '✅ Completed' 
