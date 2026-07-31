@@ -1554,26 +1554,6 @@ function buildPacingNote() {
   };
 }
 
-// The exact placeholder strings pushed into conversationHistory when the
-// candidate didn't actually answer (see handleSilenceTimeout/skipQuestion
-// above). Used to detect a "nothing to evaluate" interview so feedback
-// generation doesn't fabricate a score for a candidate who never responded.
-const NO_RESPONSE_PLACEHOLDERS = [
-  '[The candidate did not respond within 30 seconds — treat this as if they did not know the answer and move on]',
-  '[Candidate skipped this question]'
-];
-
-// True if the candidate gave at least one real, substantive answer anywhere
-// in the interview. False means every single turn was silence/skip — there
-// is genuinely nothing here for an evaluator (AI or human) to score.
-function hasAnyRealAnswer() {
-  return conversationHistory.some(m =>
-    m.role === 'user' &&
-    !NO_RESPONSE_PLACEHOLDERS.includes(m.content) &&
-    m.content.trim().length > 3
-  );
-}
-
 async function callGroqAPI(messages, _isRetry = false, task = 'interview') {
   try {
     const res = await fetch(`${BACKEND_URL}/api/chat`, {
@@ -1903,6 +1883,31 @@ function analyzeResponseTimingConsistency() {
 // ════════════════════════════════════════════════
 // FEEDBACK GENERATION
 // ════════════════════════════════════════════════
+
+// Known placeholder markers pushed onto conversationHistory in place of
+// a real answer — see handleAnswerSubmit's timeout/skip paths.
+const NO_ANSWER_MARKERS = [
+  'the candidate did not respond within 30 seconds',
+  'candidate skipped this question',
+];
+
+function isNonAnswer(content) {
+  const trimmed = (content || '').trim().toLowerCase();
+  if (trimmed.length === 0) return true;
+  return NO_ANSWER_MARKERS.some(marker => trimmed.includes(marker));
+}
+
+// Deterministic check, independent of the AI — this is what the score
+// actually hinges on for the "nothing to evaluate" case. We do NOT trust
+// the LLM alone to catch this: a model asked to be a supportive
+// interviewer will sometimes still produce a generous score even when
+// every answer was empty, skipped, or a timeout, because nothing in a
+// typical prompt tells it that's disqualifying rather than just "weak".
+function candidateGaveAnyRealAnswer() {
+  const candidateTurns = conversationHistory.filter(m => m.role === 'user');
+  return candidateTurns.some(m => !isNonAnswer(m.content));
+}
+
 async function generateAndSaveFeedback() {
   // पहले recording choice मांगो
   await new Promise((resolve) => {
@@ -1915,41 +1920,57 @@ async function generateAndSaveFeedback() {
 
   try {
     const candidateName = (currentUser && currentUser.name) ? currentUser.name.split(' ')[0] : null;
-    let feedback;
 
-    if (!hasAnyRealAnswer()) {
-      // Every single question was met with silence or a skip — there is
-      // nothing here for an evaluator to go on. Don't even ask the AI:
-      // LLMs tend to default to a generous mid/high score when asked to
-      // rate something with no real content, which is exactly the bug
-      // this guards against. Score this deterministically instead.
-      feedback = {
+    // Nothing to evaluate — every question was skipped, timed out, or
+    // left blank. Don't even ask the AI to score this; build the report
+    // directly so the "no answer = 0" outcome is guaranteed rather than
+    // hoping the model applies that rule consistently.
+    if (!candidateGaveAnyRealAnswer()) {
+      const feedback = {
         overall_score: 0,
         hiring_recommendation: 'No Hire',
         summary: candidateName
-          ? `${candidateName} did not provide a response to any question in this session, so there is no basis to evaluate their skills or fit for the role.`
-          : 'No response was given to any question in this session, so there is no basis to evaluate skills or fit for the role.',
+          ? `${candidateName} did not provide an answer to any question in this interview, so there is nothing to evaluate.`
+          : 'No answer was provided to any question in this interview, so there is nothing to evaluate.',
         technical_score: 0,
         soft_skills_score: 0,
         strengths: [],
-        areas_to_improve: ['No answers were given during this session, so there is nothing to evaluate.'],
-        next_steps: 'Retake the interview and make sure your microphone or typing is working, then respond to each question within the time given.',
+        areas_to_improve: ['No responses were given during the interview — there is no content to assess or improve on.'],
+        next_steps: 'Retake the interview and answer each question, even with a partial or uncertain response — an honest attempt is what gets evaluated.',
         personal_note: candidateName
-          ? `${candidateName}, it looks like I didn't get a single response from you this session — maybe a mic or connection issue. Please give it another go when you can.`
-          : "It looks like I didn't get a single response this session — maybe a mic or connection issue. Please give it another go when you can."
+          ? `${candidateName}, I didn't receive any answers from you this round, so I have nothing to base feedback on. Whenever you're ready, come back and give it a real shot — even an imperfect answer tells me a lot more than silence.`
+          : `I didn't receive any answers from you this round, so I have nothing to base feedback on. Whenever you're ready, come back and give it a real shot — even an imperfect answer tells me a lot more than silence.`
       };
-    } else {
-      const feedbackPrompt = [
-        ...conversationHistory,
-        {
-          role: 'user',
-          content: `The interview is now complete. You are Arjun, the interviewer who just personally conducted this conversation. Write the candidate's evaluation report the way a thoughtful human interviewer would — specific, honest, and grounded in what actually happened in this conversation, not a generic template.
+
+      feedback.integrity_flags = (typeof getFullIntegrityReport === 'function')
+        ? getFullIntegrityReport()
+        : { integrity_score: 100, verdict: 'Clean', tab_switches: 0, window_switches: 0, total_flags: 0 };
+
+      await fetch(`${BACKEND_URL}/api/interviews/${currentInterviewId}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(feedback)
+      });
+
+      interviewSucceeded = true;
+      showFeedbackScreen(feedback);
+      return;
+    }
+
+    const feedbackPrompt = [
+      ...conversationHistory,
+      {
+        role: 'user',
+        content: `The interview is now complete. You are Arjun, the interviewer who just personally conducted this conversation. Write the candidate's evaluation report the way a thoughtful human interviewer would — specific, honest, and grounded in what actually happened in this conversation, not a generic template.
 
 Hard rules:
 - Every strength and area to improve MUST reference something concrete the candidate actually said or did in this conversation (a specific answer, example, explanation, or moment) — not a generic trait. Instead of "Good communication skills", write something like "Explained the caching approach clearly when asked about the second project, walking through the trade-offs step by step."
 - Do NOT use generic filler phrases ("good communication skills", "needs more depth", "strong problem-solving abilities", "keep practicing") unless immediately backed by a specific example from THIS conversation.
 - If the candidate gave a genuinely strong or memorable answer, or struggled visibly on something specific, call it out plainly.
-- Some turns in this transcript may be marked as the candidate not responding in time, or skipping the question — these are NOT answers. Do not credit them as attempts, do not soften scores to be polite about them, and do not treat "stayed engaged" as a strength unless the candidate actually engaged. If a large portion of the interview was unanswered or skipped, the technical/soft-skills/overall scores MUST be low (0-3 range) and hiring_recommendation should be "No Hire" — there being little or nothing to evaluate is itself the honest finding, not a reason to guess generously.
+- Messages marked "[Candidate skipped this question]" or "[The candidate did not respond within 30 seconds...]" are NOT answers — treat each one as a real miss on that question, the same as a wrong answer would be, not as neutral. Do not soften the score to be encouraging when several questions were skipped or timed out; a candidate who skipped most of the interview should score low regardless of how well the few answers they did give went.
 - The summary should read like a real assessment, not a corporate template — 2-3 sentences, no fluff.
 - "personal_note" is a short first-person message from you (Arjun) directly to the candidate${candidateName ? `, addressed to them as ${candidateName}` : ''} — warm, honest, human, 2-3 sentences, referencing one specific real moment from the conversation. Not generic encouragement — it should only make sense for THIS candidate's actual interview.
 - Scores must be consistent with the evidence you cite — don't inflate or soften them.
@@ -1966,26 +1987,28 @@ Respond with ONLY this JSON, no extra text:
   "next_steps": "<specific, actionable advice tied to what you observed>",
   "personal_note": "<short first-person note from Arjun to the candidate, referencing a real moment from this interview>"
 }`
-        }
-      ];
-
-      const rawFeedback = await callGroqAPI(feedbackPrompt, false, 'feedback');
-      try {
-        feedback = JSON.parse(rawFeedback.replace(/```json|```/g, '').trim());
-      } catch {
-        // Genuine parsing failure (not a no-response case — we already
-        // branched away from that above). Previously this defaulted to a
-        // fabricated overall_score of 7 and "Hire", which is exactly the
-        // wrong instinct: on a technical failure, showing ANY made-up score
-        // is misleading either way. Treat it like every other feedback
-        // failure in this app — mark the session failed and let the
-        // candidate retry, without it costing them a free interview.
-        console.error('Feedback JSON could not be parsed. Raw response:', rawFeedback);
-        document.getElementById('currentQuestion').textContent =
-          "You completed the interview, but your report couldn't be generated properly. This session has been marked as failed and will NOT count against your free interviews — please try again.";
-        reportInterviewFailure('Feedback JSON could not be parsed from the AI response.');
-        return;
       }
+    ];
+
+    const rawFeedback = await callGroqAPI(feedbackPrompt, false, 'feedback');
+    let feedback;
+    try {
+      feedback = JSON.parse(rawFeedback.replace(/```json|```/g, '').trim());
+    } catch {
+      // A parsing failure is a formatting problem, not evidence the
+      // interview went well — this used to hardcode overall_score: 7 and
+      // "Hire", which fabricated a positive outcome out of nothing. Fall
+      // back to something explicitly neutral instead.
+      feedback = {
+        overall_score: null, hiring_recommendation: 'Not Evaluated',
+        summary: 'Your report could not be automatically scored due to a formatting issue, so no score is shown. The full conversation transcript is still saved to your history.',
+        technical_score: null, soft_skills_score: null,
+        strengths: [], areas_to_improve: [],
+        next_steps: 'Review the conversation transcript in your history, or retake the interview for a properly scored report.',
+        personal_note: candidateName
+          ? `${candidateName}, I ran into a formatting issue putting together your detailed notes, so I can't give you a fair score this time — I'd rather show nothing than a made-up number. The full transcript is saved to your history.`
+          : `I ran into a formatting issue putting together the detailed notes, so I can't give you a fair score this time — I'd rather show nothing than a made-up number. The full transcript is saved to your history.`
+      };
     }
 
     feedback.integrity_flags = (typeof getFullIntegrityReport === 'function')
