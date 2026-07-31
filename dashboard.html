@@ -1289,7 +1289,7 @@
     }
 
     function getScoreColor(score) {
-      if (!score) return 'rgba(255,255,255,0.3)';
+      if (score == null) return 'rgba(255,255,255,0.3)';
       if (score >= 8) return '#22c55e';
       if (score >= 6) return '#f59e0b';
       return '#ef4444';
@@ -1370,7 +1370,7 @@
           <div class="interview-meta">
             ${getSectorBadge(i)}
             <div class="interview-score" style="color:${getScoreColor(i.overall_score)}">
-              ${i.overall_score ? `${i.overall_score}/10` : '—'}
+              ${i.overall_score != null ? `${i.overall_score}/10` : '—'}
             </div>
             <span class="status-badge status-${i.status}" ${i.status === 'failed' && i.failure_reason ? `title="${i.failure_reason.replace(/"/g, '&quot;')}"` : ''}>
              ${i.status === 'completed' ? '✅ Completed'
