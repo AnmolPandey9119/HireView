@@ -62,15 +62,15 @@
                         </select>
                     </div>
                     <div class="form-group" id="privateDomainCustomGroup" style="display:none;">
-                        <label class="form-label">Specify Job Domain</label>
+                        <label class="form-label">Specify Job Domain<span class="required-mark">*</span></label>
                         <input type="text" id="privateDomainCustom" class="select-input" placeholder="e.g. EdTech, Healthcare Tech, Legal">
                     </div>
                     <div class="form-group" id="privateRoleGroup" style="display:none;">
-                        <label class="form-label">Job Role</label>
+                        <label class="form-label">Job Role<span class="required-mark">*</span></label>
                         <select id="privateRole" class="select-input" onchange="togglePrivateRoleCustom()"></select>
                     </div>
                     <div class="form-group" id="privateRoleCustomGroup" style="display:none;">
-                        <label class="form-label">Specify Job Role</label>
+                        <label class="form-label">Specify Job Role<span class="required-mark">*</span></label>
                         <input type="text" id="privateRoleCustom" class="select-input" placeholder="e.g. Growth Hacker, ML Ops Engineer">
                     </div>
                     <div class="form-group">
@@ -82,7 +82,7 @@
                     </div>
                     <div class="setup-section-divider">Resume</div>
                     <div class="form-group">
-                        <label class="form-label">Upload Your Resume <span style="color:rgba(255,255,255,0.6);font-weight:500;font-size:0.85rem">PDF or plain text</span></label>
+                        <label class="form-label">Upload Your Resume<span class="required-mark">*</span> <span style="color:rgba(255,255,255,0.6);font-weight:500;font-size:0.85rem">PDF or plain text</span></label>
                         <div class="resume-upload-zone" id="resumeDropZone">
                             <input type="file" id="resumeFileInput" accept=".pdf,.txt,.doc,.docx" onchange="handleResumeUpload(event)">
                             <span class="resume-upload-icon">📄</span>
@@ -136,7 +136,7 @@
                 <div id="stepGovernment" class="setup-step" style="display:none;">
                     <button class="back-btn" onclick="goBackToSector()">← Back</button>
                     <div class="form-group">
-                        <label class="form-label">Government Job Domain</label>
+                        <label class="form-label">Government Job Domain<span class="required-mark">*</span></label>
                         <select id="governmentDomain" class="select-input" onchange="updateGovernmentRoles()">
                             <option value="">Select a domain</option>
                             <option value="upsc">UPSC</option>
@@ -150,7 +150,7 @@
                         </select>
                     </div>
                     <div class="form-group" id="governmentRoleGroup" style="display:none;">
-                        <label class="form-label">Job Role</label>
+                        <label class="form-label">Job Role<span class="required-mark">*</span></label>
                         <select id="governmentRole" class="select-input"></select>
                     </div>
                     <div class="form-group">

@@ -77,11 +77,11 @@
               <h2 class="auth-title">Welcome back</h2>
               <p class="auth-subtitle">Log in to continue your interview practice</p>
               <div class="form-group">
-                <label class="form-label" for="loginEmail">Email</label>
+                <label class="form-label" for="loginEmail">Email<span class="required-mark">*</span></label>
                 <input type="email" id="loginEmail" class="form-input" placeholder="you@email.com">
               </div>
               <div class="form-group">
-                <label class="form-label" for="loginPassword">Password</label>
+                <label class="form-label" for="loginPassword">Password<span class="required-mark">*</span></label>
                 <div class="password-wrapper">
                   <input type="password" id="loginPassword" class="form-input" placeholder="Your password">
                   <span class="password-toggle" onclick="togglePasswordVisibility('loginPassword', this)" role="button" aria-label="Show password" tabindex="0">
@@ -123,12 +123,12 @@
               <p class="auth-subtitle">Start practicing for your dream job today</p>
 
               <div class="form-group">
-                <label class="form-label" for="signupName">Full Name</label>
+                <label class="form-label" for="signupName">Full Name<span class="required-mark">*</span></label>
                 <input type="text" id="signupName" class="form-input" placeholder="Your full name">
               </div>
 
               <div class="form-group">
-                <label class="form-label" for="signupEmail">Email</label>
+                <label class="form-label" for="signupEmail">Email<span class="required-mark">*</span></label>
                 <div style="display:flex;gap:0.5rem;align-items:center">
                   <input type="email" id="signupEmail" class="form-input" placeholder="you@email.com" oninput="onSignupEmailChanged()" style="flex:1">
                   <button type="button" id="sendOtpBtn" class="secondary-btn" style="white-space:nowrap;padding:0.9rem 1.1rem" onclick="handleSendEmailOtp()">Send OTP</button>
@@ -139,7 +139,7 @@
               <!-- OTP entry — shown after "Send OTP" is clicked, hidden once verified -->
               <div id="signupOtpBlock" style="display:none">
                 <div class="form-group">
-                  <label class="form-label" for="signupOtpCode">Verification code</label>
+                  <label class="form-label" for="signupOtpCode">Verification code<span class="required-mark">*</span></label>
                   <div style="display:flex;gap:0.5rem">
                     <input type="text" id="signupOtpCode" class="form-input" placeholder="A1B2C3" maxlength="6" inputmode="text" autocapitalize="characters" style="flex:1;text-transform:uppercase">
                     <button type="button" class="secondary-btn" style="white-space:nowrap;padding:0.9rem 1.1rem" onclick="handleVerifyEmailOtp()">Verify OTP</button>
@@ -153,7 +153,7 @@
               <div id="signupOtpMsg" class="error-message"></div>
 
               <div class="form-group">
-                <label class="form-label" for="signupPassword">Password <span style="color:rgba(255,255,255,0.6);font-size:0.82rem">min 8 chars, incl. upper, lower, number &amp; special char</span></label>
+                <label class="form-label" for="signupPassword">Password<span class="required-mark">*</span> <span style="color:rgba(255,255,255,0.6);font-size:0.82rem">min 8 chars, incl. upper, lower, number &amp; special char</span></label>
                 <div class="password-wrapper">
                   <input type="password" id="signupPassword" class="form-input" placeholder="Choose a strong password">
                   <span class="password-toggle" onclick="togglePasswordVisibility('signupPassword', this)" role="button" aria-label="Show password" tabindex="0">
@@ -163,7 +163,7 @@
                 </div>
               </div>
               <div class="form-group">
-                <label class="form-label" for="signupConfirm">Confirm Password</label>
+                <label class="form-label" for="signupConfirm">Confirm Password<span class="required-mark">*</span></label>
                 <div class="password-wrapper">
                   <input type="password" id="signupConfirm" class="form-input" placeholder="Repeat your password">
                   <span class="password-toggle" onclick="togglePasswordVisibility('signupConfirm', this)" role="button" aria-label="Show password" tabindex="0">
@@ -205,7 +205,7 @@
               <div id="forgotStep1">
                 <p class="auth-subtitle">Enter your email and we'll send you a reset code</p>
                 <div class="form-group">
-                  <label class="form-label" for="forgotEmail">Email</label>
+                  <label class="form-label" for="forgotEmail">Email<span class="required-mark">*</span></label>
                   <input type="email" id="forgotEmail" class="form-input" placeholder="you@email.com">
                 </div>
                 <div id="forgotMsg" class="error-message"></div>
@@ -216,11 +216,11 @@
               <div id="forgotStep2" style="display:none">
                 <p class="auth-subtitle">Enter the code we emailed you and choose a new password</p>
                 <div class="form-group">
-                  <label class="form-label" for="forgotOtp">6-digit code</label>
+                  <label class="form-label" for="forgotOtp">6-digit code<span class="required-mark">*</span></label>
                   <input type="text" id="forgotOtp" class="form-input" placeholder="A1B2C3" maxlength="6" inputmode="text" autocapitalize="characters" style="text-transform:uppercase">
                 </div>
                 <div class="form-group">
-                  <label class="form-label" for="forgotNewPassword">New Password <span style="color:rgba(255,255,255,0.6);font-size:0.82rem">min 8 chars, incl. upper, lower, number &amp; special char</span></label>
+                  <label class="form-label" for="forgotNewPassword">New Password<span class="required-mark">*</span> <span style="color:rgba(255,255,255,0.6);font-size:0.82rem">min 8 chars, incl. upper, lower, number &amp; special char</span></label>
                   <div class="password-wrapper">
                     <input type="password" id="forgotNewPassword" class="form-input" placeholder="Choose a new password">
                     <span class="password-toggle" onclick="togglePasswordVisibility('forgotNewPassword', this)" role="button" aria-label="Show password" tabindex="0">
