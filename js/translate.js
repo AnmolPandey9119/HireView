@@ -60,13 +60,23 @@
         ".goog-tooltip, .goog-tooltip:hover { display: none !important; }",
         ".goog-text-highlight { background: none !important; box-shadow: none !important; }",
         "#google_translate_element { display: none !important; }",
-        // Our floating toggle button
-        "#hv-translate-btn { position: fixed; bottom: 22px; right: 22px; z-index: 99999; display: flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 999px; border: none; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 700; letter-spacing: 0.02em; color: #fff; background: linear-gradient(135deg, #818cf8, #ec4899); box-shadow: 0 6px 20px rgba(99,102,241,0.35); transition: transform 0.15s ease, box-shadow 0.15s ease; }",
-        "#hv-translate-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(99,102,241,0.45); }",
+  
+        // Base button look (shared by both placements)
+        "#hv-translate-btn { display: flex; align-items: center; gap: 6px; border-radius: 999px; border: none; cursor: pointer; font-family: inherit; font-weight: 700; letter-spacing: 0.02em; color: #fff; background: linear-gradient(135deg, #818cf8, #ec4899); box-shadow: 0 4px 14px rgba(99,102,241,0.3); transition: transform 0.15s ease, box-shadow 0.15s ease; }",
+        "#hv-translate-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(99,102,241,0.4); }",
         "#hv-translate-btn:active { transform: translateY(0); }",
-        "#hv-translate-btn svg { width: 16px; height: 16px; flex-shrink: 0; }",
+        "#hv-translate-btn svg { width: 14px; height: 14px; flex-shrink: 0; }",
         "#hv-translate-btn.hv-loading { opacity: 0.7; cursor: wait; pointer-events: none; }",
-        "@media (max-width: 640px) { #hv-translate-btn { bottom: 16px; right: 16px; padding: 9px 14px; font-size: 12px; } }"
+  
+        // Placement A: mounted directly inside the site's own top navbar
+        // (.nav-links / <nav>) so it sits with the other menu items —
+        // this is what most production websites do.
+        "#hv-translate-btn.hv-inline { position: static; padding: 0.5rem 1rem; font-size: 0.82rem; }",
+  
+        // Placement B: fallback for pages with no top navbar (dashboard,
+        // auth, history) — pinned top-right corner instead of the bottom.
+        "#hv-translate-btn.hv-top-fixed { position: fixed; top: 18px; right: 20px; z-index: 99999; padding: 9px 15px; font-size: 12.5px; }",
+        "@media (max-width: 640px) { #hv-translate-btn.hv-top-fixed { top: 12px; right: 12px; padding: 8px 12px; font-size: 11.5px; } #hv-translate-btn.hv-inline { padding: 0.45rem 0.85rem; font-size: 0.78rem; } }"
       ].join("\n");
       document.head.appendChild(style);
     }
@@ -98,7 +108,27 @@
         window.location.reload();
       });
   
-      document.body.appendChild(btn);
+      mountButton(btn);
+    }
+  
+    function mountButton(btn) {
+      // Prefer sitting inside the page's own top navbar, like a normal
+      // menu item / language switcher — this is where it visually belongs.
+      var navLinks = document.querySelector(".nav-links");
+      var nav = document.querySelector("nav");
+  
+      if (navLinks) {
+        btn.classList.add("hv-inline");
+        navLinks.appendChild(btn);
+      } else if (nav) {
+        btn.classList.add("hv-inline");
+        nav.appendChild(btn);
+      } else {
+        // Pages with no top navbar (dashboard, auth, history) —
+        // pin it to the top-right corner instead of the page bottom.
+        btn.classList.add("hv-top-fixed");
+        document.body.appendChild(btn);
+      }
     }
   
     function loadGoogleTranslateScript() {
