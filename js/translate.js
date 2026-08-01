@@ -111,20 +111,37 @@
       mountButton(btn);
     }
   
+    function isVisible(el) {
+      if (!el) return false;
+      var node = el;
+      while (node && node.nodeType === 1) {
+        var style = window.getComputedStyle(node);
+        if (style.display === "none" || style.visibility === "hidden" || parseFloat(style.opacity) === 0) {
+          return false;
+        }
+        node = node.parentElement;
+      }
+      return true;
+    }
+  
     function mountButton(btn) {
       // Prefer sitting inside the page's own top navbar, like a normal
       // menu item / language switcher — this is where it visually belongs.
+      // Explicitly skip any nav that isn't the real, visible top navbar
+      // (e.g. dashboard.html has a hidden "sidebar-nav" inside a closed
+      // account-settings panel — mounting there would make the button
+      // invisible until that panel is opened).
       var navLinks = document.querySelector(".nav-links");
-      var nav = document.querySelector("nav");
+      var nav = document.querySelector("nav:not(.sidebar-nav)");
   
-      if (navLinks) {
+      if (navLinks && isVisible(navLinks)) {
         btn.classList.add("hv-inline");
         navLinks.appendChild(btn);
-      } else if (nav) {
+      } else if (nav && isVisible(nav)) {
         btn.classList.add("hv-inline");
         nav.appendChild(btn);
       } else {
-        // Pages with no top navbar (dashboard, auth, history) —
+        // Pages with no usable top navbar (dashboard, auth, history) —
         // pin it to the top-right corner instead of the page bottom.
         btn.classList.add("hv-top-fixed");
         document.body.appendChild(btn);
