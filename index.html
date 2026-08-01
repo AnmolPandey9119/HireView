@@ -495,17 +495,6 @@
     .cta-section h2 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; letter-spacing: -0.02em; margin-bottom: 1rem; }
     .cta-section p { color: rgba(255,255,255,0.6); font-size: 1.05rem; margin-bottom: 2.5rem; }
 
-    /* ── FOOTER ── */
-    footer {
-      border-top: 1px solid rgba(255,255,255,0.06);
-      padding: 2rem;
-      display: flex; justify-content: space-between; align-items: center;
-      flex-wrap: wrap; gap: 1rem;
-      color: rgba(255,255,255,0.6); font-size: 0.85rem;
-    }
-    footer a { color: rgba(255,255,255,0.6); text-decoration: none; }
-    footer a:hover { color: white; }
-
     /* ── ANIMATIONS ── */
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(20px); }
@@ -831,26 +820,8 @@
 
   </main>
 
-  <!-- FOOTER -->
-  <footer>
-    <div>
-      <span style="font-weight:700;color:rgba(255,255,255,0.6)">HireView</span>
-      &nbsp;·&nbsp; Built by <a href="https://linkedin.com/in/anmol-pandey-240105376">Anmol Pandey</a>
-      <span id="visitorCount" style="margin-left:1.75rem;color:rgba(255,255,255,0.6);">— visitors</span>
-    </div>
-    <div style="display:flex;gap:1.5rem">
-      <a href="#" onclick="goToAuth('loginPage');return false;">Login</a>
-      <a href="/blog">Blog</a>
-      <a href="/faq">FAQ</a>
-      <a href="/privacy">Privacy Policy</a>
-      <a href="/terms">Terms</a>
-      <a href="/refund-policy">Refund Policy</a>
-      <a href="mailto:hireviewadmin@gmail.com">Contact</a>
-      <a href="https://github.com/AnmolPandey9119/HireView">GitHub</a>
-    </div>
-  </footer>
-
   <script src="js/config.js"></script>
+  <script src="js/footer.js"></script>
   <script>
     // Scroll reveal
     const observer = new IntersectionObserver((entries) => {
@@ -878,10 +849,11 @@
       }
     });
 
-    // ── VISITOR COUNTER ──
-    // Increments on every page open (not once per browser) — every visit
-    // to the site adds 1 to the total. Fails silently if the backend is
-    // unreachable — this is a nice-to-have, never blocks the page.
+    // ── VISITOR COUNTER (home page only) ──
+    // Increments once per page open of the HOME page specifically — not
+    // wired on any other page, so browsing the dashboard, history, auth,
+    // or policy pages never bumps this number. Fails silently if the
+    // backend is unreachable — nice-to-have, never blocks the page.
     (function trackAndShowVisitorCount(){
       const API = (typeof BACKEND_URL !== 'undefined' ? BACKEND_URL : '').replace(/\/$/, '') + '/api';
       const countEl = document.getElementById('visitorCount');
