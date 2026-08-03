@@ -162,6 +162,11 @@ class Interview(Base):
     biodata_source       = Column(String, nullable=True)  # "upload" or "form"
     candidate_summary    = Column(Text, nullable=True)  # Candidate's self-intro summary (max 200 words)
 
+    # Optional, private sector only — the company the candidate is prepping
+    # for (e.g. "Google", "TCS"). Used only to silently shape Arjun's
+    # question style server/prompt-side; never spoken aloud in the interview.
+    target_company       = Column(String, nullable=True)
+
     # Relationships
     user      = relationship("User", back_populates="interviews")
     questions = relationship("InterviewQuestion", back_populates="interview", cascade="all, delete")

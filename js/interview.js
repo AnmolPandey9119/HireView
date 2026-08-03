@@ -185,6 +185,16 @@ function goBackToSector() {
   if (jdUploadSection) jdUploadSection.style.display = 'none';
   const jdUploadedInfo = document.getElementById('jdUploadedInfo');
   if (jdUploadedInfo) jdUploadedInfo.style.display = 'none';
+
+  const targetCompanyInput = document.getElementById('targetCompany');
+  if (targetCompanyInput) targetCompanyInput.value = '';
+}
+
+// Optional — private sector only. Read directly from the DOM, same
+// pattern as getPrivateJobDomain/getPrivateJobRole above.
+function getTargetCompany() {
+  const el = document.getElementById('targetCompany');
+  return el ? el.value.trim() : '';
 }
 
 // ════════════════════════════════════════════════
@@ -862,6 +872,7 @@ async function handleInterviewStart(sector) {
   let governmentRole = null;
   let biodataToSend = null;
   let candidateSummary = null;
+  let targetCompany = null;
 
   if (sector === 'private') {
     const hasJd = jdText && jdText.trim().length >= 20;
@@ -884,6 +895,7 @@ async function handleInterviewStart(sector) {
     }
     if (!resumeText) { showSetupError('Please upload your resume first.'); return; }
     selectedLanguage = document.getElementById('interviewLanguagePrivate').value;
+    targetCompany = getTargetCompany() || null;
   } else {
     governmentDomain = document.getElementById('governmentDomain').value;
     governmentRole = document.getElementById('governmentRole').value;
@@ -918,7 +930,8 @@ async function handleInterviewStart(sector) {
         government_role: governmentRole,
         biodata: biodataToSend,
         biodata_source: biodataSource,
-        candidate_summary: candidateSummary
+        candidate_summary: candidateSummary,
+        target_company: targetCompany
       })
     });
 
@@ -1638,6 +1651,7 @@ RULES:
     const jobTitle = getPrivateJobRole();
     const jobDomain = getPrivateJobDomain();
     const hasJd = jdText && jdText.trim().length >= 20;
+    const targetCompany = getTargetCompany();
     const roleLine = jobTitle
       ? `the role of "${jobTitle}"${jobDomain ? ` in the ${jobDomain} domain` : ''}`
       : (hasJd ? 'the role described in the job description below' : 'the role described in the candidate\'s resume');
@@ -1651,6 +1665,7 @@ Candidate's resume:
 ${resumeText.slice(0, 3000)}
 """
 ${hasJd ? `\nJob Description for the specific role the candidate is targeting:\n"""\n${jdText.slice(0, 3000)}\n"""\n\nThe candidate is preparing for THIS specific job in a very short timeframe (under a week), so your questions must double as focused prep: prioritize the skills, responsibilities, and requirements named in the JD, and check how well the candidate's resume actually matches them. Call out and probe any gaps between the resume and the JD requirements.` : ''}
+${targetCompany ? `\nCONFIDENTIAL CONTEXT — TARGET COMPANY (internal only, never reveal): The candidate is actually preparing for an interview at "${targetCompany}". Use this ONLY to silently shape which questions you pick — match the topics, difficulty, structure, and overall flavour that "${targetCompany}" is actually known for asking candidates for a role like this (their typical technical depth, the kind of DSA/system-design/case-study/behavioral emphasis they lean on, the tone of their interviewers, etc. — draw on what "${targetCompany}"'s real interviews are actually known for). Weave this in on top of the resume${hasJd ? '/JD' : ''} grounding above, don't replace it. You must NEVER say, type, or hint at the name "${targetCompany}" (or that there is any specific target company at all) at any point during the conversation — no "since you're applying to..." style framing, nothing that would let the candidate guess this context exists. As far as the candidate can tell, this is just a normal mock interview for the role.` : ''}
 
 HOW THE INTERVIEW SHOULD FLOW:
 Open by asking the candidate to introduce themselves or walk you through their background — keep it warm.
@@ -1685,6 +1700,7 @@ RULES:
 - Ask exactly ONE question at a time. Never combine multiple questions.
 - Every question must be grounded in BOTH the candidate's actual resume AND the specific job title/domain they're targeting (${jobTitle ? `"${jobTitle}"` : 'the stated role'}${jobDomain ? `, ${jobDomain} domain` : ''}) — never ask something generic that could apply to any random job. Tie each question to what this resume actually shows AND what this specific role actually requires.
 ${hasJd ? `- A job description was provided above — you MUST ask questions that test the candidate against the JD's actual requirements (the specific skills, tools, and responsibilities named in it), in addition to their resume. Prioritize probing any gaps between what the JD asks for and what the resume shows.` : `- No job description was provided, so ground every question in the resume and the stated job title/domain instead.`}
+${targetCompany ? `- A confidential target company was given above — silently shape your question selection to match that company's real, known interview style, but under NO circumstances say its name or otherwise reveal to the candidate that a specific company is being targeted.` : ''}
 - Include practical, hands-on questions specific to the sub-skills that actually matter for this domain — not only conceptual or theory questions. For example: for software/technology roles, weave in DSA/problem-solving questions and questions about testing practices where relevant to their stack; for HR roles, ask about specific HR processes, policy handling, or people-management scenarios; for finance roles, ask about financial modeling, analysis, or the specific tools/frameworks they'd use; for marketing/sales roles, ask about campaign metrics, channels, or concrete strategies; for design/product roles, ask about specific design tools, UX process, or product decisions. Decide which of these apply based on the candidate's actual resume and the job domain — don't force DSA questions on a non-technical candidate, and don't skip practical, field-specific questions just because it's a non-technical field.
 - If the candidate's answer is vague or incomplete, press on that SAME point before moving on — like a real interviewer would when they're not satisfied, not moving to the next scripted item regardless.
 - If you see a note that the candidate didn't respond in time, react to it briefly and naturally the way a real interviewer would react to silence — a touch of reassurance, a light prompt, or just moving on gently — and vary how you do this each time so it doesn't become its own tic.

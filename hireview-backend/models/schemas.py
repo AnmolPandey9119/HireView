@@ -128,6 +128,7 @@ class InterviewCreate(BaseModel):
     biodata: Optional[str] = None
     biodata_source: Optional[str] = None
     candidate_summary: Optional[str] = None
+    target_company: Optional[str] = None  # optional, private sector only
 
 class QuestionAnswer(BaseModel):
     question_text: str
@@ -153,6 +154,7 @@ class InterviewResponse(BaseModel):
     biodata: Optional[str]
     biodata_source: Optional[str]
     candidate_summary: Optional[str]
+    target_company: Optional[str] = None
     failure_reason: Optional[str] = None
 
     @field_serializer('started_at', 'completed_at')

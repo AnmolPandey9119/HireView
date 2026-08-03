@@ -107,6 +107,7 @@ async def create_interview(
         biodata=payload.biodata,
         biodata_source=payload.biodata_source,
         candidate_summary=payload.candidate_summary,
+        target_company=payload.target_company,
     )
     db.add(interview)
     db.commit()
