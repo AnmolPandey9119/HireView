@@ -366,6 +366,17 @@ function removeJd() {
 // BIODATA UPLOAD & PARSING
 // ════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
+  // Warn upfront if this browser/device can't do voice input at all, so the
+  // candidate isn't left confused mid-interview wondering why the mic never
+  // picks anything up. Typing still works either way.
+  const SRCheck = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SRCheck) {
+    const notice = document.createElement('div');
+    notice.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:100000;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;text-align:center;padding:0.6rem 1rem;font-size:0.85rem;font-weight:600;';
+    notice.textContent = "⚠️ Voice input isn't supported on this browser/device — you can still type your answers. For voice input, use Chrome or Edge on desktop or Android.";
+    document.body.prepend(notice);
+  }
+
   // Resume drop zone for private sector
   const resumeZone = document.getElementById('resumeDropZone');
   if (resumeZone) {
@@ -1143,7 +1154,15 @@ function pickBestAlternative(result) {
 
 function setupSpeechRecognition() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { console.warn('Speech recognition not supported.'); return; }
+  if (!SR) {
+    console.warn('Speech recognition not supported.');
+    const status = document.getElementById('speechStatus');
+    if (status) {
+      status.textContent = "⚠️ This browser/device doesn't support voice recognition. Please type your answer below, or switch to Chrome/Edge on desktop or Android for voice input.";
+      status.className = 'speech-status low-volume';
+    }
+    return;
+  }
 
   recognition = new SR();
   recognition.continuous = true;
@@ -1171,7 +1190,21 @@ function setupSpeechRecognition() {
 
   recognition.onerror = (event) => {
     console.log('Speech error:', event.error);
-    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') return;
+    const status = document.getElementById('speechStatus');
+    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+      if (status) {
+        status.textContent = "⚠️ Mic access is blocked for this site. Please allow microphone permission in your browser's site settings and refresh, or type your answer below.";
+        status.className = 'speech-status low-volume';
+      }
+      return;
+    }
+    if (event.error === 'audio-capture') {
+      if (status) {
+        status.textContent = "⚠️ No microphone was found on this device. Please check your mic connection, or type your answer below.";
+        status.className = 'speech-status low-volume';
+      }
+      return;
+    }
     recognitionRunning = false;
     // Restart quickly — a long gap here is exactly what causes missed words
     // when the browser's recognition session drops mid-sentence.
@@ -1422,10 +1455,32 @@ function stopListening() {
 // sit silent indefinitely with zero consequence; that control no longer exists.
 
 // ════════════════════════════════════════════════
+// SANITIZE AI TEXT — the LLM occasionally slips in markdown formatting
+// (**bold**, *italics*, # headers, `code`, bullet dashes) even though this
+// text is meant to be spoken aloud and shown as plain conversational
+// captions. Strip that formatting so it never renders/speaks literally
+// (e.g. "Arjun**, Hey" instead of "Arjun, Hey").
+// ════════════════════════════════════════════════
+function sanitizeAiText(text) {
+  if (!text) return text;
+  return text
+    .replace(/\*\*\*(.+?)\*\*\*/g, '$1')   // ***bold italic***
+    .replace(/\*\*(.+?)\*\*/g, '$1')       // **bold**
+    .replace(/\*(.+?)\*/g, '$1')           // *italics*
+    .replace(/__(.+?)__/g, '$1')           // __bold__
+    .replace(/_(.+?)_/g, '$1')             // _italics_
+    .replace(/`{1,3}([^`]*)`{1,3}/g, '$1') // `code` / ```code```
+    .replace(/^#{1,6}\s+/gm, '')           // # headers
+    .replace(/^[-*]\s+/gm, '')             // - bullet / * bullet
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+// ════════════════════════════════════════════════
 // AI INTERVIEWER — GROQ
 // ════════════════════════════════════════════════
 function buildSystemPrompt() {
-  const personaLine = "You've conducted hundreds of interviews over the years and it shows in small ways: you're genuinely curious about how people think, not just what they know; rehearsed, buzzword-heavy answers make you dig a little harder rather than nod along; and you're fair, not trying to trip anyone up, but you don't hand out easy passes either. Let that come through in how you phrase things naturally — don't announce it, just let it shape your tone. Your formality can loosen slightly as the conversation goes on, the way it does when two people actually get into a real conversation, but stay professional throughout.";
+  const personaLine = "You've conducted hundreds of interviews over the years and it shows in small ways: you're genuinely curious about how people think, not just what they know; rehearsed, buzzword-heavy answers make you dig a little harder rather than nod along; and you're fair, not trying to trip anyone up, but you don't hand out easy passes either. Let that come through in how you phrase things naturally — don't announce it, just let it shape your tone. Your formality can loosen slightly as the conversation goes on, the way it does when two people actually get into a real conversation, but stay professional throughout. IMPORTANT: Everything you write is spoken aloud by a text-to-speech voice and shown as plain conversational text — never use markdown or any formatting symbols (no **bold**, *italics*, # headers, `code`, bullet dashes, numbered lists). Write exactly the way a real person would say it out loud, plain sentences only.";
   const govLangLine = `Speak in ${getLangConfig().promptName}. Ask every question and give all guidance entirely in this language — do not switch to English unless the candidate does first.`;
   const privateLangLine = selectedLanguage === 'hinglish'
     ? 'Speak in natural Hinglish (mix of Hindi and English in Roman script), exactly how Indian professionals talk in real interviews.'
@@ -1652,7 +1707,7 @@ async function loadFirstQuestion() {
   conversationHistory.push(pacingNote);
 
   try {
-    const question = await callGroqAPI(conversationHistory);
+    const question = sanitizeAiText(await callGroqAPI(conversationHistory));
     conversationHistory.pop(); // drop the ephemeral pacing note — never part of the saved/shown transcript
     if (question === 'INTERVIEW_END_REQUESTED') { endInterview(false); return; }
     conversationHistory.push({ role: 'assistant', content: question });
@@ -1683,7 +1738,7 @@ async function loadNextQuestion() {
   conversationHistory.push(pacingNote);
 
   try {
-    const question = await callGroqAPI(conversationHistory);
+    const question = sanitizeAiText(await callGroqAPI(conversationHistory));
     conversationHistory.pop(); // drop the ephemeral pacing note — never part of the saved/shown transcript
 
     if (question === 'INTERVIEW_END_REQUESTED') {
@@ -2010,6 +2065,11 @@ Respond with ONLY this JSON, no extra text:
     let feedback;
     try {
       feedback = JSON.parse(rawFeedback.replace(/```json|```/g, '').trim());
+      feedback.summary = sanitizeAiText(feedback.summary);
+      feedback.next_steps = sanitizeAiText(feedback.next_steps);
+      feedback.personal_note = sanitizeAiText(feedback.personal_note);
+      if (Array.isArray(feedback.strengths)) feedback.strengths = feedback.strengths.map(sanitizeAiText);
+      if (Array.isArray(feedback.areas_to_improve)) feedback.areas_to_improve = feedback.areas_to_improve.map(sanitizeAiText);
     } catch {
       // A parsing failure is a formatting problem, not evidence the
       // interview went well — this used to hardcode overall_score: 7 and
