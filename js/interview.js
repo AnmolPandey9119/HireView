@@ -59,6 +59,19 @@ const LOW_VOLUME_RMS_THRESHOLD = 0.02;   // below this = "too quiet", above near
 const NEAR_SILENCE_RMS_FLOOR = 0.003;    // ignore true silence (not speaking at all)
 const LOW_VOLUME_NUDGE_AFTER_MS = 4000;  // sustained faint speech before we say anything
 
+// Voice-input reliability — Web Speech API depends on browser support, mic
+// permission, AND a live connection to the browser vendor's cloud STT
+// service. When any of those genuinely can't work for a moment, retrying
+// forever just hides the problem from the candidate and burns battery.
+// We cap retries within a short window, tell the candidate plainly, and
+// let them keep going by typing — then give voice input a fresh chance
+// again on the NEXT question (a wifi blip on question 2 shouldn't kill
+// voice for the rest of a 30-45 minute interview).
+let voiceInputDisabled = false;
+let recentRecognitionErrors = []; // timestamps of network/audio-capture errors this turn
+const RECOGNITION_ERROR_WINDOW_MS = 20000; // look at errors within this window
+const RECOGNITION_ERROR_LIMIT = 4;         // this many within the window = stop retrying, not a blip
+
 // ════════════════════════════════════════════════
 // GOVERNMENT SECTOR — REGIONAL LANGUAGE SUPPORT
 // Each entry: speechLang = BCP-47 code used for both TTS voice
@@ -1156,11 +1169,9 @@ function setupSpeechRecognition() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) {
     console.warn('Speech recognition not supported.');
-    const status = document.getElementById('speechStatus');
-    if (status) {
-      status.textContent = "⚠️ This browser/device doesn't support voice recognition. Please type your answer below, or switch to Chrome/Edge on desktop or Android for voice input.";
-      status.className = 'speech-status low-volume';
-    }
+    disableVoiceInput(
+      "⚠️ This browser/device doesn't support voice recognition. Please type your answer below, or switch to Chrome/Edge on desktop or Android for voice input."
+    );
     return;
   }
 
@@ -1172,6 +1183,7 @@ function setupSpeechRecognition() {
 
   recognition.onresult = (event) => {
     noteSpeechActivity(); // any result — interim or final — counts as "still talking"
+    recentRecognitionErrors = []; // it's working — clear any earlier failure streak
     let interimText = '';
     for (let i = event.resultIndex; i < event.results.length; i++) {
       const result = event.results[i];
@@ -1190,24 +1202,52 @@ function setupSpeechRecognition() {
 
   recognition.onerror = (event) => {
     console.log('Speech error:', event.error);
-    const status = document.getElementById('speechStatus');
+
     if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-      if (status) {
-        status.textContent = "⚠️ Mic access is blocked for this site. Please allow microphone permission in your browser's site settings and refresh, or type your answer below.";
-        status.className = 'speech-status low-volume';
-      }
+      // Mic permission was denied or got revoked mid-interview. Retrying
+      // won't fix this on its own — say so clearly instead of leaving the
+      // status stuck on a stale "Listening...". Fresh chance again next question.
+      disableVoiceInput(
+        "⚠️ Mic access is blocked for this site. Please allow microphone permission in your browser's site settings and refresh, or type your answer below."
+      );
       return;
     }
+
     if (event.error === 'audio-capture') {
-      if (status) {
-        status.textContent = "⚠️ No microphone was found on this device. Please check your mic connection, or type your answer below.";
-        status.className = 'speech-status low-volume';
+      // No mic input device found (unplugged, OS-level conflict with
+      // another app, etc). A couple of quick retries is worth it in case
+      // it's momentary, but looping forever on a genuine hardware issue
+      // just burns battery while the candidate sits confused.
+      if (trackRecognitionFailure()) {
+        disableVoiceInput(
+          "⚠️ No microphone was found on this device. Please check your mic connection, or type your answer below."
+        );
+        return;
       }
+      recognitionRunning = false;
+      if (isListening && !interviewEnded) setTimeout(() => startFreshRecognition(), 400);
       return;
     }
+
+    if (event.error === 'network') {
+      // Web Speech API ships audio to the browser vendor's cloud STT
+      // service — a flaky connection shows up here. Retry quickly a few
+      // times (most blips clear up), but after repeated failures in a
+      // short window, stop hammering it and hand off to typing instead.
+      if (trackRecognitionFailure()) {
+        disableVoiceInput(
+          "🌐 Voice recognition is struggling with your connection — no worries, just type your answer below and we'll continue."
+        );
+        return;
+      }
+      recognitionRunning = false;
+      if (isListening && !interviewEnded) setTimeout(() => startFreshRecognition(), 150);
+      return;
+    }
+
     recognitionRunning = false;
-    // Restart quickly — a long gap here is exactly what causes missed words
-    // when the browser's recognition session drops mid-sentence.
+    // Other transient errors (e.g. 'aborted') — restart quickly, a long
+    // gap here is exactly what causes missed words mid-sentence.
     if (isListening && !interviewEnded) {
       setTimeout(() => startFreshRecognition(), 150);
     }
@@ -1239,6 +1279,46 @@ function startFreshRecognition() {
       console.log('Recognition start error:', e.message);
     }
   }
+}
+
+// Records a network/audio-capture failure and reports back whether we've
+// now seen too many of them in too short a window to keep calling it a
+// "blip". Returns true = stop retrying for this turn, false = worth one
+// more quick retry.
+function trackRecognitionFailure() {
+  const now = Date.now();
+  recentRecognitionErrors = recentRecognitionErrors.filter(
+    (t) => now - t < RECOGNITION_ERROR_WINDOW_MS
+  );
+  recentRecognitionErrors.push(now);
+  return recentRecognitionErrors.length >= RECOGNITION_ERROR_LIMIT;
+}
+
+// Voice input genuinely can't work right now (unsupported browser, mic
+// permission blocked, or repeated hardware/network failures). Stop
+// retrying, say why in plain language, and make sure typing is obviously
+// still the way forward — the candidate should never be left staring at a
+// stuck "Listening..." status with no idea why nothing is happening.
+// autoStartListening() gives voice a fresh chance again on the next
+// question, so this is never a permanent, whole-interview kill switch.
+function disableVoiceInput(message) {
+  voiceInputDisabled = true;
+  isListening = false;
+  recognitionRunning = false;
+  clearSilenceWatcher();
+  stopVolumeMonitor();
+  try { if (recognition) recognition.abort(); } catch (e) {}
+
+  const status = document.getElementById('speechStatus');
+  if (status) {
+    status.textContent = message;
+    status.className = 'speech-status error';
+  }
+  const btn = document.getElementById('speakBtn');
+  if (btn) { btn.textContent = '⌨️ Type your answer'; btn.classList.remove('active'); }
+
+  const textarea = document.getElementById('answerInput');
+  if (textarea) textarea.focus();
 }
 
 // ════════════════════════════════════════════════
@@ -1402,6 +1482,11 @@ async function handleSilenceTimeout() {
 }
 
 function autoStartListening() {
+  // Fresh chance every question — a network blip or hardware hiccup on one
+  // answer shouldn't silently kill voice input for the rest of the interview.
+  voiceInputDisabled = false;
+  recentRecognitionErrors = [];
+
   if (!recognition) setupSpeechRecognition();
 
   // पुरानी recognition बंद करो — fresh start
@@ -1417,8 +1502,11 @@ function autoStartListening() {
   lowVolumeStreakMs = 0;
   lowVolumeNudgedThisTurn = false;
 
+  if (voiceInputDisabled) return; // setupSpeechRecognition just found this browser can't do voice at all
+
   // थोड़ी देर बाद fresh start
   setTimeout(() => {
+    if (voiceInputDisabled) return; // an error landed in the gap before this fired
     isListening = true;
     startFreshRecognition();
     armSilenceWatcher();
@@ -1439,6 +1527,8 @@ function stopListening() {
   clearSilenceWatcher();
   // recognition abort करो — Arjun बोलते वक्त सुनना बंद
   try { if (recognition) recognition.abort(); } catch(e) {}
+
+  if (voiceInputDisabled) return; // keep the explanation on screen instead of the normal "Done" status
 
   const btn = document.getElementById('speakBtn');
   if (btn) { btn.textContent = '🎙️ Start Speaking'; btn.classList.remove('active'); }

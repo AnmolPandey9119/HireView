@@ -133,6 +133,7 @@
    .speech-status.listening { display: block; background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); color: #22c55e; animation: recordPulse 1.5s infinite; }
    .speech-status.stopped { display: block; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #818cf8; }
    .speech-status.low-volume { display: block; background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.35); color: #f59e0b; }
+   .speech-status.error { display: block; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.35); color: #f87171; }
    .answer-actions { display: flex; gap: 1rem; justify-content: flex-end; flex-wrap: wrap; }
 
    /* SECTOR SELECTOR */
