@@ -108,6 +108,7 @@ async def create_interview(
         biodata_source=payload.biodata_source,
         candidate_summary=payload.candidate_summary,
         target_company=payload.target_company,
+        interview_round=payload.interview_round or "mixed",
     )
     db.add(interview)
     db.commit()
@@ -313,6 +314,8 @@ async def get_dashboard_stats(
             "sector": i.sector,
             "government_domain": i.government_domain,
             "government_role": i.government_role,
+            "target_company": i.target_company,
+            "interview_round": i.interview_round,
             "failure_reason": i.failure_reason
         })
 
@@ -387,6 +390,8 @@ async def get_interview_history(
             "government_domain": i.government_domain,
             "government_role": i.government_role,
             "candidate_summary": i.candidate_summary,
+            "target_company": i.target_company,
+            "interview_round": i.interview_round,
             "failure_reason": i.failure_reason,
             "questions": [
                 {

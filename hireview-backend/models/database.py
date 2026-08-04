@@ -167,6 +167,10 @@ class Interview(Base):
     # question style server/prompt-side; never spoken aloud in the interview.
     target_company       = Column(String, nullable=True)
 
+    # Optional, private sector only — 'technical' | 'hr' | 'mixed'.
+    # Defaults to 'mixed' (the original, always-available behavior).
+    interview_round       = Column(String, nullable=True, default='mixed')
+
     # Relationships
     user      = relationship("User", back_populates="interviews")
     questions = relationship("InterviewQuestion", back_populates="interview", cascade="all, delete")
