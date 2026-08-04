@@ -1349,6 +1349,17 @@
       return `<span class="sector-badge sector-private">💼 Private</span>`;
     }
 
+    function getRoundBadge(i) {
+      if (i.sector !== 'private' || !i.interview_round || i.interview_round === 'mixed') return '';
+      const map = {
+        technical: { icon: '🖥️', label: 'Technical Round' },
+        hr: { icon: '🗣️', label: 'HR Round' }
+      };
+      const r = map[i.interview_round];
+      if (!r) return '';
+      return `<span class="sector-badge" style="background:rgba(129,140,248,0.15);color:#818cf8;border:1px solid rgba(129,140,248,0.3)">${r.icon} ${r.label}</span>`;
+    }
+
     function renderInterviews(interviews) {
       const list = document.getElementById('interviewsList');
       if (!interviews || interviews.length === 0) {
@@ -1369,6 +1380,7 @@
           </div>
           <div class="interview-meta">
             ${getSectorBadge(i)}
+            ${getRoundBadge(i)}
             <div class="interview-score" style="color:${getScoreColor(i.overall_score)}">
               ${i.overall_score != null ? `${i.overall_score}/10` : '—'}
             </div>
