@@ -249,7 +249,74 @@
     <p class="subtitle">Everything you need to know about practicing interviews with Arjun, HireView's AI interviewer.</p>
 
     <div id="faqList">
-      <!-- Filled from the SAME data as the FAQPage schema above -->
+      <!-- Same Q&A content as the FAQPage JSON-LD above, kept in sync manually.
+           Written directly in HTML (not injected by JS) so crawlers see it
+           on first load. The onclick toggle below is progressive enhancement
+           only — the text itself no longer depends on JavaScript running. -->
+
+      <div class="faq-item" id="faq-0">
+        <button class="faq-question" onclick="document.getElementById('faq-0').classList.toggle('open')">
+          <span>What is HireView?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer"><p>HireView is an AI-powered mock interview platform built for Indian job seekers. Arjun, the AI interviewer, reads your resume or biodata, asks questions tailored to your background, adapts difficulty based on your answers, and gives you a detailed feedback report at the end.</p></div>
+      </div>
+
+      <div class="faq-item" id="faq-1">
+        <button class="faq-question" onclick="document.getElementById('faq-1').classList.toggle('open')">
+          <span>How does the AI interviewer Arjun work?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer"><p>Arjun parses your uploaded resume or biodata and generates questions specific to your projects, skills, and experience instead of generic question-bank items. It listens to your spoken answers, adjusts the next question's difficulty accordingly, and speaks back to you in real time using voice.</p></div>
+      </div>
+
+      <div class="faq-item" id="faq-2">
+        <button class="faq-question" onclick="document.getElementById('faq-2').classList.toggle('open')">
+          <span>Does HireView support government exam interviews like UPSC or SSC?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer"><p>Yes. Alongside private-sector interviews, HireView has a dedicated government sector mode with domain-specific AI prompts for exams such as UPSC, SSC, and IBPS, using your uploaded biodata to personalize questions.</p></div>
+      </div>
+
+      <div class="faq-item" id="faq-3">
+        <button class="faq-question" onclick="document.getElementById('faq-3').classList.toggle('open')">
+          <span>What languages does HireView support?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer"><p>Interviews can be conducted in English or Hinglish, reflecting how Indian professionals naturally speak in real interviews, with more Indian regional languages being added.</p></div>
+      </div>
+
+      <div class="faq-item" id="faq-4">
+        <button class="faq-question" onclick="document.getElementById('faq-4').classList.toggle('open')">
+          <span>How much does HireView cost?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer"><p>HireView offers a free trial with 3 mock interviews. After that, a Weekly plan is available for ₹99 (7 days) and a Monthly plan for ₹299 (30 days), both with unlimited interview access during the active period.</p></div>
+      </div>
+
+      <div class="faq-item" id="faq-5">
+        <button class="faq-question" onclick="document.getElementById('faq-5').classList.toggle('open')">
+          <span>How does HireView detect cheating during a mock interview?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer"><p>HireView monitors face presence, tab or window switches, background audio noise, and clipboard activity throughout the session. Repeated violations end the interview early, and an integrity score is included in the final feedback report so your practice reflects real interview conditions.</p></div>
+      </div>
+
+      <div class="faq-item" id="faq-6">
+        <button class="faq-question" onclick="document.getElementById('faq-6').classList.toggle('open')">
+          <span>Is my resume and interview data private?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer"><p>Yes. Resume parsing and interview processing happen through a secure backend, and your data is handled according to HireView's Privacy Policy, available at hireview-ai.vercel.app/privacy.</p></div>
+      </div>
+
+      <div class="faq-item" id="faq-7">
+        <button class="faq-question" onclick="document.getElementById('faq-7').classList.toggle('open')">
+          <span>Do I need special equipment to take an interview on HireView?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer"><p>No. HireView runs in your browser using your device's camera and microphone — just a working webcam, mic, and a stable internet connection are enough to get started.</p></div>
+      </div>
     </div>
 
     <div class="faq-cta">
@@ -260,32 +327,6 @@
   </main>
 
   <script src="js/footer.js"></script>
-  <script>
-    // Same Q&A content as the FAQPage JSON-LD above, kept in one place so
-    // the visible accordion and the structured data never drift apart.
-    const faqs = [
-      { q: "What is HireView?", a: "HireView is an AI-powered mock interview platform built for Indian job seekers. Arjun, the AI interviewer, reads your resume or biodata, asks questions tailored to your background, adapts difficulty based on your answers, and gives you a detailed feedback report at the end." },
-      { q: "How does the AI interviewer Arjun work?", a: "Arjun parses your uploaded resume or biodata and generates questions specific to your projects, skills, and experience instead of generic question-bank items. It listens to your spoken answers, adjusts the next question's difficulty accordingly, and speaks back to you in real time using voice." },
-      { q: "Does HireView support government exam interviews like UPSC or SSC?", a: "Yes. Alongside private-sector interviews, HireView has a dedicated government sector mode with domain-specific AI prompts for exams such as UPSC, SSC, and IBPS, using your uploaded biodata to personalize questions." },
-      { q: "What languages does HireView support?", a: "Interviews can be conducted in English or Hinglish, reflecting how Indian professionals naturally speak in real interviews, with more Indian regional languages being added." },
-      { q: "How much does HireView cost?", a: "HireView offers a free trial with 3 mock interviews. After that, a Weekly plan is available for ₹99 (7 days) and a Monthly plan for ₹299 (30 days), both with unlimited interview access during the active period." },
-      { q: "How does HireView detect cheating during a mock interview?", a: "HireView monitors face presence, tab or window switches, background audio noise, and clipboard activity throughout the session. Repeated violations end the interview early, and an integrity score is included in the final feedback report so your practice reflects real interview conditions." },
-      { q: "Is my resume and interview data private?", a: "Yes. Resume parsing and interview processing happen through a secure backend, and your data is handled according to HireView's Privacy Policy, available at hireview-ai.vercel.app/privacy." },
-      { q: "Do I need special equipment to take an interview on HireView?", a: "No. HireView runs in your browser using your device's camera and microphone — just a working webcam, mic, and a stable internet connection are enough to get started." }
-    ];
-
-    const list = document.getElementById('faqList');
-    list.innerHTML = faqs.map((item, idx) => `
-      <div class="faq-item" id="faq-${idx}">
-        <button class="faq-question" onclick="document.getElementById('faq-${idx}').classList.toggle('open')">
-          <span>${item.q}</span>
-          <span class="faq-icon">+</span>
-        </button>
-        <div class="faq-answer"><p>${item.a}</p></div>
-      </div>
-    `).join('');
-  </script>
-
   <script src="js/translate.js"></script>
 </body>
 </html>
