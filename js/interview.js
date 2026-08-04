@@ -116,6 +116,11 @@ let jdFileName = '';
 let jdFileSize = 0;
 let jdSource = null; // 'paste' or 'upload'
 
+// Interview round chosen — private sector only. 'technical' | 'hr' | 'mixed'.
+// Set once in handleInterviewStart, read again at feedback-generation time
+// so scoring can be matched to what this round actually assessed.
+let currentInterviewRound = 'mixed';
+
 // Job role options
 const privateDomains = {
   technology: [
@@ -908,6 +913,7 @@ async function handleInterviewStart(sector) {
     selectedLanguage = document.getElementById('interviewLanguagePrivate').value;
     targetCompany = getTargetCompany() || null;
     interviewRound = getInterviewRound();
+    currentInterviewRound = interviewRound;
   } else {
     governmentDomain = document.getElementById('governmentDomain').value;
     governmentRole = document.getElementById('governmentRole').value;
@@ -924,6 +930,7 @@ async function handleInterviewStart(sector) {
     candidateSummary = document.getElementById('candidateSummary').value;
     jobTitle = governmentRole;
     selectedLanguage = document.getElementById('interviewLanguageGov').value;
+    currentInterviewRound = 'mixed'; // round selection is private-sector only
   }
 
   try {
@@ -2211,6 +2218,12 @@ async function generateAndSaveFeedback() {
       return;
     }
 
+    const roundScoringGuidance = currentInterviewRound === 'technical'
+      ? `This was a dedicated TECHNICAL round — by design, no HR/behavioral questions (salary, 5-year plan, generic strength/weakness) were asked. Score "technical_score" purely on the technical depth, correctness, problem-solving, and how well they handled follow-up pressure on their technical claims in this conversation. For "soft_skills_score", evaluate the communication signals that ARE available in a technical round — clarity of explanation, structure of their answers, how they handled being pushed on a shallow answer — do NOT mark soft_skills_score down just because no dedicated behavioral question was asked; that absence is expected for this round type, not a candidate weakness. "overall_score" and "hiring_recommendation" should reflect technical readiness for the role, since that's what this round was designed to assess.`
+      : currentInterviewRound === 'hr'
+      ? `This was a dedicated HR round — by design, no deep technical/coding/system-design questions were asked. Score "soft_skills_score" on the communication, self-awareness, motivation, and behavioral signals actually shown in this conversation. For "technical_score", evaluate whatever domain/role understanding came through at a high level when they discussed their projects or experience — do NOT mark technical_score down just because no deep technical drilling happened; that absence is expected for this round type, not a candidate weakness. If genuinely nothing technical-relevant came up, base technical_score on the general domain awareness they showed rather than defaulting to a low or arbitrary number. "overall_score" and "hiring_recommendation" should reflect culture/role fit and communication readiness, since that's what this round was designed to assess.`
+      : `This was a standard mixed round covering both technical/role content and HR/behavioral content — score "technical_score" and "soft_skills_score" based on both dimensions as they actually came up across the conversation.`;
+
     const feedbackPrompt = [
       ...conversationHistory,
       {
@@ -2222,6 +2235,8 @@ Hard rules:
 - Do NOT use generic filler phrases ("good communication skills", "needs more depth", "strong problem-solving abilities", "keep practicing") unless immediately backed by a specific example from THIS conversation.
 - If the candidate gave a genuinely strong or memorable answer, or struggled visibly on something specific, call it out plainly.
 - Messages marked "[Candidate skipped this question]" or "[The candidate did not respond within 30 seconds...]" are NOT answers — treat each one as a real miss on that question, the same as a wrong answer would be, not as neutral. Do not soften the score to be encouraging when several questions were skipped or timed out; a candidate who skipped most of the interview should score low regardless of how well the few answers they did give went.
+- ${roundScoringGuidance}
+- Never default any score to a round or "safe middle" number (like 5, 6, or 7) just because you're unsure — every single score must be justified by something specific you observed in this conversation. If you genuinely have very little signal for a dimension, score conservatively based on what little you do have and say so plainly in the summary, rather than inventing evidence or picking an arbitrary default.
 - The summary should read like a real assessment, not a corporate template — 2-3 sentences, no fluff.
 - "personal_note" is a short first-person message from you (Arjun) directly to the candidate${candidateName ? `, addressed to them as ${candidateName}` : ''} — warm, honest, human, 2-3 sentences, referencing one specific real moment from the conversation. Not generic encouragement — it should only make sense for THIS candidate's actual interview.
 - Scores must be consistent with the evidence you cite — don't inflate or soften them.
