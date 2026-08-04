@@ -52,7 +52,7 @@ Built by a CSE team:
 
 ## License
 
-© 2026 Anmol Pandey. All rights reserved. HireView is proprietary software — the source code, design, and content in this repository are not licensed for reuse, redistribution, or derivative works. See `LICENSE` for full terms.
+© 2026 Anmol Pandey. All rights reserved. HireView is proprietary software — the source code, design, and content in this repository are not licensed for reuse, redistribution, or derivative works. See [LICENSE](./LICENSE) for full terms.
 
 ---
 
