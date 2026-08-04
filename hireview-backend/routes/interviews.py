@@ -621,14 +621,61 @@ async def _call_gemini(messages: list, temperature: float, max_tokens: int) -> d
     }
 
 
+# ============================================================
+# /api/chat SAFEGUARDS
+#
+# This endpoint proxies to paid Groq/Gemini APIs, so it must never be
+# callable as a free-form LLM playground by an authenticated user. Every
+# call has to be tied to a real interview that belongs to the caller and
+# is still in progress, and is capped so a single interview can't be used
+# to run up an unbounded API bill.
+# ============================================================
+MAX_CHAT_CALLS_PER_INTERVIEW = 80   # a real 30-45 min session needs well under this
+SERVER_MAX_TOKENS = 1200            # hard ceiling — client-requested max_tokens is capped, never trusted outright
+MAX_MESSAGES_IN_PAYLOAD = 100       # bounds the size (and therefore cost) of a single call
+
+
 @router.post("/chat")
 async def chat_with_groq(
     request: dict,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
+    interview_id = request.get("interview_id")
+    if not interview_id:
+        raise HTTPException(status_code=400, detail="interview_id is required")
+
+    interview = db.query(Interview).filter(
+        Interview.id == interview_id,
+        Interview.user_id == current_user.id
+    ).first()
+
+    if not interview:
+        raise HTTPException(status_code=404, detail="Interview not found")
+
+    if interview.status != "in_progress":
+        raise HTTPException(status_code=400, detail="This interview is no longer active")
+
+    # Guard against NULL: existing interview rows created before this column
+    # existed won't have a value backfilled by the auto-migration (it only
+    # ADDs the column, it doesn't set old rows to 0) — treat missing as 0
+    # rather than letting a None comparison/addition break a live interview.
+    current_call_count = interview.chat_call_count or 0
+    if current_call_count >= MAX_CHAT_CALLS_PER_INTERVIEW:
+        logger.warning(f"/api/chat call-count limit hit: interview {interview_id}, user {current_user.id}")
+        raise HTTPException(status_code=429, detail="This interview has reached its message limit")
+
     messages = request.get("messages", [])
+    if not isinstance(messages, list) or len(messages) > MAX_MESSAGES_IN_PAYLOAD:
+        raise HTTPException(status_code=400, detail="Invalid or oversized messages payload")
+
     temperature = request.get("temperature", 0.7)
-    max_tokens = request.get("max_tokens", 800)
+    # Never trust a client-supplied max_tokens beyond our own ceiling
+    max_tokens = min(request.get("max_tokens", 800), SERVER_MAX_TOKENS)
+
+    interview.chat_call_count = current_call_count + 1
+    db.commit()
+
     # "feedback" = the one-shot end-of-interview report (quality matters more
     # than speed, so it goes to Gemini). Anything else = the live, turn-by-turn
     # question flow (latency matters most, so it goes to Groq). Each provider

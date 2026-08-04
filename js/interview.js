@@ -1823,6 +1823,7 @@ async function callGroqAPI(messages, _isRetry = false, task = 'interview') {
       body: JSON.stringify({
         messages,
         task,
+        interview_id: currentInterviewId,
         temperature: 0.85,
         max_tokens: 800,
         frequency_penalty: 0.4,

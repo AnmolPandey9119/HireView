@@ -171,6 +171,14 @@ class Interview(Base):
     # Defaults to 'mixed' (the original, always-available behavior).
     interview_round       = Column(String, nullable=True, default='mixed')
 
+    # How many times /api/chat has been called for this interview — caps
+    # per-interview LLM usage so the proxy endpoint can't be hammered for
+    # free/unlimited AI calls unrelated to the actual interview. Nullable
+    # because rows created before this column existed won't have a value
+    # (the auto-migration ADDs the column but doesn't backfill old rows);
+    # the /chat route treats a NULL/missing value as 0.
+    chat_call_count        = Column(Integer, nullable=True, default=0)
+
     # Relationships
     user      = relationship("User", back_populates="interviews")
     questions = relationship("InterviewQuestion", back_populates="interview", cascade="all, delete")
