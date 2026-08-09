@@ -32,9 +32,14 @@
         'scrollbar-width:none;-ms-overflow-style:none;max-width:100%;}',
         '#hvFooter .hv-footer-links::-webkit-scrollbar{display:none;}',
   
-        '@media (max-width:640px){',
-        '#hvFooter{font-size:0.72rem;padding:0.65rem 1rem;gap:0.5rem 0.9rem;}',
-        '#hvFooter .hv-footer-links{gap:0.85rem;}',
+        '@media (max-width:768px){',
+        // On mobile a permanently fixed bar eats screen real estate and
+        // overlaps whatever content scrolls under it (buttons, FAQ text,
+        // etc). Drop it back into normal document flow so it only shows
+        // at the true end of the page, like a regular footer.
+        '#hvFooter{position:static;font-size:0.72rem;padding:0.65rem 1rem;gap:0.5rem 0.9rem;',
+        'flex-direction:column;align-items:flex-start;}',
+        '#hvFooter .hv-footer-links{gap:0.7rem 0.9rem;overflow-x:visible;flex-wrap:wrap;white-space:normal;}',
         '}'
       ].join('');
       document.head.appendChild(style);
@@ -77,9 +82,12 @@
     // pages other than home.
   
     // ── Keep page content from hiding behind the fixed bar ──
+    // Only needed when the footer is actually position:fixed (desktop) —
+    // on mobile it's static now (see the max-width:768px rule above), so
+    // it already takes its own space and no extra padding is needed.
     function reserveFooterSpace() {
-      var h = footer.offsetHeight || 0;
-      document.body.style.paddingBottom = h + 'px';
+      var isFixed = window.getComputedStyle(footer).position === 'fixed';
+      document.body.style.paddingBottom = isFixed ? (footer.offsetHeight || 0) + 'px' : '';
     }
     reserveFooterSpace();
     window.addEventListener('resize', reserveFooterSpace);

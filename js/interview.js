@@ -1203,6 +1203,16 @@ function pickBestAlternative(result) {
   return best.transcript;
 }
 
+// iPadOS 13+ reports itself as "Macintosh" in the user agent (desktop-class
+// Safari), so a plain iPhone/iPad UA check misses iPads — the extra
+// maxTouchPoints check catches that case without misidentifying a real Mac
+// (which has no touch points).
+function isIOSDevice() {
+  const ua = navigator.userAgent || '';
+  return /iPad|iPhone|iPod/.test(ua) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
 function setupSpeechRecognition() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) {
@@ -1214,7 +1224,13 @@ function setupSpeechRecognition() {
   }
 
   recognition = new SR();
-  recognition.continuous = true;
+  // iOS/iPadOS (Safari, and Chrome/Edge there too — Apple forces every
+  // browser onto WebKit) has a long-standing bug where continuous:true
+  // either never stops listening or never fires a result at all. Non-iOS
+  // browsers get real continuous mode; iOS gets short sessions that
+  // restart immediately via recognition.onend below, which reads as
+  // continuous to the candidate without hitting the WebKit bug.
+  recognition.continuous = !isIOSDevice();
   recognition.interimResults = true;
   recognition.lang = getLangConfig().speechLang;
   recognition.maxAlternatives = 3; // let us pick the best-scoring guess, not just the engine's first pick
