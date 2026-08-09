@@ -75,3 +75,15 @@ def get_client_ip(request) -> str:
     if forwarded:
         return forwarded.split(",")[0].strip()
     return request.client.host if request.client else "unknown"
+
+
+def format_retry_after(seconds: int) -> str:
+    """
+    Human-friendly duration for rate-limit messages: shown in minutes once
+    it's a minute or more (rounded up, so the wait never looks shorter than
+    it actually is), and in seconds only when under a minute.
+    """
+    if seconds < 60:
+        return f"{seconds} second{'s' if seconds != 1 else ''}"
+    minutes = (seconds + 59) // 60  # round up
+    return f"{minutes} minute{'s' if minutes != 1 else ''}"
