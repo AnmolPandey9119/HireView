@@ -16,7 +16,7 @@
 #   - Feedback
 # ============================================================
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from datetime import timedelta, datetime
@@ -25,6 +25,7 @@ import logging
 
 import config
 from models.database import get_db, User, Interview, InterviewQuestion, Feedback, SiteVisit, Transaction, to_utc_iso
+from models.rate_limiter import is_limited, record_failure, clear, get_client_ip
 from models.auth_utils import (
     hash_password, verify_password, create_access_token, decode_access_token,
     validate_password_strength,
@@ -54,20 +55,36 @@ def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(securi
 # LOGIN
 # ============================================================
 @router.post("/admin/login", response_model=AdminToken)
-async def admin_login(payload: AdminLogin):
+async def admin_login(payload: AdminLogin, request: Request):
     if not config.ADMIN_USERNAME or not config.ADMIN_PASSWORD_HASH:
         raise HTTPException(
             status_code=503,
             detail="Admin login is not configured on the server. Set ADMIN_USERNAME and ADMIN_PASSWORD_HASH.",
         )
 
+    ip = get_client_ip(request)
+    ip_key = f"admin_login_ip:{ip}"
+
+    # Tighter than the regular user login limiter — this is a single,
+    # high-privilege account, so there's no legitimate reason for anywhere
+    # near this many attempts from one IP in 15 minutes.
+    limited, retry_after = is_limited(ip_key, max_attempts=5, window_seconds=900)
+    if limited:
+        logger.warning(f"Admin login rate-limited for IP {ip}")
+        raise HTTPException(
+            status_code=429,
+            detail=f"Too many login attempts. Please try again in {retry_after} seconds."
+        )
+
     valid_username = payload.username == config.ADMIN_USERNAME
     valid_password = verify_password(payload.password, config.ADMIN_PASSWORD_HASH)
 
     if not valid_username or not valid_password:
+        record_failure(ip_key, window_seconds=900)
         logger.warning(f"Failed admin login attempt (username tried: {payload.username})")
         raise HTTPException(status_code=401, detail="Invalid admin credentials")
 
+    clear(ip_key)
     token = create_access_token(
         data={"admin": True, "sub": payload.username},
         expires_delta=timedelta(minutes=config.ADMIN_TOKEN_EXPIRE_MINUTES),

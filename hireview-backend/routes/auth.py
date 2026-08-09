@@ -12,7 +12,7 @@
 #   5. Forgot password (OTP-based): /forgot-password/request + /reset
 # ============================================================
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from datetime import timedelta
@@ -21,6 +21,7 @@ import logging
 
 import config
 from models.database import get_db, User
+from models.rate_limiter import is_limited, record_failure, clear, get_client_ip
 from models.schemas import (
     UserRegister, UserLogin, Token, UserResponse, MessageResponse,
     SendEmailOTPRequest, VerifyEmailOTPRequest,
@@ -159,16 +160,40 @@ async def register(payload: UserRegister, db: Session = Depends(get_db)):
 # LOGIN (password)
 # ============================================================
 @router.post("/auth/login", response_model=Token)
-async def login(payload: UserLogin, db: Session = Depends(get_db)):
+async def login(payload: UserLogin, request: Request, db: Session = Depends(get_db)):
     email = canonicalize_email(payload.email)
+    ip = get_client_ip(request)
+
+    # Per-IP: guards against one attacker hammering many accounts.
+    # Per-email: guards against one account being targeted from many IPs.
+    # Checked before touching the DB/bcrypt so a blocked caller costs us
+    # almost nothing to reject.
+    ip_key = f"login_ip:{ip}"
+    email_key = f"login_email:{email}"
+
+    limited, retry_after = is_limited(ip_key, max_attempts=20, window_seconds=900)
+    if not limited:
+        limited, retry_after = is_limited(email_key, max_attempts=5, window_seconds=900)
+
+    if limited:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Too many login attempts. Please try again in {retry_after} seconds."
+        )
+
     user = db.query(User).filter(User.email == email).first()
 
     if not user or not verify_password(payload.password, user.password_hash):
+        record_failure(ip_key, window_seconds=900)
+        record_failure(email_key, window_seconds=900)
         raise HTTPException(status_code=401, detail="Incorrect email or password")
 
     if not user.is_verified:
+        # Not a credential failure, so it doesn't count against the limiter —
+        # a legitimate user who just hasn't verified yet shouldn't get locked out.
         raise HTTPException(status_code=403, detail="Please verify your email before logging in")
 
+    clear(email_key)
     logger.info(f"User logged in: {user.email}")
     return _issue_token(user)
 
