@@ -866,15 +866,15 @@ function showSetupErrorGov(msg) {
 // Free-trial quota used up (backend returns 402) — unlike a normal setup
 // error this doesn't auto-hide after 4s, and it links straight to the
 // Payment & Subscription page instead of just stating the problem.
-function showQuotaExceededError(sector, msg) {
+function showQuotaExceededError(sector, msg, showPlansLink = true) {
   const elId = sector === 'private' ? 'setupError' : 'setupErrorGov';
   const el = document.getElementById(elId);
   el.innerHTML = `
     <div>${msg}</div>
-    <button onclick="window.location.href='/dashboard?openPayment=1'"
+    ${showPlansLink ? `<button onclick="window.location.href='/dashboard?openPayment=1'"
       style="margin-top:0.75rem;padding:0.6rem 1.4rem;background:linear-gradient(135deg,#6366f1,#ec4899);border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.85rem">
       View Plans →
-    </button>`;
+    </button>` : ''}`;
   el.classList.add('show');
 }
 
@@ -958,11 +958,16 @@ async function handleInterviewStart(sector) {
     if (!res.ok) {
       const err = await res.json();
       if (res.status === 402) {
-        showQuotaExceededError(sector, err.detail || "You've used all your free interviews. Please purchase a plan to continue.");
+        const errorCode = err.detail?.error_code;
+        const message = err.detail?.message || err.detail || "You've reached your interview limit.";
+        // "View Plans" only makes sense for someone who doesn't have a paid
+        // plan yet — a paying user hitting the daily cap already has one,
+        // so just show the plain message with no upsell button.
+        showQuotaExceededError(sector, message, /* showPlansLink */ errorCode !== 'daily_limit_exceeded');
       } else if (sector === 'private') {
-        showSetupError(err.detail || 'Could not start interview. Please try again.');
+        showSetupError(err.detail?.message || err.detail || 'Could not start interview. Please try again.');
       } else {
-        showSetupErrorGov(err.detail || 'Could not start interview. Please try again.');
+        showSetupErrorGov(err.detail?.message || err.detail || 'Could not start interview. Please try again.');
       }
       return;
     }
