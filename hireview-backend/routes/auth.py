@@ -21,7 +21,7 @@ import logging
 
 import config
 from models.database import get_db, User
-from models.rate_limiter import is_limited, record_failure, clear, get_client_ip
+from models.rate_limiter import is_limited, record_failure, clear, get_client_ip, format_retry_after
 from models.schemas import (
     UserRegister, UserLogin, Token, UserResponse, MessageResponse,
     SendEmailOTPRequest, VerifyEmailOTPRequest,
@@ -178,7 +178,7 @@ async def login(payload: UserLogin, request: Request, db: Session = Depends(get_
     if limited:
         raise HTTPException(
             status_code=429,
-            detail=f"Too many login attempts. Please try again in {retry_after} seconds."
+            detail=f"Too many login attempts. Please try again in {format_retry_after(retry_after)}."
         )
 
     user = db.query(User).filter(User.email == email).first()

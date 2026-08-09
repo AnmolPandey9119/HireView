@@ -25,7 +25,7 @@ import logging
 
 import config
 from models.database import get_db, User, Interview, InterviewQuestion, Feedback, SiteVisit, Transaction, to_utc_iso
-from models.rate_limiter import is_limited, record_failure, clear, get_client_ip
+from models.rate_limiter import is_limited, record_failure, clear, get_client_ip, format_retry_after
 from models.auth_utils import (
     hash_password, verify_password, create_access_token, decode_access_token,
     validate_password_strength,
@@ -73,7 +73,7 @@ async def admin_login(payload: AdminLogin, request: Request):
         logger.warning(f"Admin login rate-limited for IP {ip}")
         raise HTTPException(
             status_code=429,
-            detail=f"Too many login attempts. Please try again in {retry_after} seconds."
+            detail=f"Too many login attempts. Please try again in {format_retry_after(retry_after)}."
         )
 
     valid_username = payload.username == config.ADMIN_USERNAME
