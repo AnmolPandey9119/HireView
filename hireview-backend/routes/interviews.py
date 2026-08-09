@@ -92,7 +92,39 @@ async def create_interview(
         if used >= 3:
             raise HTTPException(
                 status_code=402,
-                detail="You've used all 3 free interviews. Please purchase a plan to continue."
+                detail={
+                    "error_code": "free_quota_exceeded",
+                    "message": "You've used all 3 free interviews. Please purchase a plan to continue.",
+                }
+            )
+    else:
+        # Paid plans are unlimited over the life of the subscription, but
+        # capped at 6/day — both as a fair-use practice limit and so a paid
+        # account can't be used to spin up unbounded interviews (each one
+        # allows up to MAX_CHAT_CALLS_PER_INTERVIEW /api/chat calls).
+        #
+        # "Day" here means IST calendar day (midnight to midnight India
+        # time), not UTC — matches how Indian users actually think about
+        # "today". started_at is stored in UTC, so we compute IST midnight
+        # and convert it back to UTC to use as the query boundary.
+        IST_OFFSET = timedelta(hours=5, minutes=30)
+        ist_now = now + IST_OFFSET
+        ist_midnight = datetime(ist_now.year, ist_now.month, ist_now.day)
+        today_start_utc = ist_midnight - IST_OFFSET
+
+        used_today = db.query(Interview).filter(
+            Interview.user_id == current_user.id,
+            Interview.status != "failed",
+            Interview.started_at >= today_start_utc
+        ).count()
+
+        if used_today >= 6:
+            raise HTTPException(
+                status_code=402,
+                detail={
+                    "error_code": "daily_limit_exceeded",
+                    "message": "You've reached today's limit of 6 interviews. Please try again after midnight IST.",
+                }
             )
 
     interview = Interview(
