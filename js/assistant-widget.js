@@ -1,16 +1,29 @@
 // ════════════════════════════════════════════════
 // HireView — Website Assistant Widget
-// A self-contained chat bubble that answers visitor questions
-// about HireView, right on the page (no WhatsApp/redirect involved).
-// Talks to POST {BACKEND_URL}/api/assistant/chat.
+// A self-contained chat launcher + panel that answers visitor
+// questions about HireView, right on the page (no WhatsApp/redirect
+// involved). Talks to POST {BACKEND_URL}/api/assistant/chat.
+//
 // Drop <script src="js/assistant-widget.js"></script> onto any
 // page, after js/config.js (which defines BACKEND_URL).
+//
+// Launcher placement:
+//   - By default it renders as a floating "Help & Support" pill,
+//     bottom-right, sitting above the fixed site footer if present.
+//   - If the page has an element with id="hva-launcher-slot", the
+//     launcher renders INLINE inside that element instead (e.g. next
+//     to the profile avatar on dashboard.html) and the floating
+//     bubble is skipped. The chat panel itself still opens
+//     bottom-right either way.
+// On narrow screens, the launcher always collapses to icon-only
+// (label text hidden) regardless of placement.
 // ════════════════════════════════════════════════
 
 (function () {
   const API_URL = (typeof BACKEND_URL !== 'undefined' ? BACKEND_URL : '') + '/api/assistant/chat';
   const STORAGE_KEY = 'hv_assistant_history';
   const MAX_STORED_MESSAGES = 20;
+  const LAUNCHER_LABEL = 'Help & Support';
 
   let history = [];
   try {
@@ -22,19 +35,42 @@
   // ---------- styles ----------
   const style = document.createElement('style');
   style.textContent = `
-    .hva-bubble {
-      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
-      width: 60px; height: 60px; border-radius: 50%; border: none; cursor: pointer;
+    /* Shared launcher look, used both floating (bottom-right pill)
+       and docked (inline in a header, e.g. next to the profile avatar). */
+    .hva-launcher {
+      display: inline-flex; align-items: center; gap: 0.55rem; border: none; cursor: pointer;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
-      box-shadow: 0 8px 25px rgba(99,102,241,0.5);
-      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 700; font-size: 0.85rem; white-space: nowrap;
+      border-radius: 999px; padding: 0.5rem 1.1rem 0.5rem 0.5rem;
+      box-shadow: 0 8px 25px rgba(99,102,241,0.45);
       transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
-    .hva-bubble:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 12px 32px rgba(99,102,241,0.65); }
-    .hva-bubble svg { width: 26px; height: 26px; }
-    .hva-bubble .hva-icon-close { display: none; }
-    .hva-bubble.open .hva-icon-chat { display: none; }
-    .hva-bubble.open .hva-icon-close { display: block; }
+    .hva-launcher:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(99,102,241,0.65); }
+    .hva-launcher-icon {
+      width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+      background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;
+    }
+    .hva-launcher-icon svg { width: 16px; height: 16px; display: block; }
+    .hva-launcher .hva-icon-close { display: none; }
+    .hva-launcher.open .hva-icon-chat { display: none; }
+    .hva-launcher.open .hva-icon-close { display: block; }
+
+    /* Floating placement (default): fixed pill, bottom-right, lifted
+       above the fixed site footer via inline style set by JS. */
+    .hva-launcher--floating { position: fixed; right: 24px; bottom: 24px; z-index: 9999; }
+
+    /* Docked placement: sits inline wherever the page puts the slot
+       (e.g. dashboard header, next to the avatar). No fixed position. */
+    .hva-launcher--docked { position: relative; }
+
+    /* Icon-only on narrow screens, for BOTH placements. */
+    @media (max-width: 640px) {
+      .hva-launcher { padding: 0; width: 46px; height: 46px; justify-content: center; border-radius: 50%; }
+      .hva-launcher-label { display: none; }
+      .hva-launcher-icon { width: 100%; height: 100%; background: transparent; }
+      .hva-launcher-icon svg { width: 20px; height: 20px; }
+    }
 
     .hva-panel {
       position: fixed; bottom: 98px; right: 24px; z-index: 9999;
@@ -110,21 +146,27 @@
 
     @media (max-width: 480px) {
       .hva-panel { right: 16px; bottom: 90px; width: calc(100vw - 32px); }
-      .hva-bubble { right: 16px; bottom: 16px; }
+      .hva-launcher--floating { right: 16px; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .hva-bubble, .hva-panel, .hva-typing span { transition: none; animation: none; }
+      .hva-launcher, .hva-panel, .hva-typing span { transition: none; animation: none; }
     }
   `;
   document.head.appendChild(style);
 
-  // ---------- markup ----------
+  // ---------- launcher placement: docked slot vs. floating pill ----------
+  const dockSlot = document.getElementById('hva-launcher-slot');
+  const isDocked = !!dockSlot;
+
   const bubble = document.createElement('button');
-  bubble.className = 'hva-bubble';
-  bubble.setAttribute('aria-label', 'Chat with HireView assistant');
+  bubble.className = 'hva-launcher ' + (isDocked ? 'hva-launcher--docked' : 'hva-launcher--floating');
+  bubble.setAttribute('aria-label', LAUNCHER_LABEL);
   bubble.innerHTML = `
-    <svg class="hva-icon-chat" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-    <svg class="hva-icon-close" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    <span class="hva-launcher-icon">
+      <svg class="hva-icon-chat" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      <svg class="hva-icon-close" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </span>
+    <span class="hva-launcher-label">${LAUNCHER_LABEL}</span>
   `;
 
   const panel = document.createElement('div');
@@ -152,7 +194,36 @@
   `;
 
   document.body.appendChild(panel);
-  document.body.appendChild(bubble);
+  if (isDocked) {
+    dockSlot.appendChild(bubble);
+  } else {
+    document.body.appendChild(bubble);
+  }
+
+  // ---------- keep the floating launcher/panel above the fixed site
+  // footer (js/footer.js), instead of overlapping it. Re-checks on
+  // load/resize and whenever the footer's own size changes (it wraps
+  // to multiple lines at some widths). No-op when docked, since a
+  // docked launcher isn't fixed-position in the first place. ----------
+  function adjustForFooter() {
+    const footer = document.getElementById('hvFooter');
+    let clearance = 24; // default gap from viewport bottom
+    if (footer && window.getComputedStyle(footer).position === 'fixed') {
+      clearance = footer.offsetHeight + 16;
+    }
+    if (!isDocked) {
+      bubble.style.bottom = clearance + 'px';
+    }
+    panel.style.bottom = (clearance + 74) + 'px';
+  }
+
+  adjustForFooter();
+  window.addEventListener('load', adjustForFooter);
+  window.addEventListener('resize', adjustForFooter);
+  const footerEl = document.getElementById('hvFooter');
+  if (footerEl && typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(adjustForFooter).observe(footerEl);
+  }
 
   const messagesEl = panel.querySelector('#hva-messages');
   const suggestionsEl = panel.querySelector('#hva-suggestions');

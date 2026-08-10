@@ -284,7 +284,12 @@
                (original layout). On mobile, CSS `order` pulls it up next
                to the greeting instead, so it never gets swept into the
                action-buttons stack — see the max-width:720px rules below. -->
-          <div class="profile-widget" id="profileWidget">
+          <div class="profile-widget" id="profileWidget" style="display:flex;align-items:center;gap:0.65rem;">
+            <!-- Website assistant launcher renders itself here (js/assistant-widget.js
+                 detects this slot and docks its "Help & Support" button inline instead
+                 of floating it — see that file for details). -->
+            <div id="hva-launcher-slot"></div>
+
             <button class="profile-trigger" id="profileTrigger" onclick="toggleMiniDropdown()" aria-label="Account menu">
               <div class="avatar-wrap">
                 <div class="profile-trigger-avatar" id="headerAvatar">?</div>
@@ -1483,5 +1488,6 @@
   </script>
   <script src="js/footer.js"></script>
   <script src="js/translate.js"></script>
+  <script src="js/assistant-widget.js"></script>
 </body>
 </html>
