@@ -284,7 +284,7 @@
                (original layout). On mobile, CSS `order` pulls it up next
                to the greeting instead, so it never gets swept into the
                action-buttons stack — see the max-width:720px rules below. -->
-          <div class="profile-widget" id="profileWidget" style="display:flex;align-items:center;gap:0.65rem;">
+          <div class="profile-widget" id="profileWidget">
             <button class="profile-trigger" id="profileTrigger" onclick="toggleMiniDropdown()" aria-label="Account menu">
               <div class="avatar-wrap">
                 <div class="profile-trigger-avatar" id="headerAvatar">?</div>
@@ -578,6 +578,10 @@
     // never wrongly block a click before the data has arrived.
     let remainingFreeInterviews = null;
 
+    // Same idea, but for paid users' 6/day cap — null means "not a paid
+    // user" or "not loaded yet", either way we don't block on it.
+    let remainingTodayInterviews = null;
+
     // ────────────────────────────────────────────
     // "+ New Interview" pre-check — runs BEFORE navigating to the setup
     // form, so a user who has hit their limit finds out immediately
@@ -589,6 +593,11 @@
     function handleNewInterviewClick() {
       const activeUntil = currentUser?.subscription_active_until ? new Date(currentUser.subscription_active_until) : null;
       const hasActiveSubscription = !!(activeUntil && activeUntil.getTime() > Date.now());
+
+      if (hasActiveSubscription && remainingTodayInterviews === 0) {
+        showLimitModal('daily');
+        return;
+      }
 
       if (hasActiveSubscription || remainingFreeInterviews === null || remainingFreeInterviews > 0) {
         window.location.href = '/interview';
@@ -612,6 +621,10 @@
         icon.textContent = '⏳';
         title.textContent = 'Your plan has expired';
         sub.textContent = 'Your subscription has ended. Please renew a plan to continue taking unlimited interviews.';
+      } else if (kind === 'daily') {
+        icon.textContent = '⏰';
+        title.textContent = "Today's limit reached";
+        sub.textContent = "You've used all 6 interviews for today. Come back after midnight IST for more.";
       } else {
         icon.textContent = '🔒';
         title.textContent = 'Free interviews used up';
@@ -1465,6 +1478,7 @@
         // Free trial banner
         renderFreeTrialBanner(data.stats.interviews_remaining_free, data.stats.total_interviews);
         remainingFreeInterviews = data.stats.interviews_remaining_free;
+        remainingTodayInterviews = data.stats.interviews_remaining_today;
 
         // Stats
         renderStats(data.stats);
@@ -1483,6 +1497,5 @@
   </script>
   <script src="js/footer.js"></script>
   <script src="js/translate.js"></script>
-  <script src="js/assistant-widget.js"></script>
 </body>
 </html>

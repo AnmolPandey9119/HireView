@@ -351,6 +351,27 @@ async def get_dashboard_stats(
             "failure_reason": i.failure_reason
         })
 
+    now = datetime.utcnow()
+    has_active_subscription = bool(
+        current_user.subscription_active_until and current_user.subscription_active_until > now
+    )
+
+    interviews_remaining_today = None
+    if has_active_subscription:
+        # Same IST-midnight window used by the actual limit check in
+        # create_interview — kept in sync so the dashboard's pre-check
+        # never says "you can start one" when the real endpoint would
+        # then reject it.
+        IST_OFFSET = timedelta(hours=5, minutes=30)
+        ist_now = now + IST_OFFSET
+        ist_midnight = datetime(ist_now.year, ist_now.month, ist_now.day)
+        today_start_utc = ist_midnight - IST_OFFSET
+        used_today = sum(
+            1 for i in countable
+            if i.started_at and i.started_at >= today_start_utc
+        )
+        interviews_remaining_today = max(0, 6 - used_today)
+
     return {
         "user": {
             "name": current_user.name,
@@ -364,7 +385,8 @@ async def get_dashboard_stats(
             "completed_interviews": len(completed),
             "average_score": avg_score,
             "best_score": best_score,
-            "interviews_remaining_free": max(0, 3 - total)
+            "interviews_remaining_free": max(0, 3 - total),
+            "interviews_remaining_today": interviews_remaining_today
         },
         "recent_interviews": recent
     }
