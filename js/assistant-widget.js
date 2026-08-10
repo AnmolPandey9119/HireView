@@ -239,8 +239,8 @@
       translateBtn.style.top = 'auto';
       translateBtn.style.right = 'auto';
     }
-    group.appendChild(translateBtn);
     group.appendChild(bubble);
+    group.appendChild(translateBtn);
     // The slot next to the avatar is now unused — collapse it instead
     // of leaving a stray empty gap in that flex row.
     if (dockSlot) dockSlot.style.display = 'none';
