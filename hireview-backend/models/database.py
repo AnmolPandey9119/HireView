@@ -229,6 +229,17 @@ class Feedback(Base):
     next_steps           = Column(Text, nullable=True)
     personal_note        = Column(Text, nullable=True)
 
+    # Integrity report — captured client-side during the interview
+    # (js/cheating.js) and persisted here so it survives past the results
+    # screen: viewable later in history and by admin, not just once at
+    # the moment the interview ends.
+    integrity_score      = Column(Float, nullable=True)   # null = camera was unavailable, not "100 = clean"
+    integrity_verdict    = Column(String, nullable=True)
+    tab_switches         = Column(Integer, nullable=True)
+    window_switches      = Column(Integer, nullable=True)
+    camera_unavailable   = Column(Boolean, nullable=True, default=False)
+    integrity_details    = Column(Text, nullable=True)   # JSON string: face_detection/response_timing/off_turn_audio
+
     created_at           = Column(DateTime, default=datetime.utcnow)
 
     # Relationships

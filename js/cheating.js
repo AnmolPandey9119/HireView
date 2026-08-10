@@ -267,7 +267,21 @@ function getFullIntegrityReport() {
     (faceReport?.multiple_face_detections || 0) +
     (timingReport?.suspicious ? 3 : 0) +
     (audioReport?.off_turn_flags || 0) * 2;
-  const integrityScore = Math.max(0, Math.min(100, 100 - totalFlags * 8));
+
+  // camera/mic access was denied or unavailable — video-based checks
+  // (face presence, multi-face detection) never ran at all. Reporting
+  // this the same as "ran and found nothing" would be a false-clean
+  // verdict, so it gets its own honest label instead of hiding behind
+  // a misleadingly perfect integrity_score.
+  const unmonitored = typeof cameraUnavailable !== 'undefined' && cameraUnavailable;
+
+  const integrityScore = unmonitored ? null : Math.max(0, Math.min(100, 100 - totalFlags * 8));
+  const verdict = unmonitored
+    ? 'Unmonitored — Camera Unavailable'
+    : totalFlags === 0 ? 'Clean'
+      : totalFlags <= 2 ? 'Minor Concerns'
+      : totalFlags <= 5 ? 'Suspicious' : 'High Risk';
+
   return {
     integrity_score: integrityScore,
     tab_switches: tabSwitchCount,
@@ -276,8 +290,7 @@ function getFullIntegrityReport() {
     response_timing: timingReport,
     off_turn_audio: audioReport,
     total_flags: totalFlags,
-    verdict: totalFlags === 0 ? 'Clean'
-      : totalFlags <= 2 ? 'Minor Concerns'
-      : totalFlags <= 5 ? 'Suspicious' : 'High Risk'
+    camera_unavailable: unmonitored,
+    verdict
   };
 }

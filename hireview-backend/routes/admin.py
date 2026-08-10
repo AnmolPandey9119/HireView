@@ -364,6 +364,11 @@ def _serialize_interview(
                 "strengths": f.strengths,
                 "areas_to_improve": f.areas_to_improve,
                 "next_steps": f.next_steps,
+                "integrity_score": f.integrity_score,
+                "integrity_verdict": f.integrity_verdict,
+                "tab_switches": f.tab_switches,
+                "window_switches": f.window_switches,
+                "camera_unavailable": bool(f.camera_unavailable),
             }
         else:
             data["feedback"] = None

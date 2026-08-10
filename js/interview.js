@@ -13,6 +13,10 @@ let interviewSucceeded = false; // true only once feedback is actually saved
 let sessionFailureReported = false; // guards against reporting /fail more than once
 let timeUpSignoffGiven = false;
 let mediaStream = null;
+// True once camera/mic access is denied or fails — used to flag the
+// integrity report as "unmonitored" rather than silently reporting a
+// false-clean verdict when no video-based checks ever actually ran.
+let cameraUnavailable = false;
 let cameraOn = true;
 let recognition = null;
 let isListening = false;
@@ -1047,6 +1051,7 @@ async function setupCameraAndMic() {
 
   } catch (err) {
     console.error('Camera/mic error:', err);
+    cameraUnavailable = true;
     document.getElementById('cameraPlaceholder').innerHTML =
       '<div style="font-size:0.85rem;color:rgba(255,255,255,0.5);padding:1rem;text-align:center">Camera/mic access denied. You can still continue by typing.</div>';
     startInterviewTimer();
@@ -2367,14 +2372,16 @@ function showFeedbackScreen(feedback) {
     </div>` : '';
 
   const ir = feedback.integrity_flags;
-  const verdictColor = !ir || ir.verdict === 'Clean' ? '#22c55e' : ir.verdict === 'Minor Concerns' ? '#f59e0b' : '#ef4444';
+  const verdictColor = !ir || ir.camera_unavailable ? '#f59e0b'
+    : ir.verdict === 'Clean' ? '#22c55e'
+    : ir.verdict === 'Minor Concerns' ? '#f59e0b' : '#ef4444';
 
   const integritySection = ir ? `
     <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:14px;padding:1.5rem;margin-top:1.5rem">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
         <div style="font-weight:700;color:#f87171">🔍 Integrity Report</div>
         <div style="padding:0.35rem 1rem;background:${verdictColor}22;border:1px solid ${verdictColor};border-radius:20px;color:${verdictColor};font-weight:700;font-size:0.85rem">
-          ${ir.verdict} — ${ir.integrity_score}/100
+          ${ir.verdict}${ir.integrity_score != null ? ` — ${ir.integrity_score}/100` : ''}
         </div>
       </div>
       <div class="integrity-flags-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;font-size:0.85rem">

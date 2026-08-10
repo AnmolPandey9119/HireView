@@ -230,3 +230,4 @@ class FeedbackCreate(BaseModel):
     areas_to_improve: Optional[List[str]] = []
     next_steps: Optional[str] = None
     personal_note: Optional[str] = None
+    integrity_flags: Optional[dict] = None
