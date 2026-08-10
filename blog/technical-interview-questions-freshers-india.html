@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Technical Interview Questions & Prep Guide for Freshers in India (2026) | HireView</title>
+  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+  <meta name="description" content="How freshers in India can prepare for technical interview rounds — DSA, projects, CS fundamentals, and common questions from campus placements, with what interviewers actually check for.">
+  <meta name="keywords" content="technical interview questions for freshers, technical interview preparation India, CS fundamentals interview questions, DSA interview questions freshers, campus placement technical round, IT interview preparation">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Anmol Pandey">
+  <link rel="canonical" href="https://hireview-ai.vercel.app/blog/technical-interview-questions-freshers-india">
+  <meta name="theme-color" content="#07080f">
+
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hireview-ai.vercel.app/blog/technical-interview-questions-freshers-india">
+  <meta property="og:site_name" content="HireView">
+  <meta property="og:title" content="Technical Interview Questions & Prep Guide for Freshers in India (2026)">
+  <meta property="og:description" content="How freshers in India can prepare for technical interview rounds — DSA, projects, CS fundamentals, and common questions from campus placements.">
+  <meta property="og:image" content="https://hireview-ai.vercel.app/assets/og-image.jpg">
+  <meta property="og:locale" content="en_IN">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Technical Interview Questions & Prep Guide for Freshers in India">
+  <meta name="twitter:description" content="How freshers in India can prepare for technical interview rounds — DSA, projects, CS fundamentals, and more.">
+  <meta name="twitter:image" content="https://hireview-ai.vercel.app/assets/og-image.jpg">
+
+  <!-- Article structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Technical Interview Questions & Prep Guide for Freshers in India",
+    "description": "How freshers in India can prepare for technical interview rounds — DSA, projects, CS fundamentals, and common questions from campus placements.",
+    "image": "https://hireview-ai.vercel.app/assets/og-image.jpg",
+    "author": { "@type": "Person", "name": "Anmol Pandey" },
+    "publisher": {
+      "@type": "Organization",
+      "name": "HireView",
+      "logo": { "@type": "ImageObject", "url": "https://hireview-ai.vercel.app/assets/apple-touch-icon.png" }
+    },
+    "datePublished": "2026-08-10",
+    "dateModified": "2026-08-10",
+    "mainEntityOfPage": "https://hireview-ai.vercel.app/blog/technical-interview-questions-freshers-india",
+    "inLanguage": "en-IN"
+  }
+  </script>
+
+  <!-- Breadcrumb structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://hireview-ai.vercel.app/" },
+      { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://hireview-ai.vercel.app/blog" },
+      { "@type": "ListItem", "position": 3, "name": "Technical Interview Questions for Freshers", "item": "https://hireview-ai.vercel.app/blog/technical-interview-questions-freshers-india" }
+    ]
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"></noscript>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #07080f;
+      color: #fff;
+      line-height: 1.7;
+    }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 1.25rem 2rem;
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(7,8,15,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .logo-text {
+      font-size: 1.25rem; font-weight: 800;
+      background: linear-gradient(135deg, #818cf8, #ec4899);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      text-decoration: none;
+    }
+    nav a.back { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.9rem; font-weight: 600; }
+    nav a.back:hover { color: #fff; }
+
+    main { max-width: 760px; margin: 0 auto; padding: 8rem 2rem 6rem; }
+
+    .breadcrumb { font-size: 0.85rem; color: rgba(255,255,255,0.45); margin-bottom: 1.5rem; }
+    .breadcrumb a { color: rgba(255,255,255,0.45); text-decoration: none; }
+    .breadcrumb a:hover { color: #fff; }
+
+    h1 {
+      font-size: clamp(1.9rem, 5vw, 2.5rem);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.9rem;
+      background: linear-gradient(135deg, #fff, #c7c9ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .meta { color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-bottom: 2.5rem; }
+    .intro { color: rgba(255,255,255,0.75); font-size: 1.05rem; margin-bottom: 2.5rem; }
+
+    h2 {
+      font-size: 1.4rem; font-weight: 800; margin: 2.5rem 0 1rem;
+      color: #fff;
+    }
+    .q-block { border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; background: rgba(255,255,255,0.02); padding: 1.4rem 1.6rem; margin-bottom: 1rem; }
+    .q-block .q { font-weight: 700; color: #c7c9ff; margin-bottom: 0.5rem; font-size: 1rem; }
+    .q-block .a { color: rgba(255,255,255,0.75); font-size: 0.95rem; margin-bottom: 0.5rem; }
+    .q-block .why { color: rgba(255,255,255,0.45); font-size: 0.85rem; font-style: italic; }
+
+    .inline-cta {
+      margin: 3rem 0;
+      text-align: center;
+      padding: 2.25rem 1.5rem;
+      border-radius: 20px;
+      background: rgba(99,102,241,0.08);
+      border: 1px solid rgba(99,102,241,0.25);
+    }
+    .inline-cta h3 { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.6rem; }
+    .inline-cta p { color: rgba(255,255,255,0.6); font-size: 0.9rem; margin-bottom: 1.4rem; }
+    .btn-primary {
+      padding: 0.85rem 2rem;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+      border: none; border-radius: 14px;
+      color: white; font-weight: 700; font-size: 0.9rem;
+      cursor: pointer; font-family: inherit;
+      box-shadow: 0 8px 30px rgba(99,102,241,0.4);
+      text-decoration: none; display: inline-block;
+    }
+
+    footer {
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 2rem;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+      color: rgba(255,255,255,0.6); font-size: 0.85rem;
+    }
+    footer a { color: rgba(255,255,255,0.6); text-decoration: none; }
+    footer a:hover { color: #fff; }
+
+    @media (max-width: 640px) {
+      main { padding: 7rem 1.25rem 4rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/" class="logo-text">HireView</a>
+    <a href="/" class="back">← Back to Home</a>
+  </nav>
+
+  <main>
+    <div class="breadcrumb"><a href="/">Home</a> / <a href="/blog">Blog</a> / Technical Interview Questions</div>
+
+    <h1>Technical Interview Questions & Prep Guide for Freshers in India</h1>
+    <div class="meta">Updated 10 August 2026 · 7 min read</div>
+
+    <p class="intro">
+      The technical round is where most freshers lose confidence — not because they don't know the material, but because explaining it out loud, under a bit of pressure, is a different skill from solving it silently on paper. Here's what actually gets asked, what interviewers are checking for, and how to prepare without drowning in every topic at once.
+    </p>
+
+    <h2>1. Core CS fundamentals</h2>
+
+    <div class="q-block">
+      <div class="q">Q: Explain the difference between an array and a linked list.</div>
+      <div class="a">A: Cover memory allocation (contiguous vs scattered), access time (O(1) vs O(n)), and insertion/deletion cost. Give one real scenario where you'd pick each.</div>
+      <div class="why">Why it's asked: it's a quick check of whether you understand trade-offs, not just definitions.</div>
+    </div>
+
+    <div class="q-block">
+      <div class="q">Q: What is the time complexity of your solution, and can it be improved?</div>
+      <div class="a">A: State Big-O confidently, then think out loud about a faster approach even if you don't fully solve it — interviewers often care more about the reasoning path than a perfect answer.</div>
+      <div class="why">Why it's asked: tests whether you think about efficiency, not just correctness.</div>
+    </div>
+
+    <div class="q-block">
+      <div class="q">Q: Explain OOP concepts with an example from a project you built.</div>
+      <div class="a">A: Don't just define encapsulation/inheritance/polymorphism — tie each one to a real class or module from your own project so it's clear you've actually used them, not memorized definitions.</div>
+      <div class="why">Why it's asked: textbook definitions without application are an easy tell that you haven't built anything real.</div>
+    </div>
+
+    <h2>2. Your projects and resume</h2>
+
+    <div class="q-block">
+      <div class="q">Q: Walk me through this project on your resume.</div>
+      <div class="a">A: Structure it as: problem → your specific contribution → one technical decision you made and why → outcome/result. Avoid team-speak like "we built" when describing your own part.</div>
+      <div class="why">Why it's asked: this is usually the single most-asked technical question — it reveals whether you actually understand what you built or just followed a tutorial.</div>
+    </div>
+
+    <div class="q-block">
+      <div class="q">Q: Why did you choose this tech stack / library?</div>
+      <div class="a">A: Give a real reason — familiarity, a specific feature you needed, team constraint — rather than "it's popular." It's fine to admit you'd choose differently now with more experience.</div>
+      <div class="why">Why it's asked: checks if choices were deliberate or copy-pasted from a tutorial.</div>
+    </div>
+
+    <div class="q-block">
+      <div class="q">Q: What was the hardest bug you had to fix in this project?</div>
+      <div class="a">A: Pick a real one, explain how you debugged it (logs, breakpoints, isolating the issue) step by step, not just the final fix.</div>
+      <div class="why">Why it's asked: debugging process reveals more about your actual skill level than the final working code does.</div>
+    </div>
+
+    <h2>3. Data structures & algorithms (DSA)</h2>
+
+    <div class="q-block">
+      <div class="q">Q: Solve a basic array/string problem on the spot (e.g. reverse a string, find duplicates).</div>
+      <div class="a">A: Talk through your approach before coding — clarify constraints, mention edge cases (empty input, duplicates, single element) out loud, then code. Silence while typing makes interviewers nervous.</div>
+      <div class="why">Why it's asked: communicating your thought process is often weighted as heavily as getting the right answer.</div>
+    </div>
+
+    <div class="q-block">
+      <div class="q">Q: What data structure would you use for [scenario], and why?</div>
+      <div class="a">A: Practice matching common scenarios to structures — LRU cache → hashmap + doubly linked list, browser history → stack, task scheduling → queue/priority queue.</div>
+      <div class="why">Why it's asked: real engineering is choosing the right tool, not just knowing every tool exists.</div>
+    </div>
+
+    <h2>4. System basics & CS theory</h2>
+
+    <div class="q-block">
+      <div class="q">Q: What happens when you type a URL into a browser and hit enter?</div>
+      <div class="a">A: DNS lookup → TCP/TLS handshake → HTTP request → server processing → response rendering. You don't need deep networking expertise as a fresher — a clear high-level flow is enough.</div>
+      <div class="why">Why it's asked: a classic check of whether you understand the systems your code runs on top of.</div>
+    </div>
+
+    <div class="q-block">
+      <div class="q">Q: Explain normalization in databases, or the difference between SQL and NoSQL.</div>
+      <div class="a">A: Keep it practical — normalization reduces data redundancy; SQL suits structured, relational data with strict schemas, NoSQL suits flexible/unstructured data at scale. One example of each you've used helps.</div>
+      <div class="why">Why it's asked: most fresher roles touch a database eventually — this checks baseline readiness.</div>
+    </div>
+
+    <div class="inline-cta">
+      <h3>Practice explaining your answers out loud</h3>
+      <p>Knowing the concept and explaining it clearly under pressure are different skills. HireView's AI interviewer Arjun asks technical questions based on your actual resume and projects, and gives you a detailed feedback report after each session.</p>
+      <a href="/auth" class="btn-primary">Try 3 Free Interviews →</a>
+    </div>
+
+    <h2>A quick note on preparation</h2>
+    <p style="color:rgba(255,255,255,0.75);font-size:0.95rem;margin-bottom:1rem;">
+      You don't need to master every DSA topic or every framework before your interview. Go deep on the 2-3 projects on your resume — you should be able to defend every line of decision-making in them — and keep your fundamentals sharp enough to reason through a new problem out loud, even if you don't land on the perfect answer immediately.
+    </p>
+
+    <p style="color:rgba(255,255,255,0.75);font-size:0.95rem;margin-top:1.5rem;">
+      Looking for the HR round instead? Read our
+      <a href="/blog/common-hr-interview-questions-freshers-india" style="color:#fff;text-decoration:underline;">25 Common HR Interview Questions for Freshers</a>,
+      or if you're preparing for a government exam interview, see our
+      <a href="/blog/upsc-ssc-interview-preparation-guide" style="color:#fff;text-decoration:underline;">UPSC &amp; SSC Personality Test Preparation Guide</a>.
+    </p>
+
+  </main>
+
+  <footer>
+    <div>
+      <span style="font-weight:700;color:rgba(255,255,255,0.6)">HireView</span>
+      &nbsp;·&nbsp; Built by <a href="https://linkedin.com/in/anmol-pandey-240105376">Anmol Pandey</a>
+    </div>
+    <div style="display:flex;gap:1.5rem">
+      <a href="/blog">Blog</a>
+      <a href="/faq">FAQ</a>
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">Terms</a>
+      <a href="/refund-policy">Refund Policy</a>
+      <a href="mailto:hireviewadmin@gmail.com">Contact</a>
+    </div>
+  </footer>
+
+</body>
+</html>
