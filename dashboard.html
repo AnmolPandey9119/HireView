@@ -59,7 +59,7 @@
     .interview-card:hover { border-color: rgba(99,102,241,0.4); background: rgba(255,255,255,0.06); transform: translateX(4px); }
     .interview-role { font-weight: 700; font-size: 1rem; color: white; margin-bottom: 0.35rem; }
     .interview-date { font-size: 0.82rem; color: rgba(255,255,255,0.6); }
-    .interview-meta { display: flex; align-items: center; gap: 1rem; }
+    .interview-meta { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
     .interview-score { font-size: 1.4rem; font-weight: 800; }
     .status-badge { padding: 0.3rem 0.85rem; border-radius: 20px; font-size: 0.78rem; font-weight: 700; }
     .status-completed { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
@@ -137,6 +137,12 @@
       .profile-widget { order: 2; margin-left: auto; }
       .header-actions { order: 3; width: 100%; flex-direction: column; align-items: stretch; margin-left: 0; }
       .start-btn { width: 100%; }
+
+      /* Recent Interviews cards — badges wrap onto their own row instead
+         of overflowing past the screen edge (was cut off on phones). */
+      .interview-card { padding: 1.1rem; gap: 0.75rem; }
+      .interview-meta { width: 100%; gap: 0.6rem; }
+      .status-badge, .sector-badge, .round-badge { font-size: 0.72rem; padding: 0.28rem 0.7rem; }
     }
 
     /* PERSONAL INFO */
