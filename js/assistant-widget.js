@@ -7,30 +7,34 @@
 // Drop <script src="js/assistant-widget.js"></script> onto any
 // page, after js/config.js (which defines BACKEND_URL).
 //
-// Launcher placement:
-//   - By default it renders as a floating "Help & Support" pill,
-//     bottom-right, sitting above the fixed site footer if present.
-//   - If the page has an element with id="hva-launcher-slot", the
-//     launcher renders INLINE inside that element instead (e.g. next
-//     to the profile avatar on dashboard.html) and the floating
-//     bubble is skipped. The chat panel itself still opens
-//     bottom-right either way.
+// Launcher placement (checked in this order):
+//   1. If the page has an element with id="hva-launcher-slot", the
+//      launcher renders INLINE inside that element instead (e.g. next
+//      to the profile avatar on dashboard.html).
+//   2. Else, if js/translate.js has already mounted its "EN / हिं"
+//      button (#hv-translate-btn) on the page, the launcher is paired
+//      right next to it — inside the top navbar if that's where
+//      translate landed, or in the fixed top-right corner if translate
+//      fell back to that. The chat panel opens BELOW the launcher in
+//      this case, so the launcher's own close ("×") icon stays visible
+//      above the open panel instead of getting hidden behind it.
+//   3. Else (no translate button on the page), it falls back to the
+//      original floating "Help & Support" pill, bottom-right, sitting
+//      above the fixed site footer if present — panel opens upward
+//      above the pill, as before.
 // On narrow screens, the launcher always collapses to icon-only
 // (label text hidden) regardless of placement.
 // ════════════════════════════════════════════════
 
 (function () {
   const API_URL = (typeof BACKEND_URL !== 'undefined' ? BACKEND_URL : '') + '/api/assistant/chat';
-  const STORAGE_KEY = 'hv_assistant_history';
-  const MAX_STORED_MESSAGES = 20;
   const LAUNCHER_LABEL = 'Help & Support';
 
+  // Conversation only lives in memory for the current page view — never
+  // persisted (session or local storage), so a fresh page open/reload
+  // always starts a clean conversation instead of showing last time's
+  // questions.
   let history = [];
-  try {
-    history = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '[]');
-  } catch (e) {
-    history = [];
-  }
 
   // ---------- styles ----------
   const style = document.createElement('style');
@@ -61,8 +65,21 @@
     .hva-launcher--floating { position: fixed; right: 24px; bottom: 24px; z-index: 9999; }
 
     /* Docked placement: sits inline wherever the page puts the slot
-       (e.g. dashboard header, next to the avatar). No fixed position. */
+       (e.g. dashboard header, next to the avatar), or paired next to
+       the translate button. No fixed position of its own — position
+       comes from wherever it's mounted in the DOM. */
     .hva-launcher--docked { position: relative; }
+
+    /* Groups the launcher with the translate button so they sit
+       together as one visual pair, "EN / हिं" then "Help & Support". */
+    .hva-launcher-group { display: flex; align-items: center; gap: 0.6rem; }
+    /* Only added when translate itself had to fall back to a fixed
+       top-right corner (pages with no usable top navbar) — mirrors
+       that same fixed placement so the pair moves together. */
+    .hva-launcher-group--fixed { position: fixed; top: 18px; right: 20px; z-index: 99999; }
+    @media (max-width: 640px) {
+      .hva-launcher-group--fixed { top: 12px; right: 12px; gap: 0.5rem; }
+    }
 
     /* Icon-only on narrow screens, for BOTH placements. */
     @media (max-width: 640px) {
@@ -80,7 +97,7 @@
       border: 1px solid rgba(99,102,241,0.25); border-radius: 20px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.5);
       display: flex; flex-direction: column; overflow: hidden;
-      opacity: 0; pointer-events: none; transform: translateY(16px) scale(0.97);
+      opacity: 0; pointer-events: none; transform: translateY(-10px) scale(0.97);
       transition: opacity 0.22s ease, transform 0.22s ease;
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
@@ -154,9 +171,17 @@
   `;
   document.head.appendChild(style);
 
-  // ---------- launcher placement: docked slot vs. floating pill ----------
+  // ---------- launcher placement: docked slot (dashboard) > floating pill (everywhere else) ----------
   const dockSlot = document.getElementById('hva-launcher-slot');
+  // translate.js runs before this script on every page that has it, so
+  // by the time we get here its button (if any) already exists in the DOM.
+  // Pairing the launcher with translate — and opening the panel BELOW
+  // the launcher instead of above it — is dashboard-only: dashboard is
+  // the only page with #hva-launcher-slot. Every other page keeps the
+  // plain floating "Help & Support" pill, unaffected by translate.
+  const translateBtn = document.getElementById('hv-translate-btn');
   const isDocked = !!dockSlot;
+  const isPaired = isDocked && !!translateBtn;
 
   const bubble = document.createElement('button');
   bubble.className = 'hva-launcher ' + (isDocked ? 'hva-launcher--docked' : 'hva-launcher--floating');
@@ -194,18 +219,43 @@
   `;
 
   document.body.appendChild(panel);
-  if (isDocked) {
+  if (isPaired) {
+    // Dashboard, with translate present: pair the launcher with the
+    // translate button as one visual group, right where translate.js
+    // mounted it (translate is fixed top-right on dashboard, since it
+    // has no plain top navbar).
+    const group = document.createElement('div');
+    group.className = 'hva-launcher-group' +
+      (translateBtn.classList.contains('hv-top-fixed') ? ' hva-launcher-group--fixed' : '');
+    translateBtn.parentElement.insertBefore(group, translateBtn);
+    group.appendChild(translateBtn);
+    group.appendChild(bubble);
+  } else if (isDocked) {
+    // Dashboard fallback (translate button missing for some reason):
+    // dock inline next to the profile avatar, as before.
     dockSlot.appendChild(bubble);
   } else {
     document.body.appendChild(bubble);
   }
 
-  // ---------- keep the floating launcher/panel above the fixed site
-  // footer (js/footer.js), instead of overlapping it. Re-checks on
-  // load/resize and whenever the footer's own size changes (it wraps
-  // to multiple lines at some widths). No-op when docked, since a
-  // docked launcher isn't fixed-position in the first place. ----------
-  function adjustForFooter() {
+  // ---------- position the chat panel ----------
+  // - Paired: panel opens BELOW the launcher (which sits up near the
+  //   translate button), so the launcher's own "×" close icon stays
+  //   visible above the open panel instead of being covered by it.
+  // - Docked / floating fallback: unchanged — panel opens upward,
+  //   clearing the fixed site footer (js/footer.js) if present.
+  // Re-checked on load/resize and whenever the footer's size changes
+  // (it wraps to multiple lines at some widths).
+  function positionPanel() {
+    if (isPaired) {
+      const rect = bubble.getBoundingClientRect();
+      const gap = 12;
+      panel.style.top = (rect.bottom + gap) + 'px';
+      panel.style.right = Math.max(window.innerWidth - rect.right, 16) + 'px';
+      panel.style.bottom = 'auto';
+      return;
+    }
+
     const footer = document.getElementById('hvFooter');
     let clearance = 24; // default gap from viewport bottom
     if (footer && window.getComputedStyle(footer).position === 'fixed') {
@@ -214,15 +264,21 @@
     if (!isDocked) {
       bubble.style.bottom = clearance + 'px';
     }
+    panel.style.top = 'auto';
     panel.style.bottom = (clearance + 74) + 'px';
   }
 
-  adjustForFooter();
-  window.addEventListener('load', adjustForFooter);
-  window.addEventListener('resize', adjustForFooter);
+  positionPanel();
+  window.addEventListener('load', positionPanel);
+  window.addEventListener('resize', positionPanel);
   const footerEl = document.getElementById('hvFooter');
   if (footerEl && typeof ResizeObserver !== 'undefined') {
-    new ResizeObserver(adjustForFooter).observe(footerEl);
+    new ResizeObserver(positionPanel).observe(footerEl);
+  }
+  if (isPaired && typeof ResizeObserver !== 'undefined') {
+    // Also re-measure if the launcher/nav itself changes size (e.g.
+    // mobile nav wrapping, or the translate label swapping languages).
+    new ResizeObserver(positionPanel).observe(bubble.parentElement);
   }
 
   const messagesEl = panel.querySelector('#hva-messages');
@@ -232,12 +288,6 @@
 
   let isOpen = false;
   let isSending = false;
-
-  function persist() {
-    try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(history.slice(-MAX_STORED_MESSAGES)));
-    } catch (e) { /* storage unavailable — conversation just won't survive a refresh */ }
-  }
 
   function renderMessage(role, text) {
     const div = document.createElement('div');
@@ -279,7 +329,6 @@
 
     renderMessage('user', text);
     history.push({ role: 'user', content: text });
-    persist();
     showTyping();
 
     try {
@@ -309,7 +358,6 @@
 
       renderMessage('assistant', reply);
       history.push({ role: 'assistant', content: reply });
-      persist();
     } catch (err) {
       hideTyping();
       renderMessage('error', "Couldn't reach the assistant — check your connection and try again.");
@@ -347,11 +395,14 @@
     if (chip) sendMessage(chip.dataset.q);
   });
 
+
+
   bubble.addEventListener('click', () => {
     isOpen = !isOpen;
     bubble.classList.toggle('open', isOpen);
     panel.classList.toggle('open', isOpen);
     if (isOpen) {
+      positionPanel();
       renderHistory();
       setTimeout(() => inputEl.focus(), 200);
     }

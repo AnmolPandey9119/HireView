@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us — HireView</title>
+  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+  <meta name="description" content="Get in touch with the HireView team — support, feedback, billing questions, and more.">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Anmol Pandey">
+  <link rel="canonical" href="https://hireview-ai.vercel.app/contact">
+  <meta name="theme-color" content="#07080f">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hireview-ai.vercel.app/contact">
+  <meta property="og:site_name" content="HireView">
+  <meta property="og:title" content="Contact Us — HireView">
+  <meta property="og:description" content="Get in touch with the HireView team — support, feedback, billing questions, and more.">
+  <meta property="og:image" content="https://hireview-ai.vercel.app/assets/og-image.jpg">
+  <meta property="og:image:alt" content="HireView — AI-powered mock interview platform for Indian job seekers">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:locale" content="en_IN">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Contact Us — HireView">
+  <meta name="twitter:description" content="Get in touch with the HireView team — support, feedback, billing questions, and more.">
+  <meta name="twitter:image" content="https://hireview-ai.vercel.app/assets/og-image.jpg">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://hireview-ai.vercel.app/" },
+      { "@type": "ListItem", "position": 2, "name": "Contact", "item": "https://hireview-ai.vercel.app/contact" }
+    ]
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"></noscript>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #07080f;
+      color: #fff;
+      line-height: 1.7;
+    }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 1.25rem 2rem;
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(7,8,15,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .logo-text {
+      font-size: 1.25rem; font-weight: 800;
+      background: linear-gradient(135deg, #818cf8, #ec4899);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      text-decoration: none;
+    }
+    nav a.back {
+      color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.9rem; font-weight: 600;
+    }
+    nav a.back:hover { color: #fff; }
+
+    main {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 8rem 2rem 6rem;
+    }
+    h1 {
+      font-size: clamp(2rem, 5vw, 2.75rem);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #fff, #c7c9ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .subtitle {
+      color: rgba(255,255,255,0.6);
+      font-size: 1rem;
+      margin-bottom: 3rem;
+      max-width: 560px;
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+    .contact-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+    }
+    .contact-card:hover {
+      border-color: rgba(129,140,248,0.5);
+      background: rgba(255,255,255,0.05);
+      transform: translateY(-2px);
+    }
+    .contact-card .icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, rgba(129,140,248,0.2), rgba(236,72,153,0.2));
+      margin-bottom: 1rem;
+      font-size: 1.15rem;
+    }
+    .contact-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+      color: #fff;
+    }
+    .contact-card p {
+      color: rgba(255,255,255,0.55);
+      font-size: 0.88rem;
+      margin: 0;
+    }
+    .contact-card .value {
+      color: #a5b4fc;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-top: 0.5rem;
+      word-break: break-word;
+    }
+
+    h2 {
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin: 2.5rem 0 1rem;
+      color: #fff;
+    }
+    p, li {
+      color: rgba(255,255,255,0.65);
+      font-size: 0.98rem;
+      margin-bottom: 0.9rem;
+    }
+    ul { padding-left: 1.4rem; margin-bottom: 1rem; }
+    li { margin-bottom: 0.5rem; }
+    a.inline { color: #a5b4fc; }
+    a.inline:hover { color: #fff; }
+
+    .callout {
+      background: rgba(99,102,241,0.08);
+      border: 1px solid rgba(99,102,241,0.25);
+      border-radius: 14px;
+      padding: 1.25rem 1.5rem;
+      margin: 1.5rem 0;
+      font-size: 0.92rem;
+      color: rgba(255,255,255,0.75);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/" class="logo-text">HireView</a>
+    <a href="/" class="back">← Back to home</a>
+  </nav>
+
+  <main>
+    <h1>Contact Us</h1>
+    <p class="subtitle">Have a question, ran into a bug, or want to talk billing? Reach out below — we usually reply within 1–2 business days.</p>
+
+    <div class="contact-grid">
+      <a class="contact-card" href="mailto:hireviewadmin@gmail.com">
+        <div class="icon">✉️</div>
+        <h3>Email</h3>
+        <p>General questions, account help, feedback</p>
+        <div class="value">hireviewadmin@gmail.com</div>
+      </a>
+
+      <a class="contact-card" href="/refund-policy">
+        <div class="icon">💳</div>
+        <h3>Billing &amp; Refunds</h3>
+        <p>Payment issues or refund requests</p>
+        <div class="value">See Refund Policy →</div>
+      </a>
+
+      <a class="contact-card" href="/faq">
+        <div class="icon">💬</div>
+        <h3>FAQ</h3>
+        <p>Quick answers to common questions</p>
+        <div class="value">Browse FAQ →</div>
+      </a>
+
+      <a class="contact-card" href="https://github.com/AnmolPandey9119/HireView" target="_blank" rel="noopener">
+        <div class="icon">🐙</div>
+        <h3>GitHub</h3>
+        <p>Report a bug or view the source</p>
+        <div class="value">View repository →</div>
+      </a>
+    </div>
+
+    <div class="callout">
+      <strong>Tip:</strong> if you're writing in about an account or a specific interview session, mention the email address on your account so we can look it up faster.
+    </div>
+
+    <h2>What to include in your message</h2>
+    <ul>
+      <li>A short description of what's going wrong or what you're asking about</li>
+      <li>The email address associated with your HireView account (if applicable)</li>
+      <li>Screenshots, if it's a display or technical issue</li>
+    </ul>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/footer.js"></script>
+  <script src="js/translate.js"></script>
+  <script src="js/assistant-widget.js"></script>
+</body>
+</html>

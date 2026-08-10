@@ -61,7 +61,7 @@
         '<a href="/privacy">Privacy Policy</a>' +
         '<a href="/terms">Terms</a>' +
         '<a href="/refund-policy">Refund Policy</a>' +
-        '<a href="mailto:hireviewadmin@gmail.com">Contact</a>' +
+        '<a href="/contact">Contact</a>' +
         '<a href="https://github.com/AnmolPandey9119/HireView" target="_blank" rel="noopener">GitHub</a>' +
       '</div>';
     document.body.appendChild(footer);
