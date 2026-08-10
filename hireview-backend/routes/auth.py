@@ -29,7 +29,7 @@ from models.schemas import (
     UpdateProfileRequest, ChangeEmailRequest, ChangeEmailVerify,
     ChangePasswordRequest,
 )
-from models.auth_utils import hash_password, verify_password, create_access_token, decode_access_token
+from models.auth_utils import hash_password, verify_password, create_access_token, decode_access_token, validate_password_strength
 from models.otp_utils import create_otp, verify_otp, can_resend, mark_email_verified, consume_email_verified
 from models.email_utils import canonicalize_email, is_disposable_email
 from routes.email_Service import send_otp_email
@@ -126,6 +126,10 @@ async def register(payload: UserRegister, db: Session = Depends(get_db)):
             detail="Please verify your email with the OTP before creating your account."
         )
 
+    is_valid, error = validate_password_strength(payload.password)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=error)
+
     existing = db.query(User).filter(User.email == email).first()
     if existing:
         if existing.is_verified:
@@ -138,9 +142,6 @@ async def register(payload: UserRegister, db: Session = Depends(get_db)):
         db.refresh(existing)
         logger.info(f"New user registered: {existing.email}")
         return _issue_token(existing)
-
-    if len(payload.password) < 6:
-        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
 
     user = User(
         name=payload.name,
@@ -228,8 +229,9 @@ async def forgot_password_reset(payload: ForgotPasswordReset, db: Session = Depe
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect or expired code")
 
-    if len(payload.new_password) < 6:
-        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    is_valid, error = validate_password_strength(payload.new_password)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=error)
 
     success, error = verify_otp(db, email, "reset_password", payload.otp)
     if not success:
@@ -310,8 +312,9 @@ async def change_password(
     if not verify_password(payload.current_password, current_user.password_hash):
         raise HTTPException(status_code=400, detail="Current password is incorrect")
 
-    if len(payload.new_password) < 6:
-        raise HTTPException(status_code=400, detail="New password must be at least 6 characters")
+    is_valid, error = validate_password_strength(payload.new_password)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=error)
 
     if verify_password(payload.new_password, current_user.password_hash):
         raise HTTPException(status_code=400, detail="New password must be different from your current password")
