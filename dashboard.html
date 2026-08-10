@@ -1137,6 +1137,29 @@
     // ────────────────────────────────────────────
     // CHANGE PASSWORD
     // ────────────────────────────────────────────
+    // Mirrors models/auth_utils.py's validate_password_strength on the
+    // backend — checked client-side too so the person gets an immediate,
+    // specific message instead of typing a 6-char password that passes
+    // here and then gets rejected by the server with no warning.
+    function getPasswordStrengthError(password) {
+      if (!password || password.length < 8) {
+        return 'Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.';
+      }
+      if (!/[A-Z]/.test(password)) {
+        return 'Password must include at least one uppercase letter.';
+      }
+      if (!/[a-z]/.test(password)) {
+        return 'Password must include at least one lowercase letter.';
+      }
+      if (!/\d/.test(password)) {
+        return 'Password must include at least one number.';
+      }
+      if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) {
+        return 'Password must include at least one special character.';
+      }
+      return null;
+    }
+
     async function handleChangePassword() {
       const currentPassword = document.getElementById('currentPasswordInput').value;
       const newPassword = document.getElementById('newPasswordInput').value;
@@ -1150,8 +1173,9 @@
         showToast('New passwords do not match.', true);
         return;
       }
-      if (newPassword.length < 6) {
-        showToast('New password must be at least 6 characters.', true);
+      const passwordError = getPasswordStrengthError(newPassword);
+      if (passwordError) {
+        showToast(passwordError, true);
         return;
       }
 

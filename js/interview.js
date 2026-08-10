@@ -1003,7 +1003,18 @@ async function setupCameraAndMic() {
   try {
     if (mediaStream) return;
     mediaStream = await navigator.mediaDevices.getUserMedia({
-      video: true,
+      video: {
+        // Without this, several Android phones default to the REAR
+        // camera for a plain `video:true` request — wrong camera for a
+        // face-to-camera interview. 'user' (not 'exact') is a soft
+        // preference, so desktop webcams (no front/back concept) still
+        // work fine and don't throw.
+        facingMode: 'user',
+        // Keeps capture at a sane size instead of a device's max
+        // resolution, which can lag lower-end Android phones.
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      },
       audio: {
         echoCancellation: true,
         noiseSuppression: true,
