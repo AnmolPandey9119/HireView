@@ -548,6 +548,15 @@
     // Auth check
     if (!authToken) window.location.href = '/auth';
 
+    // Escapes user-controlled text before it's interpolated into innerHTML
+    // — needed anywhere a custom-typed role or backend-forwarded reason
+    // text is rendered as HTML.
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str ?? '';
+      return div.innerHTML;
+    }
+
     // Deep-link from /interview's "View Plans" button when the free-trial
     // quota was exceeded — jump straight to Payment & Subscription instead
     // of leaving the user to find it themselves.
@@ -1343,7 +1352,7 @@
 
     function getSectorBadge(i) {
       if (i.sector === 'government') {
-        const label = i.government_domain ? `🏛️ ${i.government_domain}` : '🏛️ Government';
+        const label = i.government_domain ? `🏛️ ${escapeHtml(i.government_domain)}` : '🏛️ Government';
         return `<span class="sector-badge sector-government">${label}</span>`;
       }
       return `<span class="sector-badge sector-private">💼 Private</span>`;
@@ -1375,7 +1384,7 @@
       list.innerHTML = interviews.map(i => `
         <div class="interview-card" onclick="window.location.href='/history?id=${i.id}'">
           <div>
-            <div class="interview-role">${i.role}</div>
+            <div class="interview-role">${escapeHtml(i.role)}</div>
             <div class="interview-date">📅 ${formatDate(i.started_at)}</div>
           </div>
           <div class="interview-meta">
@@ -1384,7 +1393,7 @@
             <div class="interview-score" style="color:${getScoreColor(i.overall_score)}">
               ${i.overall_score != null ? `${i.overall_score}/10` : '—'}
             </div>
-            <span class="status-badge status-${i.status}" ${i.status === 'failed' && i.failure_reason ? `title="${i.failure_reason.replace(/"/g, '&quot;')}"` : ''}>
+            <span class="status-badge status-${i.status}" ${i.status === 'failed' && i.failure_reason ? `title="${escapeHtml(i.failure_reason)}"` : ''}>
              ${i.status === 'completed' ? '✅ Completed'
                 : i.status === 'cheating_terminated' ? '🚨 Terminated'
                 : i.status === 'failed' ? '⚠️ Failed'

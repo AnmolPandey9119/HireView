@@ -385,7 +385,7 @@ function showJdUploaded() {
     <div class="resume-uploaded">
       <div class="resume-uploaded-icon">✅</div>
       <div class="resume-uploaded-info">
-        <div class="resume-uploaded-name">📋 ${jdFileName}</div>
+        <div class="resume-uploaded-name">📋 ${escapeHtml(jdFileName)}</div>
         <div class="resume-uploaded-size">${sizeLabel} · ${jdText.trim().split(/\s+/).length.toLocaleString()} words extracted</div>
       </div>
       <button class="resume-remove-btn" onclick="removeJd()">Remove</button>
@@ -520,7 +520,7 @@ function showBiodataUploaded() {
     <div class="resume-uploaded">
       <div class="resume-uploaded-icon">✅</div>
       <div class="resume-uploaded-info">
-        <div class="resume-uploaded-name">📄 ${biodataFileName}</div>
+        <div class="resume-uploaded-name">📄 ${escapeHtml(biodataFileName)}</div>
         <div class="resume-uploaded-size">${sizeLabel} · ${biodataText.trim().split(/\s+/).length.toLocaleString()} words extracted</div>
       </div>
       <button class="resume-remove-btn" onclick="removeBiodata()">Remove</button>
@@ -823,6 +823,15 @@ function loadScript(src) {
   });
 }
 
+// Escapes a string before it's interpolated into innerHTML — needed anywhere
+// user-controlled text (like an uploaded file's name, which the browser
+// never sanitizes) gets rendered as HTML rather than set as textContent.
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 function showResumeUploaded() {
   document.getElementById('resumeParsingIndicator').style.display = 'none';
   const sizeLabel = resumeFileSize < 1024 * 1024
@@ -834,7 +843,7 @@ function showResumeUploaded() {
     <div class="resume-uploaded">
       <div class="resume-uploaded-icon">✅</div>
       <div class="resume-uploaded-info">
-        <div class="resume-uploaded-name">📄 ${resumeFileName}</div>
+        <div class="resume-uploaded-name">📄 ${escapeHtml(resumeFileName)}</div>
         <div class="resume-uploaded-size">${sizeLabel} · ${resumeText.trim().split(/\s+/).length.toLocaleString()} words extracted</div>
       </div>
       <button class="resume-remove-btn" onclick="removeResume()">Remove</button>
@@ -2333,16 +2342,16 @@ function showFeedbackScreen(feedback) {
   const scoreColor = score >= 8 ? '#22c55e' : score >= 6 ? '#f59e0b' : '#ef4444';
   const rec = feedback.hiring_recommendation || 'Borderline';
   const recColor = rec.includes('Strong') ? '#22c55e' : rec === 'Hire' ? '#6366f1' : rec === 'Borderline' ? '#f59e0b' : '#ef4444';
-  const strengthsList = (feedback.strengths || []).map(s => `<li>${s}</li>`).join('');
-  const improveList = (feedback.areas_to_improve || []).map(a => `<li>${a}</li>`).join('');
-  const candidateName = (currentUser && currentUser.name) ? currentUser.name.split(' ')[0] : null;
+  const strengthsList = (feedback.strengths || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
+  const improveList = (feedback.areas_to_improve || []).map(a => `<li>${escapeHtml(a)}</li>`).join('');
+  const candidateName = (currentUser && currentUser.name) ? escapeHtml(currentUser.name.split(' ')[0]) : null;
 
   const personalNoteSection = feedback.personal_note ? `
     <div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(236,72,153,0.08));border:1px solid rgba(99,102,241,0.25);border-radius:18px;padding:1.75rem;margin-bottom:1.5rem;display:flex;gap:1rem;align-items:flex-start">
       <div style="width:44px;height:44px;flex-shrink:0;border-radius:50%;background:linear-gradient(135deg,#6366f1,#ec4899);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem">A</div>
       <div>
         <div style="font-weight:700;margin-bottom:0.4rem;font-size:0.95rem">A note from Arjun</div>
-        <p style="margin:0;color:rgba(255,255,255,0.82);line-height:1.7;font-size:0.95rem;font-style:italic">"${feedback.personal_note}"</p>
+        <p style="margin:0;color:rgba(255,255,255,0.82);line-height:1.7;font-size:0.95rem;font-style:italic">"${escapeHtml(feedback.personal_note)}"</p>
       </div>
     </div>` : '';
 
@@ -2390,7 +2399,7 @@ function showFeedbackScreen(feedback) {
       ${personalNoteSection}
       <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(99,102,241,0.2);border-radius:18px;padding:2rem;margin-bottom:1.5rem">
         <div style="font-weight:700;margin-bottom:1rem">📋 Summary</div>
-        <p style="color:rgba(255,255,255,0.75);line-height:1.7;margin:0">${feedback.summary}</p>
+        <p style="color:rgba(255,255,255,0.75);line-height:1.7;margin:0">${escapeHtml(feedback.summary)}</p>
       </div>
       <div class="results-score-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
         <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(99,102,241,0.2);border-radius:14px;padding:1.5rem">
@@ -2414,7 +2423,7 @@ function showFeedbackScreen(feedback) {
       </div>
       <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:14px;padding:1.5rem;margin-bottom:1.5rem">
         <div style="font-weight:700;color:#818cf8;margin-bottom:0.5rem">🎯 Next Steps</div>
-        <p style="margin:0;color:rgba(255,255,255,0.75);line-height:1.7;font-size:0.9rem">${feedback.next_steps}</p>
+        <p style="margin:0;color:rgba(255,255,255,0.75);line-height:1.7;font-size:0.9rem">${escapeHtml(feedback.next_steps)}</p>
       </div>
       ${integritySection}
       <div style="text-align:center;margin-top:2rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
