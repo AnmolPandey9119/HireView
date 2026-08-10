@@ -225,11 +225,25 @@
     // mounted it (translate is fixed top-right on dashboard, since it
     // has no plain top navbar).
     const group = document.createElement('div');
-    group.className = 'hva-launcher-group' +
-      (translateBtn.classList.contains('hv-top-fixed') ? ' hva-launcher-group--fixed' : '');
+    const translateWasFixed = translateBtn.classList.contains('hv-top-fixed');
+    group.className = 'hva-launcher-group' + (translateWasFixed ? ' hva-launcher-group--fixed' : '');
     translateBtn.parentElement.insertBefore(group, translateBtn);
+    if (translateWasFixed) {
+      // The translate button's own position:fixed (from .hv-top-fixed)
+      // would otherwise still anchor it to its own fixed coordinate,
+      // fighting the group's layout and leaving it stuck in its old
+      // spot instead of sitting next to the launcher. Cancel just the
+      // positioning (keep its padding/font-size from that class) now
+      // that the *group* carries the fixed placement instead.
+      translateBtn.style.position = 'static';
+      translateBtn.style.top = 'auto';
+      translateBtn.style.right = 'auto';
+    }
     group.appendChild(translateBtn);
     group.appendChild(bubble);
+    // The slot next to the avatar is now unused — collapse it instead
+    // of leaving a stray empty gap in that flex row.
+    if (dockSlot) dockSlot.style.display = 'none';
   } else if (isDocked) {
     // Dashboard fallback (translate button missing for some reason):
     // dock inline next to the profile avatar, as before.
