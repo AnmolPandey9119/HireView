@@ -4,7 +4,7 @@
 
 🚀 **Try it now:** [hireview-ai.vercel.app](https://hireview-ai.vercel.app)
 
-HireView is an AI-powered mock interview platform built for Indian job seekers. It conducts real, adaptive interviews using a conversational AI interviewer named **Arjun**, gives you detailed, honest feedback, and detects cheating using computer vision and behavioral signals — in English, Hinglish, or any of 11 Indian regional languages.
+HireView is an AI-powered mock interview platform built for Indian job seekers. It conducts real, adaptive interviews using a conversational AI interviewer named **Arjun**, gives you detailed, honest feedback, and detects cheating using computer vision and behavioral signals — in English, Hindi, or Hinglish, with 10 more Indian regional languages coming soon.
 
 ## Why HireView
 
@@ -19,8 +19,9 @@ HireView fixes that: an AI interviewer that reads your resume (and the actual jo
 - Reads your actual resume and asks questions specific to *your* background — no generic question banks
 - **Job Description mode** — paste or upload the JD for a role you're targeting, and Arjun tailors the entire interview to it, probing exactly the skills and gaps that role cares about
 - Adaptive difficulty with real cross-questioning when your answers are vague
-- **Government Sector track** for exam-style interviews (UPSC/SSC/IBPS and more), with regional-language support
-- Speak or listen in **13 languages** — English, Hinglish, Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, and Urdu
+- **Government Sector track** for exam-style interviews (UPSC/SSC/IBPS and more)
+- Speak or listen in **English, Hindi, or Hinglish** today — Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, and Urdu are built in and rolling out soon
+- **24/7 AI help widget** on every page — ask about pricing, how Arjun works, or general platform questions and get an instant answer
 
 **Honest, Detailed Feedback**
 - AI-generated scoring across overall performance, technical depth, and soft skills
@@ -36,6 +37,7 @@ HireView fixes that: an AI interviewer that reads your resume (and the actual jo
 - Free trial — 3 interviews, no card required
 - Weekly plan — ₹99 / 7 days
 - Monthly plan — ₹299 / 30 days
+- Paid plans: unlimited interviews for the life of the pass, capped at 6/day (fair-use limit)
 - Secure payments via Razorpay
 
 ## Team
