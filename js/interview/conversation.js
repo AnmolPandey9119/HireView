@@ -291,14 +291,22 @@ function buildSystemPrompt() {
   }
   
   async function loadFirstQuestion() {
+    // Everything that can throw now lives inside the try block — previously
+    // buildSystemPrompt()/buildPacingNote() ran BEFORE the try, so a throw
+    // there (bad DOM read, missing field, etc.) silently killed the whole
+    // function with no error shown anywhere and no way to diagnose it from
+    // the console. That's fixed here: any failure at any step now logs the
+    // real error (with stack) and shows a message on screen instead of
+    // leaving the UI frozen on the static placeholder text.
     trackQuestionStart();
     setAvatarThinking(true);
-    conversationHistory = [{ role: 'system', content: buildSystemPrompt() }];
   
-    const pacingNote = buildPacingNote();
-    conversationHistory.push(pacingNote);
-  
+    let pacingNote = null;
     try {
+      conversationHistory = [{ role: 'system', content: buildSystemPrompt() }];
+      pacingNote = buildPacingNote();
+      conversationHistory.push(pacingNote);
+  
       const question = sanitizeAiText(await callGroqAPI(conversationHistory));
       conversationHistory.pop(); // drop the ephemeral pacing note — never part of the saved/shown transcript
       if (question === 'INTERVIEW_END_REQUESTED') { endInterview(false); return; }
@@ -309,12 +317,16 @@ function buildSystemPrompt() {
       document.getElementById('aiBubble').textContent = question;
       speakAsInterviewer(question, null);
     } catch (err) {
-      const idx = conversationHistory.indexOf(pacingNote);
+      const idx = pacingNote ? conversationHistory.indexOf(pacingNote) : -1;
       if (idx !== -1) conversationHistory.splice(idx, 1); // don't leave it dangling if the call itself failed
-      console.error('AI question error:', err);
+      // Log the full error INCLUDING stack — this is what tells us whether
+      // it's a prompt-building bug (TypeError/ReferenceError, thrown
+      // synchronously, no network involved) vs a real backend/network
+      // failure (fetch error, non-2xx response).
+      console.error('AI question error:', err, err && err.stack);
       document.getElementById('currentQuestion').textContent =
-        'Could not start the interview due to a connection issue. This session has been marked as failed and will NOT count against your free interviews — please try again.';
-      reportInterviewFailure('Could not reach the AI interviewer to load the first question (network or API error).');
+        `Could not start the interview: ${err && err.message ? err.message : 'unknown error'}. This session has been marked as failed and will NOT count against your free interviews — please try again.`;
+      reportInterviewFailure(`Could not reach the AI interviewer to load the first question: ${err && err.message ? err.message : 'unknown error'}`);
     } finally {
       setAvatarThinking(false);
     }
