@@ -15,7 +15,7 @@
 #   python migrate_add_target_company.py
 # ============================================================
 
-from sqlalchemy import inspect, text
+from sqlalchemy import inspect, text  # pyright: ignore[reportMissingImports]
 
 import config
 from models.database import engine

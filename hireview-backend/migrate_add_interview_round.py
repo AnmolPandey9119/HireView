@@ -20,7 +20,7 @@
 #   DATABASE_URL="<paste prod connection string>" python migrate_add_interview_round.py
 # ============================================================
 
-from sqlalchemy import inspect, text
+from sqlalchemy import inspect, text  # pyright: ignore[reportMissingImports]
 
 import config
 from models.database import engine
