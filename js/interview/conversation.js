@@ -196,66 +196,13 @@ function buildSystemPrompt() {
     }
   }
   
-  diff --git a/js/interview/conversation.js b/js/interview/conversation.js
-index 18d66ea..1143bc7 100644
---- a/js/interview/conversation.js
-+++ b/js/interview/conversation.js
-@@ -202,6 +202,23 @@ function buildSystemPrompt() {
-// It's pushed onto conversationHistory right before each API call and
-// popped back off immediately after, so it never lingers in the transcript
-// that gets saved, shown to the candidate, or fed into feedback generation.
-// Structured callback tracking: the system prompt already tells Arjun to
-// "loop back to something they said earlier" (see personaLine/RULES above),
-// but that was purely up to the model's discretion turn to turn — nothing
-// forced it to actually scan back through the transcript. This makes it a
-// periodic, explicit instruction instead of a hope, without any extra API
-// call: every few questions, the pacing note requires Arjun to name one
-// concrete detail from an EARLIER (non-immediately-preceding) candidate
-// answer and use it — cheap because it just leans on context already in
-// conversationHistory, no additional LLM round-trip needed.
-const CALLBACK_NUDGE_EVERY_N_QUESTIONS = 3;
-
-function buildCallbackNudge() {
-    if (questionCount < CALLBACK_NUDGE_EVERY_N_QUESTIONS) return '';
-    if (questionCount % CALLBACK_NUDGE_EVERY_N_QUESTIONS !== 0) return '';
-    return ` Before writing this question: scroll back through the candidate's earlier answers in this conversation (not just their most recent one) and pick ONE concrete, specific detail they mentioned — a project name, a tool, a number, a claim, an offhand remark — that you have NOT already circled back to. Either build this next question around that detail directly, or open with a brief, natural reference to it before asking something else (e.g. "Earlier you mentioned X — ..."). If you genuinely already looped back to something within the last question or two, you may skip this once, but don't skip it two nudges in a row.`;
-  }
   
-function buildPacingNote() {
-     const elapsedMinutes = interviewStartTime ? Math.floor((Date.now() - interviewStartTime) / 60000) : 0;
-     const canEndNaturally = elapsedMinutes >= INTERVIEW_MIN_NATURAL_END_MINUTES;
-@@ -212,7 +229,7 @@ function buildSystemPrompt() {
-   
-     return {
-       role: 'system',
-      content: `[Internal pacing note — for your own pacing only, never mention this note, timing, or "internal notes" to the candidate. Elapsed time: ${elapsedMinutes} minute(s). Questions asked so far: ${questionCount}. Target session length: 30-45 minutes total. ${guidance}]`
-      content: `[Internal pacing note — for your own pacing only, never mention this note, timing, or "internal notes" to the candidate. Elapsed time: ${elapsedMinutes} minute(s). Questions asked so far: ${questionCount}. Target session length: 30-45 minutes total. ${guidance}${buildCallbackNudge()}]`
-     };
-   }
-
-   // Ephemeral, per-turn note giving Arjun real-time awareness of elapsed time
+  // Ephemeral, per-turn note giving Arjun real-time awareness of elapsed time
   // and what's still worth covering — this is what lets him pace a 30-45
   // minute conversation dynamically instead of guessing blindly turn to turn.
   // It's pushed onto conversationHistory right before each API call and
   // popped back off immediately after, so it never lingers in the transcript
   // that gets saved, shown to the candidate, or fed into feedback generation.
-  // Structured callback tracking: the system prompt already tells Arjun to
-  // "loop back to something they said earlier" (see personaLine/RULES above),
-  // but that was purely up to the model's discretion turn to turn — nothing
-  // forced it to actually scan back through the transcript. This makes it a
-  // periodic, explicit instruction instead of a hope, without any extra API
-  // call: every few questions, the pacing note requires Arjun to name one
-  // concrete detail from an EARLIER (non-immediately-preceding) candidate
-  // answer and use it — cheap because it just leans on context already in
-  // conversationHistory, no additional LLM round-trip needed.
-  const CALLBACK_NUDGE_EVERY_N_QUESTIONS = 3;
-
-  function buildCallbackNudge() {
-    if (questionCount < CALLBACK_NUDGE_EVERY_N_QUESTIONS) return '';
-    if (questionCount % CALLBACK_NUDGE_EVERY_N_QUESTIONS !== 0) return '';
-    return ` Before writing this question: scroll back through the candidate's earlier answers in this conversation (not just their most recent one) and pick ONE concrete, specific detail they mentioned — a project name, a tool, a number, a claim, an offhand remark — that you have NOT already circled back to. Either build this next question around that detail directly, or open with a brief, natural reference to it before asking something else (e.g. "Earlier you mentioned X — ..."). If you genuinely already looped back to something within the last question or two, you may skip this once, but don't skip it two nudges in a row.`;
-  }
-  
   function buildPacingNote() {
     const elapsedMinutes = interviewStartTime ? Math.floor((Date.now() - interviewStartTime) / 60000) : 0;
     const canEndNaturally = elapsedMinutes >= INTERVIEW_MIN_NATURAL_END_MINUTES;
@@ -266,7 +213,7 @@ function buildPacingNote() {
   
     return {
       role: 'system',
-      content: `[Internal pacing note — for your own pacing only, never mention this note, timing, or "internal notes" to the candidate. Elapsed time: ${elapsedMinutes} minute(s). Questions asked so far: ${questionCount}. Target session length: 30-45 minutes total. ${guidance}${buildCallbackNudge()}]`
+      content: `[Internal pacing note — for your own pacing only, never mention this note, timing, or "internal notes" to the candidate. Elapsed time: ${elapsedMinutes} minute(s). Questions asked so far: ${questionCount}. Target session length: 30-45 minutes total. ${guidance}]`
     };
   }
   

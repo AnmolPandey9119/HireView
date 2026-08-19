@@ -261,6 +261,80 @@ class SiteVisit(Base):
 
 
 # ============================================================
+# QUESTION BANK TABLES — append to models/database.py
+# Add these class definitions anywhere before the "CREATE ALL TABLES"
+# section (i.e. before init_db()), so Base.metadata.create_all() picks
+# them up automatically. No other change to database.py is needed —
+# init_db()'s existing _sync_missing_columns() will also auto-add any
+# columns if these models grow later, same as every other table here.
+# ============================================================
+
+# ============================================================
+# QUESTION BANK TABLE
+# One row per question, shared across all three categories
+# (aptitude / coding / interview) since they share the same core
+# fields (category, topic, difficulty, prompt). Category-specific
+# fields are simply nullable when not applicable.
+# ============================================================
+class QuestionBank(Base):
+    __tablename__ = "question_bank"
+
+    id            = Column(Integer, primary_key=True, index=True)
+
+    category      = Column(String, nullable=False, index=True)   # 'aptitude' | 'coding' | 'interview'
+    topic         = Column(String, nullable=False, index=True)   # e.g. 'percentages', 'arrays', 'behavioral'
+    difficulty    = Column(String, nullable=False, index=True)   # 'easy' | 'medium' | 'hard'
+
+    prompt        = Column(Text, nullable=False)                 # the question text itself
+
+    # --- Aptitude-only fields (MCQ) ---
+    options       = Column(Text, nullable=True)   # JSON array of strings, e.g. ["12%", "15%", "18%", "20%"]
+    correct_index = Column(Integer, nullable=True)  # index into options[] — which one is correct
+    explanation   = Column(Text, nullable=True)    # shown after the user answers, any category
+
+    # --- Coding-only fields ---
+    starter_code  = Column(Text, nullable=True)    # boilerplate shown in the editor (Phase 4)
+    constraints   = Column(Text, nullable=True)    # e.g. "1 <= n <= 10^5, time limit 1s"
+
+    # --- Interview-only fields ---
+    guidance_notes = Column(Text, nullable=True)   # what a strong answer should cover — used by
+                                                    # feedback scoring in a later phase, not shown to candidate
+
+    is_active     = Column(Boolean, default=True, nullable=False)  # soft-disable a bad question without deleting it
+    created_at    = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    test_cases    = relationship("CodingTestCase", back_populates="question", cascade="all, delete")
+
+
+# ============================================================
+# CODING TEST CASE TABLE
+# Only used by category == 'coding' questions. Kept as a separate
+# table (not JSON on QuestionBank) because a question can have many
+# cases and the coding-round grader (Phase 4) needs to run each one
+# individually and report pass/fail per case.
+# ============================================================
+class CodingTestCase(Base):
+    __tablename__ = "coding_test_cases"
+
+    id              = Column(Integer, primary_key=True, index=True)
+    question_id     = Column(Integer, ForeignKey("question_bank.id"), nullable=False)
+
+    input           = Column(Text, nullable=False)
+    expected_output = Column(Text, nullable=False)
+
+    # Sample cases are shown to the candidate alongside the problem
+    # statement (so they know the expected format); non-sample cases
+    # are hidden and only used for grading in Phase 4.
+    is_sample       = Column(Boolean, default=False, nullable=False)
+
+    order_index     = Column(Integer, default=0)
+
+    # Relationships
+    question = relationship("QuestionBank", back_populates="test_cases")
+
+
+# ============================================================
 # CREATE ALL TABLES
 # ============================================================
 def init_db():
