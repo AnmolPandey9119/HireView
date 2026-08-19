@@ -18,6 +18,14 @@
     --hv-bg-alt1: #1a1040;
     --hv-bg-alt2: #0d1230;
     --hv-white: #ffffff;
+    --hv-modal-grad-start: #171b3a;
+    --hv-modal-grad-end: #120f2c;
+    --hv-success-tint: #86efac;
+    --hv-info-tint: #a5f3fc;
+    --hv-success-tint-light: #bbf7d0;
+    --hv-primary-tint: #c7d2fe;
+    --hv-error-tint: #fca5a5;
+    --hv-error-tint-light: #fecaca;
   }
 
    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
