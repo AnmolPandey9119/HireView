@@ -13,6 +13,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 from typing import Optional
 import json
 import random
@@ -22,6 +23,10 @@ from routes.auth import get_current_user
 from models.database import User
 
 router = APIRouter()
+
+
+class AnswerSubmission(BaseModel):
+    selected_index: int
 
 
 def _serialize_question(q: QuestionBank, include_answer: bool = False) -> dict:
@@ -157,3 +162,30 @@ def get_random_set(
 
     chosen = random.sample(pool, k=min(count, len(pool)))
     return {"count": len(chosen), "questions": [_serialize_question(x) for x in chosen]}
+
+
+@router.post("/questions/{question_id}/answer")
+def submit_answer(
+    question_id: int,
+    body: AnswerSubmission,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Grade one aptitude MCQ answer server-side. This is the ONLY place
+    correct_index/explanation ever leave the backend for a question the
+    candidate hasn't finished attempting yet — list_questions/get_question
+    never include them, by design (see _serialize_question). Doing the
+    check here means the answer key never sits in a browser JS payload
+    where devtools could read it before the candidate submits."""
+    q = db.query(QuestionBank).filter(QuestionBank.id == question_id, QuestionBank.is_active == True).first()  # noqa: E712
+    if not q:
+        raise HTTPException(status_code=404, detail="Question not found")
+    if q.category != "aptitude":
+        raise HTTPException(status_code=400, detail="Only aptitude questions are auto-graded here")
+
+    is_correct = body.selected_index == q.correct_index
+    return {
+        "is_correct": is_correct,
+        "correct_index": q.correct_index,
+        "explanation": q.explanation,
+    }

@@ -21,7 +21,7 @@
       { key: 'dashboard',   label: 'Dashboard',      icon: '\u25A4', href: '/dashboard' },
       { key: 'start',       label: 'Start Interview',icon: '\u25B6', action: 'startInterview' },
       { key: 'reports',     label: 'My Reports',     icon: '\u{1F4C4}', href: '/history' },
-      { key: 'questionbank',label: 'Question Bank',  icon: '\u{1F5C3}\uFE0F', comingSoon: true },
+      { key: 'questionbank',label: 'Question Bank',  icon: '\u{1F5C3}\uFE0F', href: '/questionbank' },
       { key: 'analytics',   label: 'Analytics',      icon: '\u{1F4CA}', comingSoon: true },
       { key: 'aptitude',    label: 'Aptitude Test',  icon: '\u{1F9EE}', comingSoon: true },
       { key: 'coding',      label: 'Coding Round',   icon: '\u{1F4BB}', comingSoon: true },
