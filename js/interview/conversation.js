@@ -765,10 +765,17 @@ Respond with ONLY this JSON, no extra text:
 }
 
 function showFeedbackScreen(feedback) {
-  const score = feedback.overall_score || 0;
-  const scoreColor = score >= 8 ? '#22c55e' : score >= 6 ? '#f59e0b' : '#ef4444';
+  // overall_score can legitimately be 0 (candidate gave no real answers —
+  // that's a real, deserved 0) OR null (validateFeedback couldn't get a
+  // trustworthy number from the AI's output — that's "not evaluated", not
+  // a failing score). `|| 0` used to collapse both into the same red
+  // "0/10", which silently turned an honest "we couldn't score this" into
+  // what looks like the worst possible outcome. Keep them visually distinct.
+  const hasScore = feedback.overall_score !== null && feedback.overall_score !== undefined;
+  const score = hasScore ? feedback.overall_score : 0;
+  const scoreColor = !hasScore ? '#94a3b8' : score >= 8 ? '#22c55e' : score >= 6 ? '#f59e0b' : '#ef4444';
   const rec = feedback.hiring_recommendation || 'Borderline';
-  const recColor = rec.includes('Strong') ? '#22c55e' : rec === 'Hire' ? '#6366f1' : rec === 'Borderline' ? '#f59e0b' : '#ef4444';
+  const recColor = rec === 'Not Evaluated' ? '#94a3b8' : rec.includes('Strong') ? '#22c55e' : rec === 'Hire' ? '#6366f1' : rec === 'Borderline' ? '#f59e0b' : '#ef4444';
   const strengthsList = (feedback.strengths || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
   const improveList = (feedback.areas_to_improve || []).map(a => `<li>${escapeHtml(a)}</li>`).join('');
   const candidateName = (currentUser && currentUser.name) ? escapeHtml(currentUser.name.split(' ')[0]) : null;
@@ -821,7 +828,7 @@ function showFeedbackScreen(feedback) {
     <div class="results-container" style="max-width:800px;margin:0 auto;padding:2rem 1rem">
       <div style="text-align:center;margin-bottom:1.5rem">
         <div style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin-bottom:1.25rem">${candidateName ? `Here's how your interview went, ${candidateName}` : "Here's how your interview went"}</div>
-        <div style="font-size:3rem;font-weight:800;color:${scoreColor}">${score}/10</div>
+        <div style="font-size:3rem;font-weight:800;color:${scoreColor}">${hasScore ? `${score}/10` : 'Not scored'}</div>
         <div style="font-size:1.1rem;color:rgba(255,255,255,0.6);margin-top:0.5rem">Overall Score</div>
         <div style="display:inline-block;margin-top:1rem;padding:0.5rem 1.5rem;background:${recColor}22;border:1px solid ${recColor};border-radius:20px;color:${recColor};font-weight:700">${rec}</div>
       </div>
@@ -833,11 +840,11 @@ function showFeedbackScreen(feedback) {
       <div class="results-score-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
         <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(99,102,241,0.2);border-radius:14px;padding:1.5rem">
           <div style="font-size:0.8rem;color:rgba(255,255,255,0.5);font-weight:600;text-transform:uppercase;margin-bottom:0.5rem">Technical</div>
-          <div style="font-size:2rem;font-weight:800;color:#6366f1">${feedback.technical_score}/10</div>
+          <div style="font-size:2rem;font-weight:800;color:#6366f1">${feedback.technical_score != null ? `${feedback.technical_score}/10` : '—'}</div>
         </div>
         <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(99,102,241,0.2);border-radius:14px;padding:1.5rem">
           <div style="font-size:0.8rem;color:rgba(255,255,255,0.5);font-weight:600;text-transform:uppercase;margin-bottom:0.5rem">Soft Skills</div>
-          <div style="font-size:2rem;font-weight:800;color:#ec4899">${feedback.soft_skills_score}/10</div>
+          <div style="font-size:2rem;font-weight:800;color:#ec4899">${feedback.soft_skills_score != null ? `${feedback.soft_skills_score}/10` : '—'}</div>
         </div>
       </div>
       <div class="results-score-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
