@@ -278,4 +278,136 @@ if (!authToken) window.location.href = '/auth';
       }
     }
 
+    // ────────────────────────────────────────────
+    // Aptitude Test reports tab
+    // Talks to /api/aptitude/attempts* (routes/aptitude.py). Summaries
+    // load once up front; full per-question review is fetched lazily
+    // the first time a card is expanded, then cached in aptAttemptCache.
+    // ────────────────────────────────────────────
+    let aptReportsLoaded = false;
+    const aptAttemptCache = {}; // attempt id -> full review payload
+
+    function switchReportsTab(tab) {
+      document.querySelectorAll('.reports-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+      document.getElementById('historyContainer').style.display = tab === 'interviews' ? '' : 'none';
+      document.getElementById('aptitudeReportsContainer').style.display = tab === 'aptitude' ? '' : 'none';
+      if (tab === 'aptitude' && !aptReportsLoaded) loadAptitudeReports();
+    }
+
+    document.getElementById('reportsTabs').addEventListener('click', (e) => {
+      const btn = e.target.closest('.reports-tab');
+      if (!btn) return;
+      switchReportsTab(btn.dataset.tab);
+    });
+
+    function aptScoreColor(pct) {
+      if (pct == null) return 'rgba(255,255,255,0.3)';
+      if (pct >= 70) return '#22c55e';
+      if (pct >= 40) return '#f59e0b';
+      return '#ef4444';
+    }
+
+    function formatAptDuration(seconds) {
+      if (seconds == null) return '—';
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return m > 0 ? `${m}m ${s}s` : `${s}s`;
+    }
+
+    function renderAptitudeReports(attempts) {
+      const container = document.getElementById('aptitudeReportsContainer');
+
+      if (attempts.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🧮</div>
+            <div style="font-weight:700;font-size:1.1rem;margin-bottom:0.5rem">No aptitude tests yet</div>
+            <div style="font-size:0.9rem">Take one from the Aptitude Test page to see your results here</div>
+            <button class="back-btn" style="margin-top:1.25rem;background:rgba(99,102,241,0.2);border-color:rgba(99,102,241,0.4);color:#818cf8" onclick="window.location.href='/aptitude'">Take an Aptitude Test</button>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = `<div class="history-list">${attempts.map(a => `
+        <div class="history-card" id="apt-card-${a.id}">
+          <div class="history-card-header" onclick="toggleAptCard(${a.id})">
+            <div>
+              <div class="history-role">${escapeHtml((a.topic || 'Mixed topics').replace(/_/g, ' '))} ${a.difficulty ? `· ${escapeHtml(a.difficulty)}` : '· mixed'}</div>
+              <div class="history-date">📅 ${formatDate(a.started_at)} · ⏱️ ${formatAptDuration(a.time_taken_seconds)}</div>
+            </div>
+            <div class="history-meta">
+              <div class="apt-score-badge" style="color:${aptScoreColor(a.score_percent)}">${a.score_percent}%</div>
+              <span class="status-badge status-completed">${a.correct_count}/${a.total_questions} correct</span>
+              <span class="expand-icon" id="apt-icon-${a.id}">▼</span>
+            </div>
+          </div>
+          <div class="history-card-body" id="apt-body-${a.id}">
+            <div class="qa-section" id="apt-review-${a.id}"><div class="no-qa">Loading review…</div></div>
+          </div>
+        </div>`).join('')}</div>`;
+    }
+
+    async function toggleAptCard(id) {
+      const body = document.getElementById(`apt-body-${id}`);
+      const icon = document.getElementById(`apt-icon-${id}`);
+      body.classList.toggle('open');
+      icon.classList.toggle('open');
+      if (!body.classList.contains('open')) return;
+
+      if (!aptAttemptCache[id]) {
+        try {
+          const res = await fetch(`${BACKEND_URL}/api/aptitude/attempts/${id}`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+          });
+          if (!res.ok) throw new Error('Failed to load review');
+          aptAttemptCache[id] = await res.json();
+        } catch (err) {
+          console.error('Aptitude review error:', err);
+          document.getElementById(`apt-review-${id}`).innerHTML =
+            '<div style="color:#f87171;padding:1rem">Could not load this review.</div>';
+          return;
+        }
+      }
+
+      renderAptReview(id, aptAttemptCache[id]);
+    }
+
+    function renderAptReview(id, attempt) {
+      const wrap = document.getElementById(`apt-review-${id}`);
+      wrap.innerHTML = attempt.questions.map((q, i) => {
+        const optionsHtml = q.options.map((opt, idx) => {
+          let cls = 'apt-review-option';
+          if (idx === q.correct_index) cls += ' correct';
+          else if (idx === q.selected_index) cls += ' incorrect';
+          return `<div class="${cls}">${escapeHtml(opt)}</div>`;
+        }).join('');
+        return `
+          <div class="apt-review-q">
+            <div class="apt-review-prompt">Q${i + 1}. ${escapeHtml(q.prompt)} ${q.is_correct ? '✅' : '❌'}</div>
+            ${optionsHtml}
+            ${q.explanation ? `<div class="apt-review-explanation">${escapeHtml(q.explanation)}</div>` : ''}
+          </div>`;
+      }).join('');
+    }
+
+    async function loadAptitudeReports() {
+      aptReportsLoaded = true;
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/aptitude/attempts`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (!res.ok) {
+          if (res.status === 401) { window.location.href = '/auth'; return; }
+          throw new Error('Failed to load aptitude reports');
+        }
+        const data = await res.json();
+        renderAptitudeReports(data.attempts || []);
+      } catch (err) {
+        console.error('Aptitude reports error:', err);
+        aptReportsLoaded = false;
+        document.getElementById('aptitudeReportsContainer').innerHTML =
+          '<div style="color:#f87171;padding:1rem">Could not load aptitude reports. Is the backend running?</div>';
+      }
+    }
+
     loadHistory();

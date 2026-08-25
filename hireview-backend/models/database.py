@@ -335,6 +335,39 @@ class CodingTestCase(Base):
 
 
 # ============================================================
+# APTITUDE ATTEMPT TABLE
+# One row per aptitude-test session a candidate takes from
+# /aptitude (Phase 3). Stores which questions were served, what the
+# candidate answered, and the graded outcome, so results can be
+# re-shown later in My Reports (history.html) without re-grading.
+# ============================================================
+class AptitudeAttempt(Base):
+    __tablename__ = "aptitude_attempts"
+
+    id              = Column(Integer, primary_key=True, index=True)
+    user_id         = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+
+    topic           = Column(String, nullable=True)   # null = mixed across all topics
+    difficulty      = Column(String, nullable=True)   # null = mixed across all difficulties
+
+    question_ids    = Column(Text, nullable=False)    # JSON array of QuestionBank ids, in the order served
+    answers         = Column(Text, nullable=True)      # JSON object: { "<question_id>": selected_index }
+
+    total_questions = Column(Integer, nullable=False)
+    correct_count   = Column(Integer, nullable=True)   # null until submitted
+    score_percent   = Column(Float, nullable=True)     # null until submitted
+    time_taken_seconds = Column(Integer, nullable=True)
+
+    status          = Column(String, default="in_progress", nullable=False)  # in_progress | completed | abandoned
+
+    started_at      = Column(DateTime, default=datetime.utcnow)
+    completed_at    = Column(DateTime, nullable=True)
+
+    # Relationships
+    user = relationship("User")
+
+
+# ============================================================
 # CREATE ALL TABLES
 # ============================================================
 def init_db():

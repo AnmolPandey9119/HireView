@@ -71,6 +71,22 @@
     .qa-skipped { color: rgba(255,255,255,0.6); font-style: italic; }
     .no-qa { font-size: 0.9rem; color: rgba(255,255,255,0.6); text-align: center; padding: 1rem 0; }
 
+    /* Reports tabs (Interviews / Aptitude Tests) */
+    .reports-tabs { display: flex; gap: 0.6rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .reports-tab { padding: 0.7rem 1.4rem; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(99,102,241,0.2); color: rgba(255,255,255,0.7); font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.92rem; transition: all 0.2s ease; }
+    .reports-tab:hover { background: rgba(255,255,255,0.08); }
+    .reports-tab.active { background: linear-gradient(135deg, var(--hv-primary), var(--hv-accent)); color: white; border-color: transparent; box-shadow: 0 4px 18px rgba(99,102,241,0.35); }
+
+    /* Aptitude attempt cards (reuses .history-card shell) */
+    .apt-score-badge { font-size: 1.3rem; font-weight: 800; }
+    .apt-review-option { padding: 0.7rem 0.95rem; border-radius: 10px; background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .apt-review-option.correct { border-color: var(--hv-success); background: rgba(34,197,94,0.12); color: #bbf7d0; }
+    .apt-review-option.incorrect { border-color: var(--hv-error); background: rgba(239,68,68,0.12); color: #fecaca; }
+    .apt-review-q { padding: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .apt-review-q:last-child { border-bottom: none; }
+    .apt-review-prompt { font-weight: 700; color: white; margin-bottom: 0.75rem; line-height: 1.5; }
+    .apt-review-explanation { font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: 0.5rem; line-height: 1.6; }
+
     .empty-state { text-align: center; padding: 4rem 2rem; color: rgba(255,255,255,0.6); }
     .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
     .loading-shimmer { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 18px; height: 80px; margin-bottom: 1rem; }
@@ -99,11 +115,16 @@
       <div class="content-wrapper">
 
         <div class="page-header">
-          <div class="page-title">📋 Interview History</div>
+          <div class="page-title">📋 My Reports</div>
           <div style="display:flex;gap:0.75rem">
             <button class="back-btn" onclick="window.location.href = '/dashboard'">← Dashboard</button>
             <button class="back-btn" onclick="window.location.href='/interview'" style="background:rgba(99,102,241,0.2);border-color:rgba(99,102,241,0.4);color:#818cf8">+ New Interview</button>
           </div>
+        </div>
+
+        <div class="reports-tabs" id="reportsTabs">
+          <button class="reports-tab active" data-tab="interviews">🗣️ Interviews</button>
+          <button class="reports-tab" data-tab="aptitude">🧮 Aptitude Tests</button>
         </div>
 
         <div id="historyContainer">
@@ -111,6 +132,8 @@
           <div class="loading-shimmer"></div>
           <div class="loading-shimmer"></div>
         </div>
+
+        <div id="aptitudeReportsContainer" style="display:none;"></div>
 
       </div>
     </main>
