@@ -120,16 +120,20 @@ except ImportError:
 
 # ============================================================
 # CODE EXECUTION (Coding Round)
-# Code is compiled/run remotely by Piston (https://github.com/engineer-man/piston),
-# a free, open-source multi-language execution sandbox — the backend never
-# runs candidate-submitted code locally. PISTON_API_URL defaults to the
-# public hosted instance; set it in the environment to point at a
-# self-hosted Piston instance instead if the public one's rate limits
-# (a few requests/sec) become a problem in production.
+# Code is compiled/run remotely by Judge0 CE (https://judge0.com), a
+# sandboxed multi-language execution API — the backend never runs
+# candidate-submitted code locally.
+#
+# Default JUDGE0_API_URL/HOST point at the hosted RapidAPI instance.
+# You MUST set JUDGE0_API_KEY yourself — get a free key (no approval
+# needed) at https://rapidapi.com/judge0-official/api/judge0-ce by
+# subscribing to the Basic (free) plan. See the setup note at the top
+# of models/judge0_client.py for details.
 # ============================================================
-PISTON_API_URL      = os.getenv("PISTON_API_URL", "https://emkc.org/api/v2/piston").rstrip("/")
-CODE_RUN_TIMEOUT_MS = int(os.getenv("CODE_RUN_TIMEOUT_MS", "8000"))    # per-test-case run limit
-CODE_COMPILE_TIMEOUT_MS = int(os.getenv("CODE_COMPILE_TIMEOUT_MS", "10000"))
+JUDGE0_API_URL  = os.getenv("JUDGE0_API_URL", "https://judge0-ce.p.rapidapi.com").rstrip("/")
+JUDGE0_API_KEY  = os.getenv("JUDGE0_API_KEY", "")
+JUDGE0_API_HOST = os.getenv("JUDGE0_API_HOST", "judge0-ce.p.rapidapi.com")
+CODE_RUN_TIMEOUT_SECONDS = int(os.getenv("CODE_RUN_TIMEOUT_SECONDS", "8"))   # per-test-case CPU time limit
 MAX_SOURCE_CODE_CHARS = 20000   # sanity cap so nobody pastes a multi-MB file into the editor
 
 # ============================================================

@@ -6,7 +6,7 @@
 # coding tab ("coming in the next Coding Round update"). Sits on top
 # of the same QuestionBank/CodingTestCase tables questions.py already
 # reads — this file adds the part that was missing: actually running
-# the candidate's code (via Piston, see models/piston_client.py) and
+# the candidate's code (via Judge0 CE, see models/judge0_client.py) and
 # grading it against each test case.
 #
 # Two ways this gets used:
@@ -37,8 +37,8 @@ from models.database import (
     get_db, QuestionBank, CodingTestCase, CodingAttempt, CodingSubmission,
     User, to_utc_iso,
 )
-from models.piston_client import (
-    LANGUAGES, LANGUAGES_BY_ID, PistonError, execute_code, normalize_output, get_starter_code,
+from models.judge0_client import (
+    LANGUAGES, LANGUAGES_BY_ID, Judge0Error, execute_code, normalize_output, get_starter_code,
 )
 from routes.auth import get_current_user
 import random
@@ -125,7 +125,7 @@ def _run_against_cases(language: str, source_code: str, cases: List[CodingTestCa
 
         try:
             outcome = execute_code(language, source_code, tc.input)
-        except PistonError as e:
+        except Judge0Error as e:
             raise HTTPException(status_code=503, detail=str(e))
 
         if outcome["compile_stderr"]:
