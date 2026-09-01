@@ -159,7 +159,7 @@
      try {
        const q = await apiGet(`/api/questions/${id}`);
        if (q.category === 'aptitude') renderAptitudeModal(q);
-       else if (q.category === 'coding') renderCodingModal(q);
+       else if (q.category === 'coding') await renderCodingModal(q);
        else renderInterviewModal(q);
        document.getElementById('qbModalOverlay').classList.add('open');
      } catch (err) {
@@ -170,6 +170,8 @@
    
    function closeQbModal() {
      document.getElementById('qbModalOverlay').classList.remove('open');
+     qbCodeEditor = null;
+     qbEditorQuestion = null;
    }
    
    document.getElementById('qbModalOverlay').addEventListener('click', (e) => {
@@ -243,7 +245,53 @@
      }
    }
    
-   function renderCodingModal(q) {
+   // ────────────────────────────────────────────
+   // Coding practice — in-modal compiler
+   // Talks to /api/coding/questions/{id}/run and /submit (routes/coding.py),
+   // the same Piston-backed grading engine the full Coding Round page uses.
+   // This is the ungraded, one-off "practice a single problem" flow —
+   // no attempt_id is sent, so nothing here counts toward a Coding Round.
+   // ────────────────────────────────────────────
+   const QB_CM_MODE = {
+     c: 'text/x-csrc', cpp: 'text/x-c++src', java: 'text/x-java',
+     python: 'python', javascript: 'javascript',
+   };
+   let qbLanguagesCache = null;
+   let qbCodeEditor = null;
+   let qbEditorQuestion = null;
+   let qbEditorBusy = false;
+
+   async function qbLoadLanguages() {
+     if (qbLanguagesCache) return qbLanguagesCache;
+     try {
+       const data = await apiGet('/api/coding/languages');
+       qbLanguagesCache = data.languages || [];
+     } catch (err) {
+       console.error(err);
+       qbLanguagesCache = [{ id: 'c', label: 'C (GCC)', monaco_language: 'c' }];
+     }
+     return qbLanguagesCache;
+   }
+
+   function qbRenderCaseResults(results) {
+     return (results || []).map((r, i) => {
+       const label = r.is_sample ? `Sample ${i + 1}` : `Hidden case ${i + 1}`;
+       const cls = r.passed ? 'pass' : 'fail';
+       const icon = r.passed ? '✅' : '❌';
+       let detail = '';
+       if (r.is_sample) {
+         detail = `<div class="qb-case-detail"><b>Input:</b>\n${escapeHtml(r.input || '')}
+<b>Expected:</b>\n${escapeHtml(r.expected_output || '')}
+<b>Your output:</b>\n${escapeHtml(r.actual_output || '(no output)')}</div>`;
+       } else if (!r.passed) {
+         detail = `<div class="qb-case-detail"><b>Your output:</b>\n${escapeHtml(r.actual_output || '(no output)')}</div>`;
+       }
+       if (r.error) detail += `<div class="qb-case-detail">⚠️ ${escapeHtml(r.error)}</div>`;
+       return `<div><div class="qb-case-row ${cls}"><span>${icon} ${label}</span><span>${r.passed ? 'Passed' : 'Failed'}</span></div>${detail}</div>`;
+     }).join('');
+   }
+
+   async function renderCodingModal(q) {
      const modal = document.getElementById('qbModal');
      const samplesHtml = (q.sample_test_cases || []).map((tc, i) => `
        <div class="qb-sample-case">
@@ -253,7 +301,10 @@
          <div style="font-family:'Courier New',monospace; margin-top:0.25rem; white-space:pre-wrap;">${escapeHtml(tc.expected_output)}</div>
        </div>
      `).join('') || '<div class="qb-coding-note">No sample cases for this problem.</div>';
-   
+
+     const languages = await qbLoadLanguages();
+     const langOptionsHtml = languages.map(l => `<option value="${l.id}">${escapeHtml(l.label)}</option>`).join('');
+
      modal.innerHTML = `
        <div class="qb-modal-head">
          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
@@ -264,14 +315,104 @@
        </div>
        <div class="qb-modal-prompt">${escapeHtml(q.prompt)}</div>
        ${q.constraints ? `<div class="qb-constraints"><b>Constraints:</b> ${escapeHtml(q.constraints)}</div>` : ''}
-       <div class="qb-code-block">${escapeHtml(q.starter_code || '')}</div>
        <div style="font-weight:700; font-size:0.85rem; color:rgba(255,255,255,0.6); margin-bottom:0.6rem;">Sample test cases</div>
        ${samplesHtml}
-       <div class="qb-coding-note">In-browser compiling &amp; grading (C compiler) is coming in the next Coding Round update — for now, copy the starter code into your own editor to solve and test it.</div>
+       <div class="qb-editor-top">
+         <select class="qb-lang-select" id="qbLangSelect">${langOptionsHtml}</select>
+         <div class="qb-editor-actions">
+           <button class="qb-btn" id="qbResetBtn">↺ Reset</button>
+           <button class="qb-btn" id="qbRunBtn">▶ Run</button>
+           <button class="qb-btn submit" id="qbSubmitBtn">Submit ✓</button>
+         </div>
+       </div>
+       <div class="qb-editor-wrap"><textarea id="qbCodeArea"></textarea></div>
+       <div id="qbCodeResultWrap"></div>
        <div class="qb-modal-actions">
          <button class="secondary-btn" onclick="closeQbModal()">Close</button>
        </div>
      `;
+
+     qbEditorQuestion = q;
+     const textarea = document.getElementById('qbCodeArea');
+     const defaultLang = languages[0]?.id || 'c';
+     qbCodeEditor = CodeMirror.fromTextArea(textarea, {
+       lineNumbers: true,
+       theme: 'dracula',
+       mode: QB_CM_MODE[defaultLang] || 'text/x-csrc',
+       indentUnit: 4,
+       tabSize: 4,
+       matchBrackets: true,
+       extraKeys: { Tab: (cm) => cm.replaceSelection('    ', 'end') },
+     });
+     qbCodeEditor.setValue(q.starter_code || '');
+     setTimeout(() => qbCodeEditor.refresh(), 0);
+
+     document.getElementById('qbLangSelect').addEventListener('change', async (e) => {
+       const lang = e.target.value;
+       qbCodeEditor.setOption('mode', QB_CM_MODE[lang] || 'text/plain');
+       try {
+         const data = await apiGet(`/api/coding/questions/${q.id}/starter?language=${lang}`);
+         qbCodeEditor.setValue(data.starter_code || '');
+       } catch (err) {
+         console.error(err);
+       }
+     });
+
+     document.getElementById('qbResetBtn').addEventListener('click', async () => {
+       const lang = document.getElementById('qbLangSelect').value;
+       try {
+         const data = await apiGet(`/api/coding/questions/${q.id}/starter?language=${lang}`);
+         qbCodeEditor.setValue(data.starter_code || '');
+       } catch (err) {
+         console.error(err);
+       }
+     });
+
+     document.getElementById('qbRunBtn').addEventListener('click', () => qbRunOrSubmit('run'));
+     document.getElementById('qbSubmitBtn').addEventListener('click', () => qbRunOrSubmit('submit'));
+   }
+
+   async function qbRunOrSubmit(mode) {
+     if (qbEditorBusy || !qbEditorQuestion) return;
+     qbEditorBusy = true;
+     const btn = document.getElementById(mode === 'run' ? 'qbRunBtn' : 'qbSubmitBtn');
+     const originalLabel = btn.textContent;
+     btn.disabled = true;
+     btn.textContent = mode === 'run' ? 'Running…' : 'Grading…';
+
+     const wrap = document.getElementById('qbCodeResultWrap');
+     wrap.innerHTML = `<div class="qb-coding-note">Compiling and ${mode === 'run' ? 'running against sample cases' : 'grading against every test case'}…</div>`;
+
+     const language = document.getElementById('qbLangSelect').value;
+     const path = mode === 'run'
+       ? `/api/coding/questions/${qbEditorQuestion.id}/run`
+       : `/api/coding/questions/${qbEditorQuestion.id}/submit`;
+
+     try {
+       const result = await apiPost(path, { language, source_code: qbCodeEditor.getValue() });
+       const total = result.total_count;
+       const passed = result.passed_count;
+       const bannerLabel = mode === 'run'
+         ? `${passed}/${total} sample case${total === 1 ? '' : 's'} passed`
+         : (result.is_solved ? 'All test cases passed!' : `${passed}/${total} test cases passed`);
+       const compileHtml = result.compile_error ? `<div class="qb-compile-error">${escapeHtml(result.compile_error)}</div>` : '';
+       wrap.innerHTML = `
+         <div class="qb-result-banner-run ${passed === total ? 'pass' : 'fail'}">${passed === total ? '✅ ' : ''}${bannerLabel}</div>
+         ${compileHtml}
+         ${qbRenderCaseResults(result.results)}
+       `;
+       if (mode === 'submit') {
+         showToast(result.is_solved ? '✅ Solved!' : `${passed}/${total} test cases passed.`, !result.is_solved);
+       }
+     } catch (err) {
+       console.error(err);
+       wrap.innerHTML = '';
+       showToast(err.message || `Couldn't ${mode} your code. Please try again.`, true);
+     } finally {
+       qbEditorBusy = false;
+       btn.disabled = false;
+       btn.textContent = originalLabel;
+     }
    }
    
    function renderInterviewModal(q) {

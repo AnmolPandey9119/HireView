@@ -368,6 +368,86 @@ class AptitudeAttempt(Base):
 
 
 # ============================================================
+# CODING ROUND ATTEMPT TABLE
+# One row per Coding Round session a candidate starts (mirrors
+# AptitudeAttempt). Holds which questions were served in this round
+# and the aggregate outcome once the round is finished; the actual
+# code + per-test-case grading for each question lives in
+# CodingSubmission below (one attempt can have many submissions per
+# question — re-runs while solving — but only the LATEST submission
+# per question counts toward the round's final score).
+# ============================================================
+class CodingAttempt(Base):
+    __tablename__ = "coding_attempts"
+
+    id              = Column(Integer, primary_key=True, index=True)
+    user_id         = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+
+    topic           = Column(String, nullable=True)   # null = mixed across all topics
+    difficulty      = Column(String, nullable=True)   # null = mixed across all difficulties
+
+    question_ids    = Column(Text, nullable=False)    # JSON array of QuestionBank ids, in the order served
+
+    total_questions = Column(Integer, nullable=False)
+    solved_count    = Column(Integer, nullable=True)   # null until finished — # of questions where all test cases passed
+    score_percent   = Column(Float, nullable=True)      # null until finished — avg % of test cases passed across questions
+    time_taken_seconds = Column(Integer, nullable=True)
+
+    status          = Column(String, default="in_progress", nullable=False)  # in_progress | completed
+
+    started_at      = Column(DateTime, default=datetime.utcnow)
+    completed_at    = Column(DateTime, nullable=True)
+
+    # Relationships
+    user        = relationship("User")
+    submissions = relationship("CodingSubmission", back_populates="attempt", cascade="all, delete")
+
+
+# ============================================================
+# CODING SUBMISSION TABLE
+# One row per "Submit" click on a single coding question. Stores the
+# candidate's exact source code, the language used, and the graded
+# per-test-case result (produced by routes/coding.py running the code
+# through the Piston execution API). attempt_id is set when the
+# submission happened inside a Coding Round session; it's left NULL
+# for one-off practice submissions made from the Question Bank page,
+# so both flows share the same grading engine and history.
+# ============================================================
+class CodingSubmission(Base):
+    __tablename__ = "coding_submissions"
+
+    id            = Column(Integer, primary_key=True, index=True)
+    attempt_id    = Column(Integer, ForeignKey("coding_attempts.id"), nullable=True, index=True)
+    user_id       = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    question_id   = Column(Integer, ForeignKey("question_bank.id"), nullable=False, index=True)
+
+    language      = Column(String, nullable=False)   # 'c' | 'cpp' | 'python' | 'java' | 'javascript'
+    source_code   = Column(Text, nullable=False)
+
+    passed_count  = Column(Integer, nullable=False, default=0)
+    total_count   = Column(Integer, nullable=False, default=0)
+    is_solved     = Column(Boolean, nullable=False, default=False)  # passed_count == total_count (and total_count > 0)
+
+    # JSON array of per-test-case results: [{ "is_sample": bool, "passed": bool,
+    # "input": str|null (only for sample cases), "expected_output": str|null
+    # (only for sample cases), "actual_output": str, "stderr": str }, ...]
+    # Hidden-case inputs/expected outputs are deliberately never stored here
+    # in a form the browser reads back — see _serialize_test_results in
+    # routes/coding.py, same "never leak the answer key" rule as aptitude.
+    test_results  = Column(Text, nullable=True)
+
+    compile_error = Column(Text, nullable=True)   # stderr from the compile step, if compilation failed
+    time_taken_seconds = Column(Integer, nullable=True)
+
+    created_at    = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    attempt  = relationship("CodingAttempt", back_populates="submissions")
+    user     = relationship("User")
+    question = relationship("QuestionBank")
+
+
+# ============================================================
 # CREATE ALL TABLES
 # ============================================================
 def init_db():

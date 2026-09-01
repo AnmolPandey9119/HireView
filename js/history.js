@@ -291,7 +291,9 @@ if (!authToken) window.location.href = '/auth';
       document.querySelectorAll('.reports-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
       document.getElementById('historyContainer').style.display = tab === 'interviews' ? '' : 'none';
       document.getElementById('aptitudeReportsContainer').style.display = tab === 'aptitude' ? '' : 'none';
+      document.getElementById('codingReportsContainer').style.display = tab === 'coding' ? '' : 'none';
       if (tab === 'aptitude' && !aptReportsLoaded) loadAptitudeReports();
+      if (tab === 'coding' && !codingReportsLoaded) loadCodingReports();
     }
 
     document.getElementById('reportsTabs').addEventListener('click', (e) => {
@@ -407,6 +409,111 @@ if (!authToken) window.location.href = '/auth';
         aptReportsLoaded = false;
         document.getElementById('aptitudeReportsContainer').innerHTML =
           '<div style="color:#f87171;padding:1rem">Could not load aptitude reports. Is the backend running?</div>';
+      }
+    }
+
+    // ────────────────────────────────────────────
+    // Coding Round reports tab
+    // Talks to /api/coding/attempts* (routes/coding.py). Same lazy-load /
+    // cache pattern as the aptitude tab above.
+    // ────────────────────────────────────────────
+    let codingReportsLoaded = false;
+    const codingAttemptCache = {};
+
+    function codingScoreColor(pct) {
+      if (pct == null) return 'rgba(255,255,255,0.3)';
+      if (pct >= 70) return '#22c55e';
+      if (pct >= 40) return '#f59e0b';
+      return '#ef4444';
+    }
+
+    function renderCodingReports(attempts) {
+      const container = document.getElementById('codingReportsContainer');
+
+      if (attempts.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">💻</div>
+            <div style="font-weight:700;font-size:1.1rem;margin-bottom:0.5rem">No coding rounds yet</div>
+            <div style="font-size:0.9rem">Take one from the Coding Round page to see your results here</div>
+            <button class="back-btn" style="margin-top:1.25rem;background:rgba(99,102,241,0.2);border-color:rgba(99,102,241,0.4);color:#818cf8" onclick="window.location.href='/coding'">Start a Coding Round</button>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = `<div class="history-list">${attempts.map(a => `
+        <div class="history-card" id="coding-card-${a.id}">
+          <div class="history-card-header" onclick="toggleCodingCard(${a.id})">
+            <div>
+              <div class="history-role">${escapeHtml((a.topic || 'Mixed topics').replace(/_/g, ' '))} ${a.difficulty ? `· ${escapeHtml(a.difficulty)}` : '· mixed'}</div>
+              <div class="history-date">📅 ${formatDate(a.started_at)} · ⏱️ ${formatAptDuration(a.time_taken_seconds)}</div>
+            </div>
+            <div class="history-meta">
+              <div class="apt-score-badge" style="color:${codingScoreColor(a.score_percent)}">${a.score_percent}%</div>
+              <span class="status-badge status-completed">${a.solved_count}/${a.total_questions} solved</span>
+              <span class="expand-icon" id="coding-icon-${a.id}">▼</span>
+            </div>
+          </div>
+          <div class="history-card-body" id="coding-body-${a.id}">
+            <div class="qa-section" id="coding-review-${a.id}"><div class="no-qa">Loading review…</div></div>
+          </div>
+        </div>`).join('')}</div>`;
+    }
+
+    async function toggleCodingCard(id) {
+      const body = document.getElementById(`coding-body-${id}`);
+      const icon = document.getElementById(`coding-icon-${id}`);
+      body.classList.toggle('open');
+      icon.classList.toggle('open');
+      if (!body.classList.contains('open')) return;
+
+      if (!codingAttemptCache[id]) {
+        try {
+          const res = await fetch(`${BACKEND_URL}/api/coding/attempts/${id}`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+          });
+          if (!res.ok) throw new Error('Failed to load review');
+          codingAttemptCache[id] = await res.json();
+        } catch (err) {
+          console.error('Coding review error:', err);
+          document.getElementById(`coding-review-${id}`).innerHTML =
+            '<div style="color:#f87171;padding:1rem">Could not load this review.</div>';
+          return;
+        }
+      }
+
+      renderCodingReview(id, codingAttemptCache[id]);
+    }
+
+    function renderCodingReview(id, attempt) {
+      const wrap = document.getElementById(`coding-review-${id}`);
+      wrap.innerHTML = attempt.questions.map((q, i) => `
+        <div class="coding-review-q">
+          <div class="apt-review-prompt">Q${i + 1}. ${escapeHtml(q.prompt)} ${q.attempted ? (q.is_solved ? '✅' : `❌ ${q.passed_count}/${q.total_count}`) : '— not attempted'}</div>
+          ${q.attempted ? `
+            <div style="font-size:0.8rem;color:rgba(255,255,255,0.5);">Language: ${escapeHtml(q.language)}</div>
+            <div class="coding-review-code">${escapeHtml(q.source_code || '')}</div>
+          ` : ''}
+        </div>`).join('');
+    }
+
+    async function loadCodingReports() {
+      codingReportsLoaded = true;
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/coding/attempts`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (!res.ok) {
+          if (res.status === 401) { window.location.href = '/auth'; return; }
+          throw new Error('Failed to load coding reports');
+        }
+        const data = await res.json();
+        renderCodingReports(data.attempts || []);
+      } catch (err) {
+        console.error('Coding reports error:', err);
+        codingReportsLoaded = false;
+        document.getElementById('codingReportsContainer').innerHTML =
+          '<div style="color:#f87171;padding:1rem">Could not load coding reports. Is the backend running?</div>';
       }
     }
 

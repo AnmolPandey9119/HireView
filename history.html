@@ -87,6 +87,10 @@
     .apt-review-prompt { font-weight: 700; color: white; margin-bottom: 0.75rem; line-height: 1.5; }
     .apt-review-explanation { font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: 0.5rem; line-height: 1.6; }
 
+    .coding-review-q { padding: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .coding-review-q:last-child { border-bottom: none; }
+    .coding-review-code { font-family: 'Courier New', monospace; white-space: pre-wrap; background: rgba(0,0,0,0.25); padding: 0.75rem 0.9rem; border-radius: 10px; font-size: 0.8rem; color: rgba(255,255,255,0.85); margin-top: 0.6rem; max-height: 280px; overflow-y: auto; }
+
     .empty-state { text-align: center; padding: 4rem 2rem; color: rgba(255,255,255,0.6); }
     .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
     .loading-shimmer { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 18px; height: 80px; margin-bottom: 1rem; }
@@ -125,6 +129,7 @@
         <div class="reports-tabs" id="reportsTabs">
           <button class="reports-tab active" data-tab="interviews">🗣️ Interviews</button>
           <button class="reports-tab" data-tab="aptitude">🧮 Aptitude Tests</button>
+          <button class="reports-tab" data-tab="coding">💻 Coding Rounds</button>
         </div>
 
         <div id="historyContainer">
@@ -134,6 +139,7 @@
         </div>
 
         <div id="aptitudeReportsContainer" style="display:none;"></div>
+        <div id="codingReportsContainer" style="display:none;"></div>
 
       </div>
     </main>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HireView — Coding Round</title>
+  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+  <meta name="robots" content="noindex, follow">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+
+  <!-- CodeMirror — lightweight in-browser code editor (syntax highlighting,
+       tab handling, per-language modes). No build step, loaded from cdnjs. -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+
+  <style>
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem; }
+    .page-title { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, var(--hv-primary) 0%, var(--hv-accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .page-sub { color: rgba(255,255,255,0.6); font-size: 0.92rem; margin-top: 0.25rem; }
+
+    /* ── Setup screen (mirrors apt-setup-card in aptitude.html) ── */
+    .cr-setup-card { max-width: 620px; margin: 0 auto; background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(99,102,241,0.2); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+    .cr-field { margin-bottom: 1.5rem; }
+    .cr-field-label { display: block; margin-bottom: 0.6rem; font-weight: 600; color: rgba(255,255,255,0.7); font-size: 0.9rem; }
+    .cr-count-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .cr-count-chip { flex: 1; min-width: 56px; padding: 0.75rem; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.05); border: 2px solid rgba(99,102,241,0.2); color: rgba(255,255,255,0.75); font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+    .cr-count-chip.active { border-color: var(--hv-primary); background: rgba(99,102,241,0.2); color: white; }
+    .cr-hint { font-size: 0.82rem; color: rgba(255,255,255,0.5); margin-top: 1.25rem; text-align: center; }
+
+    /* ── Solve screen ── */
+    .cr-test-header { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); padding: 1.1rem 1.5rem; border-radius: 16px; border: 1px solid rgba(99,102,241,0.2); margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem; }
+    .cr-progress-text { font-weight: 700; color: rgba(255,255,255,0.75); font-size: 0.92rem; }
+    .cr-progress-bar { flex: 1; height: 6px; background: rgba(255,255,255,0.08); border-radius: 6px; margin: 0 1.25rem; overflow: hidden; min-width: 100px; }
+    .cr-progress-fill { height: 100%; background: linear-gradient(90deg, var(--hv-primary), var(--hv-accent)); border-radius: 6px; transition: width 0.3s ease; }
+    .cr-timer { font-weight: 800; font-variant-numeric: tabular-nums; font-size: 1.15rem; color: var(--hv-warning); }
+    .cr-timer.low { color: var(--hv-error-light); animation: recordPulse 1s infinite; }
+
+    .cr-layout { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(340px, 1.3fr); gap: 1.25rem; align-items: start; }
+    @media (max-width: 940px) { .cr-layout { grid-template-columns: 1fr; } }
+
+    .cr-panel { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); border-radius: 20px; border: 1px solid rgba(99,102,241,0.2); box-shadow: 0 20px 60px rgba(0,0,0,0.35); padding: 1.75rem; }
+    .cr-q-tags { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .cr-topic-tag { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--hv-primary-light); background: rgba(99,102,241,0.12); padding: 0.25rem 0.6rem; border-radius: 8px; }
+    .cr-diff { font-size: 0.72rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 8px; }
+    .cr-diff-easy { color: var(--hv-success); background: rgba(34,197,94,0.12); }
+    .cr-diff-medium { color: var(--hv-warning); background: rgba(245,158,11,0.12); }
+    .cr-diff-hard { color: var(--hv-error-light); background: rgba(239,68,68,0.12); }
+    .cr-q-prompt { font-size: 1.08rem; font-weight: 700; color: white; line-height: 1.6; margin-bottom: 1rem; white-space: pre-wrap; }
+    .cr-constraints { font-size: 0.82rem; color: rgba(255,255,255,0.55); background: rgba(0,0,0,0.2); padding: 0.7rem 0.9rem; border-radius: 10px; margin-bottom: 1.1rem; }
+    .cr-samples-title { font-weight: 700; font-size: 0.8rem; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.6px; margin: 1.1rem 0 0.6rem; }
+    .cr-sample-case { background: rgba(0,0,0,0.2); border-radius: 10px; padding: 0.75rem 0.9rem; margin-bottom: 0.6rem; font-size: 0.85rem; }
+    .cr-sample-case b { color: rgba(255,255,255,0.75); }
+    .cr-sample-io { font-family: 'Courier New', monospace; white-space: pre-wrap; margin: 0.25rem 0 0.5rem; color: rgba(255,255,255,0.85); }
+
+    .cr-editor-top { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-bottom: 0.85rem; flex-wrap: wrap; }
+    .cr-lang-select { padding: 0.6rem 1rem; background: rgba(255,255,255,0.06); border: 2px solid rgba(99,102,241,0.3); border-radius: 10px; color: white; font-family: inherit; font-weight: 600; font-size: 0.88rem; cursor: pointer; }
+    .cr-lang-select option { background: var(--hv-bg-mid); color: white; }
+    .cr-editor-actions { display: flex; gap: 0.6rem; }
+    .cr-btn { padding: 0.6rem 1.1rem; border-radius: 10px; border: 2px solid rgba(99,102,241,0.3); background: rgba(255,255,255,0.05); color: white; font-family: inherit; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s ease; }
+    .cr-btn:hover { border-color: var(--hv-primary); background: rgba(99,102,241,0.15); }
+    .cr-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .cr-btn.run { color: #818cf8; }
+    .cr-btn.submit { background: linear-gradient(135deg, var(--hv-primary), var(--hv-accent)); border-color: transparent; }
+    .cr-btn.reset { color: rgba(255,255,255,0.55); }
+
+    .CodeMirror { height: 340px; border-radius: 12px; border: 2px solid rgba(99,102,241,0.2); font-family: 'Courier New', monospace; font-size: 0.92rem; }
+
+    .cr-results-wrap { margin-top: 1.1rem; }
+    .cr-result-banner { padding: 0.85rem 1rem; border-radius: 12px; font-weight: 700; font-size: 0.9rem; margin-bottom: 0.75rem; }
+    .cr-result-banner.pass { background: rgba(34,197,94,0.14); color: var(--hv-success); border: 1px solid rgba(34,197,94,0.3); }
+    .cr-result-banner.fail { background: rgba(239,68,68,0.14); color: var(--hv-error-light); border: 1px solid rgba(239,68,68,0.3); }
+    .cr-case-row { display: flex; justify-content: space-between; align-items: center; padding: 0.55rem 0.8rem; border-radius: 8px; background: rgba(0,0,0,0.2); margin-bottom: 0.4rem; font-size: 0.83rem; }
+    .cr-case-row.pass { border-left: 3px solid var(--hv-success); }
+    .cr-case-row.fail { border-left: 3px solid var(--hv-error-light); }
+    .cr-case-detail { font-family: 'Courier New', monospace; white-space: pre-wrap; background: rgba(0,0,0,0.25); padding: 0.6rem 0.75rem; border-radius: 8px; margin-top: 0.4rem; font-size: 0.82rem; color: rgba(255,255,255,0.85); }
+    .cr-compile-error { font-family: 'Courier New', monospace; white-space: pre-wrap; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; padding: 0.8rem 1rem; border-radius: 10px; font-size: 0.82rem; margin-bottom: 0.75rem; }
+
+    .cr-nav-row { display: flex; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.25rem; }
+    .cr-nav-row .spacer { flex: 1; }
+
+    /* ── Results screen (mirrors aptitude's) ── */
+    .cr-results-summary { max-width: 620px; margin: 0 auto 2rem; background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(99,102,241,0.2); text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+    .cr-score-ring { font-size: 3rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .cr-score-sub { color: rgba(255,255,255,0.6); font-size: 0.95rem; margin-bottom: 1.5rem; }
+    .cr-stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.75rem; }
+    .cr-stat-chip { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 0.9rem; }
+    .cr-stat-chip-value { font-size: 1.3rem; font-weight: 800; }
+    .cr-stat-chip-label { font-size: 0.75rem; color: rgba(255,255,255,0.55); margin-top: 0.2rem; }
+    .cr-results-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+    .cr-review-title { font-weight: 700; font-size: 0.85rem; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; margin: 2rem 0 1rem; max-width: 760px; margin-left: auto; margin-right: auto; }
+    .cr-review-card { max-width: 760px; margin: 0 auto 1rem; background: rgba(255,255,255,0.04); border-radius: 16px; border: 1px solid rgba(99,102,241,0.15); padding: 1.5rem; }
+
+    .cr-loading, .cr-empty { text-align: center; padding: 3rem 1rem; color: rgba(255,255,255,0.5); }
+
+    .hv-toast { position: fixed; bottom: 5.5rem; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(26,31,58,0.95); border: 1px solid rgba(99,102,241,0.4); color: white; padding: 0.9rem 1.5rem; border-radius: 14px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 12px 35px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: all 0.3s ease; z-index: 999; }
+    .hv-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .hv-toast.error { border-color: rgba(239,68,68,0.5); }
+    .start-btn { padding: 0.85rem 1.75rem; background: linear-gradient(135deg, var(--hv-primary), var(--hv-accent)); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
+    .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.6); }
+    .start-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    @media (max-width: 640px) {
+      .cr-setup-card, .cr-panel, .cr-results-summary { padding: 1.5rem; }
+      .cr-progress-bar { margin: 0 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+  <script src="/js/sidebar.js" data-active="coding"></script>
+  <div class="app-container">
+    <main class="main-content">
+      <div class="content-wrapper">
+
+        <!-- ══ SETUP SCREEN ══ -->
+        <div id="crSetupScreen">
+          <div class="page-header">
+            <div>
+              <div class="page-title">💻 Coding Round</div>
+              <div class="page-sub">Solve real problems in the language of your choice — code compiles and runs right in the browser, graded instantly against hidden test cases.</div>
+            </div>
+          </div>
+
+          <div class="cr-setup-card">
+            <div class="cr-field">
+              <label class="cr-field-label">Topic</label>
+              <select class="select-input" id="crTopicSelect">
+                <option value="">All topics (mixed)</option>
+              </select>
+            </div>
+            <div class="cr-field">
+              <label class="cr-field-label">Difficulty</label>
+              <select class="select-input" id="crDifficultySelect">
+                <option value="">All difficulties (mixed)</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+            <div class="cr-field">
+              <label class="cr-field-label">Number of problems</label>
+              <div class="cr-count-row" id="crCountRow">
+                <div class="cr-count-chip" data-count="1">1</div>
+                <div class="cr-count-chip active" data-count="3">3</div>
+                <div class="cr-count-chip" data-count="5">5</div>
+                <div class="cr-count-chip" data-count="8">8</div>
+              </div>
+            </div>
+            <div class="cr-field">
+              <label class="cr-field-label">Language</label>
+              <select class="select-input" id="crLanguageSelect"></select>
+            </div>
+            <button class="primary-btn" id="crStartBtn">Start Coding Round →</button>
+            <div class="cr-hint" id="crHint">You'll get 10 minutes per problem. Run your code against sample cases anytime, then submit to grade against every hidden test case.</div>
+          </div>
+        </div>
+
+        <!-- ══ SOLVE SCREEN ══ -->
+        <div id="crSolveScreen" style="display:none;">
+          <div class="cr-test-header">
+            <span class="cr-progress-text" id="crProgressText">Problem 1 of 3</span>
+            <div class="cr-progress-bar"><div class="cr-progress-fill" id="crProgressFill" style="width:33%"></div></div>
+            <span class="cr-timer" id="crTimer">--:--</span>
+          </div>
+
+          <div class="cr-layout">
+            <div class="cr-panel" id="crProblemPanel"></div>
+            <div class="cr-panel">
+              <div class="cr-editor-top">
+                <select class="cr-lang-select" id="crEditorLangSelect"></select>
+                <div class="cr-editor-actions">
+                  <button class="cr-btn reset" id="crResetBtn" title="Reset to starter code">↺ Reset</button>
+                  <button class="cr-btn run" id="crRunBtn">▶ Run</button>
+                  <button class="cr-btn submit" id="crSubmitBtn">Submit ✓</button>
+                </div>
+              </div>
+              <textarea id="crCodeArea"></textarea>
+              <div class="cr-results-wrap" id="crResultsWrap"></div>
+            </div>
+          </div>
+
+          <div class="cr-nav-row">
+            <button class="secondary-btn" id="crPrevBtn">← Previous</button>
+            <div class="spacer"></div>
+            <button class="secondary-btn" id="crSkipBtn">Skip →</button>
+            <button class="start-btn" id="crFinishBtn" style="display:none;">Finish Round ✓</button>
+          </div>
+        </div>
+
+        <!-- ══ RESULTS SCREEN ══ -->
+        <div id="crResultsScreen" style="display:none;"></div>
+
+        <div id="crLoadingWrap" style="display:none;" class="cr-loading">Loading…</div>
+
+      </div>
+    </main>
+  </div>
+
+  <div class="hv-toast" id="hvToast"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="/js/coding.js" defer></script>
+  <script src="js/footer.js"></script>
+</body>
+</html>

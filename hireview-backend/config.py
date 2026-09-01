@@ -119,6 +119,20 @@ except ImportError:
     DEVICE = "cpu"  # torch not installed yet — we'll add it when we build voice cloning
 
 # ============================================================
+# CODE EXECUTION (Coding Round)
+# Code is compiled/run remotely by Piston (https://github.com/engineer-man/piston),
+# a free, open-source multi-language execution sandbox — the backend never
+# runs candidate-submitted code locally. PISTON_API_URL defaults to the
+# public hosted instance; set it in the environment to point at a
+# self-hosted Piston instance instead if the public one's rate limits
+# (a few requests/sec) become a problem in production.
+# ============================================================
+PISTON_API_URL      = os.getenv("PISTON_API_URL", "https://emkc.org/api/v2/piston").rstrip("/")
+CODE_RUN_TIMEOUT_MS = int(os.getenv("CODE_RUN_TIMEOUT_MS", "8000"))    # per-test-case run limit
+CODE_COMPILE_TIMEOUT_MS = int(os.getenv("CODE_COMPILE_TIMEOUT_MS", "10000"))
+MAX_SOURCE_CODE_CHARS = 20000   # sanity cap so nobody pastes a multi-MB file into the editor
+
+# ============================================================
 # LIMITS
 # ============================================================
 MAX_FILE_SIZE_MB = 100

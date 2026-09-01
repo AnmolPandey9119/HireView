@@ -11,6 +11,16 @@
   <meta name="robots" content="noindex, follow">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/main.css">
+
+  <!-- CodeMirror — lightweight in-browser code editor, used by the Coding
+       tab's practice compiler (see renderCodingModal in js/questionbank.js). -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+
   <style>
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem; }
     .page-title { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, var(--hv-primary) 0%, var(--hv-accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
@@ -78,6 +88,25 @@
     .qb-sample-case { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 0.85rem 1rem; margin-bottom: 0.6rem; font-size: 0.85rem; }
     .qb-sample-case b { color: var(--hv-primary-light); }
     .qb-coding-note { font-size: 0.82rem; color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.15); border-radius: 10px; padding: 0.8rem 1rem; margin-top: 0.5rem; }
+
+    /* In-modal coding practice editor */
+    .qb-editor-top { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin: 0.25rem 0 0.75rem; flex-wrap: wrap; }
+    .qb-lang-select { padding: 0.55rem 0.9rem; background: rgba(255,255,255,0.06); border: 2px solid rgba(99,102,241,0.3); border-radius: 10px; color: white; font-family: inherit; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+    .qb-lang-select option { background: var(--hv-bg-mid); color: white; }
+    .qb-editor-actions { display: flex; gap: 0.5rem; }
+    .qb-btn { padding: 0.55rem 1rem; border-radius: 10px; border: 2px solid rgba(99,102,241,0.3); background: rgba(255,255,255,0.05); color: white; font-family: inherit; font-weight: 700; font-size: 0.82rem; cursor: pointer; transition: all 0.2s ease; }
+    .qb-btn:hover { border-color: var(--hv-primary); background: rgba(99,102,241,0.15); }
+    .qb-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .qb-btn.submit { background: linear-gradient(135deg, var(--hv-primary), var(--hv-accent)); border-color: transparent; }
+    .qb-editor-wrap .CodeMirror { height: 260px; border-radius: 12px; border: 2px solid rgba(99,102,241,0.2); font-family: 'Courier New', monospace; font-size: 0.88rem; margin-bottom: 0.75rem; }
+    .qb-result-banner-run { padding: 0.75rem 0.9rem; border-radius: 10px; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.6rem; }
+    .qb-result-banner-run.pass { background: rgba(34,197,94,0.14); color: var(--hv-success); border: 1px solid rgba(34,197,94,0.3); }
+    .qb-result-banner-run.fail { background: rgba(239,68,68,0.14); color: var(--hv-error-light); border: 1px solid rgba(239,68,68,0.3); }
+    .qb-case-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; border-radius: 8px; background: rgba(0,0,0,0.2); margin-bottom: 0.35rem; font-size: 0.8rem; }
+    .qb-case-row.pass { border-left: 3px solid var(--hv-success); }
+    .qb-case-row.fail { border-left: 3px solid var(--hv-error-light); }
+    .qb-case-detail { font-family: 'Courier New', monospace; white-space: pre-wrap; background: rgba(0,0,0,0.25); padding: 0.55rem 0.7rem; border-radius: 8px; margin: 0.3rem 0 0.5rem; font-size: 0.78rem; color: rgba(255,255,255,0.85); }
+    .qb-compile-error { font-family: 'Courier New', monospace; white-space: pre-wrap; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; padding: 0.7rem 0.9rem; border-radius: 10px; font-size: 0.78rem; margin-bottom: 0.6rem; }
     .qb-interview-note { font-size: 0.85rem; color: rgba(255,255,255,0.55); line-height: 1.6; }
 
     @media (max-width: 640px) {

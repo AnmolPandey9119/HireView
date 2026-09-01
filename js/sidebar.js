@@ -24,7 +24,7 @@
       { key: 'questionbank',label: 'Question Bank',  icon: '\u{1F5C3}\uFE0F', href: '/questionbank' },
       { key: 'analytics',   label: 'Analytics',      icon: '\u{1F4CA}', comingSoon: true },
       { key: 'aptitude',    label: 'Aptitude Test',  icon: '\u{1F9EE}', href: '/aptitude' },
-      { key: 'coding',      label: 'Coding Round',   icon: '\u{1F4BB}', comingSoon: true },
+      { key: 'coding',      label: 'Coding Round',   icon: '\u{1F4BB}', href: '/coding' },
       { key: 'leaderboard', label: 'Leaderboard',    icon: '\u{1F3C6}', comingSoon: true },
     ];
   
