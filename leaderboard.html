@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HireView — Leaderboard</title>
+  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+  <meta name="robots" content="noindex, follow">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+
+  <style>
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+    .page-title { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, var(--hv-primary) 0%, var(--hv-accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .page-sub { color: rgba(255,255,255,0.6); font-size: 0.92rem; margin-top: 0.25rem; }
+
+    .lb-tabs { display: flex; gap: 0.6rem; margin-bottom: 1.75rem; flex-wrap: wrap; }
+    .lb-tab { padding: 0.7rem 1.4rem; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(99,102,241,0.2); color: rgba(255,255,255,0.7); font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.9rem; transition: all 0.2s ease; }
+    .lb-tab:hover { background: rgba(255,255,255,0.08); }
+    .lb-tab.active { background: linear-gradient(135deg, var(--hv-primary), var(--hv-accent)); color: white; border-color: transparent; box-shadow: 0 4px 18px rgba(99,102,241,0.35); }
+
+    .lb-you-card { display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: linear-gradient(135deg, rgba(99,102,241,0.18), rgba(236,72,153,0.1)); border: 1px solid rgba(99,102,241,0.4); border-radius: 18px; padding: 1.1rem 1.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .lb-you-left { display: flex; align-items: center; gap: 0.9rem; }
+    .lb-you-rank { font-size: 1.5rem; font-weight: 800; color: #a5b4fc; min-width: 3rem; }
+    .lb-you-name { font-weight: 700; color: white; }
+    .lb-you-sub { font-size: 0.8rem; color: rgba(255,255,255,0.55); }
+    .lb-you-score { font-size: 1.6rem; font-weight: 800; color: #fde68a; }
+
+    .lb-podium { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 2.25rem; align-items: end; }
+    .lb-podium-card { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); border-radius: 18px; padding: 1.5rem 1rem; text-align: center; border: 1px solid rgba(99,102,241,0.2); }
+    .lb-podium-card.rank-1 { order: 2; padding-top: 2.25rem; border-color: rgba(250,204,21,0.5); box-shadow: 0 0 30px rgba(250,204,21,0.15); }
+    .lb-podium-card.rank-2 { order: 1; border-color: rgba(203,213,225,0.4); }
+    .lb-podium-card.rank-3 { order: 3; border-color: rgba(217,119,6,0.4); }
+    .lb-podium-medal { font-size: 2.2rem; margin-bottom: 0.5rem; }
+    .lb-podium-name { font-weight: 800; color: white; font-size: 0.95rem; margin-bottom: 0.3rem; }
+    .lb-podium-score { font-weight: 800; font-size: 1.3rem; }
+    .lb-podium-card.rank-1 .lb-podium-score { color: #facc15; }
+    .lb-podium-card.rank-2 .lb-podium-score { color: #e2e8f0; }
+    .lb-podium-card.rank-3 .lb-podium-score { color: #f59e0b; }
+    .lb-podium-sub { font-size: 0.72rem; color: rgba(255,255,255,0.5); margin-top: 0.3rem; }
+
+    .lb-list { background: rgba(255,255,255,0.03); border-radius: 18px; border: 1px solid rgba(99,102,241,0.15); overflow: hidden; }
+    .lb-row { display: flex; align-items: center; gap: 1rem; padding: 0.95rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.15s ease; }
+    .lb-row:last-child { border-bottom: none; }
+    .lb-row:hover { background: rgba(255,255,255,0.03); }
+    .lb-row.is-you { background: rgba(99,102,241,0.1); }
+    .lb-row-rank { width: 2.5rem; font-weight: 800; color: rgba(255,255,255,0.5); }
+    .lb-row-name { flex: 1; font-weight: 700; color: white; }
+    .lb-row-meta { font-size: 0.75rem; color: rgba(255,255,255,0.45); }
+    .lb-row-score { font-weight: 800; color: #a5b4fc; font-size: 1.05rem; min-width: 3.5rem; text-align: right; }
+
+    .empty-lb { text-align: center; padding: 4rem 1.5rem; background: rgba(255,255,255,0.03); border-radius: 20px; border: 1px dashed rgba(99,102,241,0.3); }
+    .empty-lb-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .empty-lb-title { font-weight: 800; font-size: 1.15rem; margin-bottom: 0.5rem; }
+    .empty-lb-sub { color: rgba(255,255,255,0.55); font-size: 0.92rem; margin-bottom: 1.5rem; }
+
+    .primary-btn { padding: 0.85rem 1.75rem; background: linear-gradient(135deg, var(--hv-primary), var(--hv-accent)); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
+    .primary-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.6); }
+
+    .loading-shimmer { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 18px; height: 60px; margin-bottom: 0.6rem; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    @media (max-width: 640px) {
+      .lb-podium { grid-template-columns: 1fr; }
+      .lb-podium-card.rank-1, .lb-podium-card.rank-2, .lb-podium-card.rank-3 { order: unset; }
+    }
+  </style>
+</head>
+<body>
+  <script src="/js/sidebar.js" data-active="leaderboard"></script>
+  <div class="app-container">
+    <main class="main-content">
+      <div class="content-wrapper">
+
+        <div class="page-header">
+          <div>
+            <div class="page-title">🏆 Leaderboard</div>
+            <div class="page-sub">Ranked by your HireView Score — a blend of Interview, Aptitude and Coding performance.</div>
+          </div>
+        </div>
+
+        <div class="lb-tabs" id="lbTabs">
+          <div class="lb-tab active" data-period="all">All-time</div>
+          <div class="lb-tab" data-period="month">This Month</div>
+          <div class="lb-tab" data-period="week">This Week</div>
+        </div>
+
+        <div id="lbYouWrap"></div>
+        <div id="lbBody">
+          <div class="loading-shimmer"></div>
+          <div class="loading-shimmer"></div>
+          <div class="loading-shimmer"></div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <div class="hv-toast" id="hvToast"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="/js/leaderboard.js" defer></script>
+  <script src="js/footer.js"></script>
+</body>
+</html>

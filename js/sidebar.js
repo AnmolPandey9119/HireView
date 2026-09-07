@@ -15,6 +15,12 @@
    visibly, greyed out, with a "Soon" badge, and clicking one shows a
    toast instead of a broken/dead link — never silently do nothing and
    never link to a page that doesn't exist.
+
+   Analytics and Leaderboard shipped (routes/analytics.py,
+   routes/leaderboard.py + analytics.html / leaderboard.html) — no
+   longer comingSoon. Every language selectable inside a round (coding
+   editor, interview language, etc.) is still gated independently by
+   its own backend list and is untouched by this file.
    ════════════════════════════════════════════════ */
    (function () {
     var NAV_ITEMS = [
@@ -22,10 +28,10 @@
       { key: 'start',       label: 'Start Interview',icon: '\u25B6', action: 'startInterview' },
       { key: 'reports',     label: 'My Reports',     icon: '\u{1F4C4}', href: '/history' },
       { key: 'questionbank',label: 'Question Bank',  icon: '\u{1F5C3}\uFE0F', href: '/questionbank' },
-      { key: 'analytics',   label: 'Analytics',      icon: '\u{1F4CA}', comingSoon: true },
+      { key: 'analytics',   label: 'Analytics',      icon: '\u{1F4CA}', href: '/analytics' },
       { key: 'aptitude',    label: 'Aptitude Test',  icon: '\u{1F9EE}', href: '/aptitude' },
       { key: 'coding',      label: 'Coding Round',   icon: '\u{1F4BB}', href: '/coding' },
-      { key: 'leaderboard', label: 'Leaderboard',    icon: '\u{1F3C6}', comingSoon: true },
+      { key: 'leaderboard', label: 'Leaderboard',    icon: '\u{1F3C6}', href: '/leaderboard' },
     ];
   
     var scriptTag = document.currentScript;

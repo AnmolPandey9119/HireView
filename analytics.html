@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HireView — Analytics</title>
+  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+  <meta name="robots" content="noindex, follow">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+
+  <!-- Chart.js — lightweight, no build step, loaded from cdnjs (same
+       pattern as CodeMirror on coding.html / questionbank.html). Used
+       for the score trend line, skill radar and topic bar charts below. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+
+  <style>
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem; }
+    .page-title { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, var(--hv-primary) 0%, var(--hv-accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .page-sub { color: rgba(255,255,255,0.6); font-size: 0.92rem; margin-top: 0.25rem; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.1rem; margin-bottom: 2.25rem; }
+    .stat-card { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); padding: 1.5rem; border-radius: 18px; border: 1px solid rgba(99,102,241,0.2); box-shadow: 0 8px 30px rgba(0,0,0,0.3); transition: transform 0.2s ease; }
+    .stat-card:hover { transform: translateY(-3px); }
+    .stat-icon { font-size: 1.6rem; margin-bottom: 0.6rem; }
+    .stat-value { font-size: 2rem; font-weight: 800; margin-bottom: 0.2rem; }
+    .stat-label { font-size: 0.82rem; color: rgba(255,255,255,0.6); font-weight: 600; }
+    .stat-purple { color: #818cf8; } .stat-green { color: #22c55e; } .stat-pink { color: #ec4899; }
+    .stat-yellow { color: #f59e0b; } .stat-cyan { color: #22d3ee; }
+
+    .badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+    .badge-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 1.1rem 0.9rem; text-align: center; opacity: 0.45; filter: grayscale(0.6); transition: all 0.25s ease; }
+    .badge-card.earned { opacity: 1; filter: none; border-color: rgba(250,204,21,0.4); background: rgba(250,204,21,0.06); box-shadow: 0 4px 20px rgba(250,204,21,0.1); }
+    .badge-card:hover { transform: translateY(-2px); }
+    .badge-icon { font-size: 1.9rem; margin-bottom: 0.5rem; }
+    .badge-label { font-weight: 800; font-size: 0.85rem; color: white; margin-bottom: 0.3rem; }
+    .badge-desc { font-size: 0.72rem; color: rgba(255,255,255,0.5); line-height: 1.4; min-height: 2.2em; }
+    .badge-tick { margin-top: 0.6rem; font-size: 0.7rem; font-weight: 800; color: #facc15; }
+    .badge-locked { margin-top: 0.6rem; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.35); }
+
+    .analytics-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+    @media (max-width: 960px) { .analytics-grid { grid-template-columns: 1fr; } }
+
+    .chart-card { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); padding: 1.75rem; border-radius: 20px; border: 1px solid rgba(99,102,241,0.2); box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .chart-card-title { font-size: 1rem; font-weight: 800; color: rgba(255,255,255,0.85); margin-bottom: 1.1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .chart-wrap { position: relative; height: 260px; }
+    .chart-wrap.short { height: 220px; }
+
+    .section-title { font-size: 1.2rem; font-weight: 800; margin: 2rem 0 1.1rem; color: rgba(255,255,255,0.6); }
+
+    .empty-analytics { text-align: center; padding: 4rem 1.5rem; background: rgba(255,255,255,0.03); border-radius: 20px; border: 1px dashed rgba(99,102,241,0.3); }
+    .empty-analytics-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .empty-analytics-title { font-weight: 800; font-size: 1.15rem; margin-bottom: 0.5rem; }
+    .empty-analytics-sub { color: rgba(255,255,255,0.55); font-size: 0.92rem; margin-bottom: 1.5rem; }
+
+    .loading-shimmer { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 18px; height: 100px; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    .primary-btn { padding: 0.85rem 1.75rem; background: linear-gradient(135deg, var(--hv-primary), var(--hv-accent)); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
+    .primary-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.6); }
+  </style>
+</head>
+<body>
+  <script src="/js/sidebar.js" data-active="analytics"></script>
+  <div class="app-container">
+    <main class="main-content">
+      <div class="content-wrapper">
+
+        <div class="page-header">
+          <div>
+            <div class="page-title">📊 Analytics</div>
+            <div class="page-sub">Your performance across Interviews, Aptitude and Coding — in one place.</div>
+          </div>
+        </div>
+
+        <div id="statsGrid" class="stats-grid">
+          <div class="loading-shimmer"></div>
+          <div class="loading-shimmer"></div>
+          <div class="loading-shimmer"></div>
+          <div class="loading-shimmer"></div>
+        </div>
+
+        <div id="analyticsBody"></div>
+
+      </div>
+    </main>
+  </div>
+
+  <div class="hv-toast" id="hvToast"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="/js/analytics.js" defer></script>
+  <script src="js/footer.js"></script>
+</body>
+</html>

@@ -7,6 +7,36 @@
    footer-free by design).
    ════════════════════════════════════════════════ */
    (function () {
+    // ── PWA: manifest link + service worker registration ──
+    // Zero-cost enhancement (Vercel already serves these static files) —
+    // makes HireView installable (Add to Home Screen / desktop) and gives
+    // repeat visits an offline-friendly app shell via sw.js. Registered
+    // here, not per-page, because footer.js is already the one script
+    // loaded on nearly every page (see header comment above) — this way
+    // the whole site gets it without editing every HTML file.
+    // Deliberately skipped on localhost/file:// during dev so a stale
+    // cached SW never fights a live-reloading local server.
+    if (!document.querySelector('link[rel="manifest"]')) {
+      var manifestLink = document.createElement('link');
+      manifestLink.rel = 'manifest';
+      manifestLink.href = '/manifest.json';
+      document.head.appendChild(manifestLink);
+    }
+    if (!document.querySelector('meta[name="theme-color"]')) {
+      var themeMeta = document.createElement('meta');
+      themeMeta.name = 'theme-color';
+      themeMeta.content = '#0a0e27';
+      document.head.appendChild(themeMeta);
+    }
+    if ('serviceWorker' in navigator && location.hostname !== 'localhost' && location.protocol !== 'file:') {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js').catch(function () {
+          // Non-fatal — the app works identically without the SW, this
+          // is a pure "installable + offline shell" bonus on top.
+        });
+      });
+    }
+
     if (document.getElementById('hvFooter')) return; // already injected
   
     // ── Styles ──
