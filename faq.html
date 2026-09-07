@@ -124,18 +124,31 @@
     html { scroll-behavior: smooth; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      background: #07080f;
+      background: #060710;
       color: #fff;
-      line-height: 1.7;
+      line-height: 1.75;
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: -10% -10% auto -10%;
+      height: 130vh;
+      background:
+        radial-gradient(50% 40% at 15% 0%, rgba(99,102,241,0.14) 0%, transparent 60%),
+        radial-gradient(40% 35% at 90% 10%, rgba(236,72,153,0.09) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
     }
 
     nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      padding: 1.25rem 2rem;
+      padding: 1.15rem 2rem;
       display: flex; justify-content: space-between; align-items: center;
-      background: rgba(7,8,15,0.85);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: rgba(6,7,16,0.75);
+      backdrop-filter: blur(20px) saturate(140%);
+      -webkit-backdrop-filter: blur(20px) saturate(140%);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
     }
     .logo-text {
       font-size: 1.25rem; font-weight: 800;
@@ -144,19 +157,23 @@
       text-decoration: none;
     }
     nav a.back {
-      color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.9rem; font-weight: 600;
+      color: rgba(255,255,255,0.62); text-decoration: none; font-size: 0.9rem; font-weight: 600;
+      transition: color 0.2s ease, transform 0.2s ease; display: inline-block;
     }
-    nav a.back:hover { color: #fff; }
+    nav a.back:hover { color: #fff; transform: translateX(-3px); }
 
     main {
       max-width: 780px;
       margin: 0 auto;
       padding: 8rem 2rem 6rem;
+      position: relative; z-index: 1;
+      animation: pageFadeIn 0.5s cubic-bezier(0.16,1,0.3,1) both;
     }
+    @keyframes pageFadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
     h1 {
-      font-size: clamp(2rem, 5vw, 2.75rem);
+      font-size: clamp(2rem, 5vw, 2.85rem);
       font-weight: 900;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.025em;
       margin-bottom: 0.75rem;
       background: linear-gradient(135deg, #fff, #c7c9ff);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
@@ -169,12 +186,15 @@
     }
 
     .faq-item {
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 14px;
-      margin-bottom: 0.9rem;
-      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 16px;
+      margin-bottom: 0.85rem;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.012));
       overflow: hidden;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
     }
+    .faq-item:hover { border-color: rgba(129,140,248,0.28); }
+    .faq-item.open { border-color: rgba(99,102,241,0.4); box-shadow: 0 12px 30px rgba(99,102,241,0.14); }
     .faq-question {
       width: 100%;
       display: flex; justify-content: space-between; align-items: center;
@@ -184,22 +204,25 @@
       color: #fff; font-family: inherit;
       font-size: 1rem; font-weight: 700;
       text-align: left; cursor: pointer;
+      transition: background 0.2s ease;
     }
+    .faq-question:hover { background: rgba(255,255,255,0.02); }
     .faq-icon {
       flex-shrink: 0;
-      width: 22px; height: 22px;
+      width: 24px; height: 24px;
       display: flex; align-items: center; justify-content: center;
       border-radius: 50%;
-      background: rgba(99,102,241,0.15);
+      background: rgba(99,102,241,0.16);
+      border: 1px solid rgba(99,102,241,0.25);
       color: #a5b4fc;
       font-size: 1rem; font-weight: 800;
-      transition: transform 0.25s ease;
+      transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), background 0.25s ease;
     }
-    .faq-item.open .faq-icon { transform: rotate(45deg); }
+    .faq-item.open .faq-icon { transform: rotate(45deg); background: rgba(99,102,241,0.32); }
     .faq-answer {
       max-height: 0;
       overflow: hidden;
-      transition: max-height 0.3s ease;
+      transition: max-height 0.35s cubic-bezier(0.16,1,0.3,1);
       padding: 0 1.5rem;
     }
     .faq-item.open .faq-answer {
@@ -207,33 +230,39 @@
       padding: 0 1.5rem 1.25rem;
     }
     .faq-answer p {
-      color: rgba(255,255,255,0.65);
+      color: rgba(255,255,255,0.68);
       font-size: 0.95rem;
     }
 
     .faq-cta {
       margin-top: 3.5rem;
       text-align: center;
-      padding: 2.5rem 1.5rem;
-      border-radius: 20px;
-      background: rgba(99,102,241,0.08);
-      border: 1px solid rgba(99,102,241,0.25);
+      padding: 2.75rem 1.5rem;
+      border-radius: 22px;
+      background: linear-gradient(160deg, rgba(99,102,241,0.12), rgba(236,72,153,0.07));
+      border: 1px solid rgba(99,102,241,0.28);
+      box-shadow: 0 16px 40px rgba(99,102,241,0.14);
     }
-    .faq-cta h2 { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.6rem; }
-    .faq-cta p { color: rgba(255,255,255,0.6); font-size: 0.95rem; margin-bottom: 1.5rem; }
+    .faq-cta h2 { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.6rem; letter-spacing: -0.01em; }
+    .faq-cta p { color: rgba(255,255,255,0.62); font-size: 0.95rem; margin-bottom: 1.5rem; }
     .btn-primary {
-      padding: 0.9rem 2.2rem;
+      padding: 0.95rem 2.3rem;
       background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
       border: none; border-radius: 14px;
       color: white; font-weight: 700; font-size: 0.95rem;
       cursor: pointer; font-family: inherit;
-      box-shadow: 0 8px 30px rgba(99,102,241,0.4);
+      box-shadow: 0 10px 32px rgba(99,102,241,0.45);
       text-decoration: none; display: inline-block;
+      transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s ease;
     }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(99,102,241,0.6); }
 
     @media (max-width: 640px) {
       main { padding: 7rem 1.25rem 4rem; }
       .faq-question { font-size: 0.92rem; padding: 1.1rem 1.25rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
     }
   </style>
 </head>

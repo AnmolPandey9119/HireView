@@ -21,7 +21,7 @@
     @keyframes logoFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
 
     /* Outer glow circle */
-    .logo-outer-circle { position: absolute; top: 50%; left: 50%; width: 160px; height: 160px; margin: -80px 0 0 -80px; border-radius: 50%; background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%); box-shadow: 0 0 60px rgba(99,102,241,0.5), inset 0 0 40px rgba(99,102,241,0.1); }
+    .logo-outer-circle { position: absolute; top: 50%; left: 50%; width: 160px; height: 160px; margin: -80px 0 0 -80px; border-radius: 50%; background: radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%); box-shadow: 0 0 70px rgba(99,102,241,0.55), inset 0 0 40px rgba(99,102,241,0.12); }
 
     /* Rotating rings */
     .layer-ring { position: absolute; top: 50%; left: 50%; border-radius: 50%; border: 2px solid; }
@@ -30,24 +30,34 @@
     .layer-3 { width: 80px; height: 80px; margin: -40px 0 0 -40px; border: 3px solid rgba(236,72,153,0.7); box-shadow: 0 0 25px rgba(236,72,153,0.7); animation: layerRotate 18s linear infinite; }
     @keyframes layerRotate { 0% { transform: rotate(0deg) rotateY(0deg); } 100% { transform: rotate(360deg) rotateY(360deg); } }
     /* HV center text */
-    .center-hv { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.2rem; font-weight: 900; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 0 20px rgba(99,102,241,1)); z-index: 10; animation: centerPulse 3s ease-in-out infinite; letter-spacing: -2px; }
+    .center-hv { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.2rem; font-weight: 900; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 0 22px rgba(99,102,241,1)); z-index: 10; animation: centerPulse 3s ease-in-out infinite; letter-spacing: -2px; }
     @keyframes centerPulse { 0%,100% { transform: translate(-50%,-50%) scale(1); } 50% { transform: translate(-50%,-50%) scale(1.12); } }
 
     .logo-container { display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
     .back-home-link {
       display: inline-flex; align-items: center; gap: 0.4rem;
-      color: rgba(255,255,255,0.55); text-decoration: none;
+      color: rgba(255,255,255,0.6); text-decoration: none;
       font-size: 0.85rem; font-weight: 600;
-      margin-bottom: 1.5rem; transition: color 0.2s ease;
+      margin-bottom: 1.5rem; transition: color 0.2s ease, transform 0.2s ease;
     }
-    .back-home-link:hover { color: #818cf8; }
-  
+    .back-home-link:hover { color: #a5b4fc; transform: translateX(-3px); }
+
     /* Floating logo animation */
     .logo-wrap { animation: logoFloat 3s ease-in-out infinite; }
     @keyframes logoFloat {
       0%, 100% { transform: translateY(0px); }
       50% { transform: translateY(-8px); }
+    }
+
+    /* Smoother, slightly springier entrance for whichever auth card is
+       active (login / signup / forgot) — layered on top of main.css's
+       .page.active animation, doesn't replace it */
+    .auth-card { animation: authCardIn 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+    @keyframes authCardIn { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
     }
   </style>
 </head>

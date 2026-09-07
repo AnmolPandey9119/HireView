@@ -89,6 +89,21 @@
    ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.55); background-clip: padding-box; }
 
    .app-container { min-height: 100%; width: 100%; background: linear-gradient(135deg, var(--hv-bg-start) 0%, var(--hv-bg-mid) 50%, var(--hv-bg-end) 100%); color: var(--hv-white); overflow-x: hidden; position: relative; }
+   /* Ambient depth layer shared by every app page — pure decoration,
+      sits behind .main-content (z-index:1) and the sidebar (z-index:50),
+      so it never intercepts clicks or covers real UI. */
+   .app-container::before {
+     content: '';
+     position: fixed;
+     inset: -10% -10% auto -10%;
+     height: 140vh;
+     background:
+       radial-gradient(55% 40% at 15% 5%, rgba(99,102,241,0.16) 0%, transparent 60%),
+       radial-gradient(45% 35% at 90% 15%, rgba(236,72,153,0.10) 0%, transparent 60%),
+       radial-gradient(50% 40% at 50% 85%, rgba(139,92,246,0.10) 0%, transparent 62%);
+     pointer-events: none;
+     z-index: 0;
+   }
    .main-content { padding: 4rem 1rem 3rem; position: relative; z-index: 1; }
    .content-wrapper { max-width: 1200px; margin: 0 auto; }
    .page { display: none; animation: pageSlide var(--hv-dur-slow) var(--hv-ease-out); }
