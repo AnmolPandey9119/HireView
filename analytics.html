@@ -14,8 +14,13 @@
 
   <!-- Chart.js — lightweight, no build step, loaded from cdnjs (same
        pattern as CodeMirror on coding.html / questionbank.html). Used
-       for the score trend line, skill radar and topic bar charts below. -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+       for the score trend line, skill radar and topic bar charts below.
+       onerror falls back to jsdelivr so a single CDN hiccup (network
+       blip, ad-blocker rule, corporate firewall rule on one CDN host)
+       can't take charts down — and analytics.js is written to degrade
+       gracefully (stat cards + badges still render) even if BOTH fail. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"
+          onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js';document.head.appendChild(s);"></script>
 
   <style>
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem; }
