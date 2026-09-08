@@ -108,6 +108,11 @@ async def get_analytics_summary(
     for i in interviews:
         sector_breakdown[i.sector or "private"] += 1
 
+    # Computed here (not further down) because badge_defs below needs it —
+    # keeping it next to overall_scores avoids the "used before defined"
+    # bug this line originally had.
+    my_avg = _avg(overall_scores)
+
     # ── Aptitude ────────────────────────────────────────────
     apt_attempts = (
         db.query(AptitudeAttempt)
@@ -201,7 +206,6 @@ async def get_analytics_summary(
 
     # ── Percentile vs. other candidates (interview quality) ────
     percentile = None
-    my_avg = _avg(overall_scores)
     if my_avg is not None:
         rows = (
             db.query(Interview.user_id, Interview.overall_score)
