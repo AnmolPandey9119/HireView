@@ -18,12 +18,25 @@
 #
 # Privacy: only first name + last-initial and aggregate numbers are
 # ever returned — never email, never raw activity content.
+#
+# CACHING: the full ranking (across every user, three tables) is
+# recomputed from scratch on every call, which is fine at today's scale
+# but would mean every open tab hammers the DB with the same expensive
+# aggregation as the site grows. Same fix pattern already used by
+# models/rate_limiter.py for the same reason (single Render instance,
+# no Redis budget): a small in-memory TTL cache. Rankings staying up to
+# 90 seconds stale is invisible to users and cuts DB load enormously
+# under real traffic. If this service is ever scaled to multiple
+# instances, this in-memory cache — like rate_limiter.py — would need
+# to move to a shared store (Redis) to stay consistent across them.
 # ============================================================
 
 from collections import defaultdict
 from datetime import datetime, timedelta
 from statistics import mean
+from threading import Lock
 from typing import Optional
+import time
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
@@ -34,6 +47,10 @@ from routes.auth import get_current_user
 router = APIRouter()
 
 WEIGHTS = {"interview": 0.5, "aptitude": 0.25, "coding": 0.25}
+
+_CACHE_TTL_SECONDS = 90
+_cache_lock = Lock()
+_cache: dict = {}   # period -> (computed_at, ranked_rows)
 
 
 def _display_name(full_name: str) -> str:
@@ -66,16 +83,13 @@ def _composite(interview_avg, aptitude_avg, coding_avg) -> Optional[float]:
     return sum(v * w for v, w in parts) / total_weight
 
 
-@router.get("/leaderboard")
-async def get_leaderboard(
-    period: str = Query("all", pattern="^(all|month|week)$"),
-    limit: int = Query(50, ge=1, le=200),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
+def _compute_rankings(db: Session, period: str) -> list:
+    """The expensive part — pulls every scored activity across every
+    user for the given period and returns a fully ranked list (each
+    row still carries its raw user_id; the endpoint below strips that
+    before sending anything to the browser). Cached by _get_rankings_cached."""
     cutoff = _period_cutoff(period)
 
-    # ── Pull scored activity, grouped per user ──────────────
     iq = db.query(Interview.user_id, Interview.overall_score).filter(
         Interview.status == "completed", Interview.overall_score.isnot(None)
     )
@@ -104,7 +118,7 @@ async def get_leaderboard(
 
     active_user_ids = set(interview_scores) | set(aptitude_scores) | set(coding_scores)
     if not active_user_ids:
-        return {"period": period, "top": [], "you": None, "total_ranked_users": 0}
+        return []
 
     users = {u.id: u for u in db.query(User).filter(User.id.in_(active_user_ids)).all()}
 
@@ -131,19 +145,43 @@ async def get_leaderboard(
     rows.sort(key=lambda r: -r["score"])
     for idx, r in enumerate(rows, start=1):
         r["rank"] = idx
-        r["is_you"] = (r["user_id"] == current_user.id)
 
-    you = next((r for r in rows if r["is_you"]), None)
-    top = rows[:limit]
+    return rows
 
-    # strip the raw user_id before sending to the browser — rank +
-    # display_name + is_you is all the frontend needs
-    for r in rows:
-        r.pop("user_id", None)
+
+def _get_rankings_cached(db: Session, period: str) -> list:
+    now = time.time()
+    with _cache_lock:
+        cached = _cache.get(period)
+        if cached and (now - cached[0]) < _CACHE_TTL_SECONDS:
+            return cached[1]
+    rows = _compute_rankings(db, period)
+    with _cache_lock:
+        _cache[period] = (now, rows)
+    return rows
+
+
+@router.get("/leaderboard")
+async def get_leaderboard(
+    period: str = Query("all", pattern="^(all|month|week)$"),
+    limit: int = Query(50, ge=1, le=200),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    rows = _get_rankings_cached(db, period)
+    if not rows:
+        return {"period": period, "top": [], "you": None, "total_ranked_users": 0}
+
+    you_row = next((r for r in rows if r["user_id"] == current_user.id), None)
+
+    def _public(r: dict) -> dict:
+        public = {k: v for k, v in r.items() if k != "user_id"}
+        public["is_you"] = (r["user_id"] == current_user.id)
+        return public
 
     return {
         "period": period,
-        "top": top,
-        "you": you,
+        "top": [_public(r) for r in rows[:limit]],
+        "you": _public(you_row) if you_row else None,
         "total_ranked_users": len(rows),
     }

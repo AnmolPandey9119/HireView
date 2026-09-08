@@ -46,6 +46,39 @@ app.add_middleware(
 )
 
 # ============================================================
+# SECURITY HEADERS
+# Defense-in-depth on every response — this is a pure JSON API (no
+# server-rendered HTML, no cookies), so most of the usual browser-attack
+# surface (XSS via reflected HTML, CSRF via cookies) doesn't apply here
+# in the first place. These headers are the standard extra layer anyway:
+#   - X-Content-Type-Options: stops browsers guessing a response is
+#     something other than JSON and executing it as script/HTML.
+#   - X-Frame-Options: this API is never meant to be iframed.
+#   - Referrer-Policy: don't leak full request URLs (which can include
+#     auth-adjacent query params) to third parties via the Referer header.
+#   - Strict-Transport-Security: Render always serves this over HTTPS,
+#     so pin browsers to HTTPS-only for this host going forward.
+# Wrapped in try/except deliberately: this middleware must NEVER be the
+# reason a request fails. If header-writing itself somehow throws, the
+# original response/exception still passes through untouched instead of
+# a broken middleware swallowing the real error (see the CORS incident
+# this app just had — an unhandled exception anywhere in the stack skips
+# CORS headers entirely, which the browser then misreports as a CORS
+# error instead of the real 500. Never add a second way for that to happen).
+# ============================================================
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    try:
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"
+    except Exception:
+        logger.exception("Failed to set security headers (response still sent)")
+    return response
+
+# ============================================================
 # ROUTES
 # ============================================================
 app.include_router(auth.router, prefix="/api", tags=["Auth"])
