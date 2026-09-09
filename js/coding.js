@@ -1,10 +1,16 @@
 /* ════════════════════════════════════════════════
    HireView — Coding Round page
-   Talks to /api/coding* (routes/coding.py), which compiles/runs the
-   candidate's code via Piston (a sandboxed multi-language execution
-   service — see models/piston_client.py) and grades it against the
-   question's test cases. Hidden test cases' expected_output is never
-   sent to the browser — same trust model as aptitude/questionbank.js.
+   Python and JavaScript now compile/run right here in the browser
+   (js/code-runner.js — Pyodide for Python, a sandboxed Web Worker for
+   JavaScript), not through any external compiler API. This page asks
+   /api/coding/questions/{id}/cases (routes/coding.py) for the stdin
+   it needs, runs the candidate's code against it locally, then sends
+   the resulting output back to /run or /submit for grading. Hidden
+   test cases' expected_output is never sent to the browser — only
+   their input is — same trust model as aptitude/questionbank.js, just
+   with the execution step moved client-side.
+   C, C++, and Java don't have an in-browser runtime yet and show as
+   "Coming soon" in the language picker.
    ════════════════════════════════════════════════ */
 
 if (!authToken) window.location.href = '/auth';
@@ -109,14 +115,15 @@ async function loadLanguages() {
     crLanguages = data.languages || [];
   } catch (err) {
     console.error(err);
-    crLanguages = [{ id: 'c', label: 'C (GCC)', monaco_language: 'c' }];
+    crLanguages = [{ id: 'python', label: 'Python 3', monaco_language: 'python', available: true }];
   }
   const setupSelect = document.getElementById('crLanguageSelect');
   const editorSelect = document.getElementById('crEditorLangSelect');
-  const optionsHtml = crLanguages.map(l => `<option value="${l.id}">${escapeHtml(l.label)}</option>`).join('');
+  const optionsHtml = crLanguages.map(l => `<option value="${l.id}" ${l.available ? '' : 'disabled'}>${escapeHtml(l.label)}${l.available ? '' : ' (Coming soon)'}</option>`).join('');
   setupSelect.innerHTML = optionsHtml;
   editorSelect.innerHTML = optionsHtml;
-  crSelectedLanguage = crLanguages[0]?.id || 'c';
+  crSelectedLanguage = (crLanguages.find(l => l.available) || crLanguages[0])?.id || 'python';
+  setupSelect.value = crSelectedLanguage;
 }
 
 document.getElementById('crTopicSelect').addEventListener('change', (e) => { crSelectedTopic = e.target.value; });
@@ -376,8 +383,25 @@ function renderResultBanner(summary, quiet) {
   wrap.innerHTML = banner + compileHtml + renderCaseResults(summary.results || []);
 }
 
+// Runs the candidate's current code, locally in the browser, against
+// every case in `cases` (each { case_id, input }). Returns the
+// { case_id, actual_output, error, timed_out } array the backend's
+// /run and /submit endpoints expect for grading.
+async function runCasesInBrowser(language, sourceCode, cases) {
+  const out = [];
+  for (const c of cases) {
+    const r = await window.HVCodeRunner.run(language, sourceCode, c.input);
+    out.push({ case_id: c.case_id, actual_output: r.output || '', error: r.error || null, timed_out: !!r.timed_out });
+  }
+  return out;
+}
+
 document.getElementById('crRunBtn').addEventListener('click', async () => {
   if (crBusy) return;
+  if (!window.HVCodeRunner.isAvailable(crSelectedLanguage)) {
+    showToast('This language is coming soon — try Python or JavaScript for now.', true);
+    return;
+  }
   crBusy = true;
   const btn = document.getElementById('crRunBtn');
   btn.disabled = true;
@@ -385,17 +409,18 @@ document.getElementById('crRunBtn').addEventListener('click', async () => {
 
   const q = crQuestions[crCurrentIndex];
   const wrap = document.getElementById('crResultsWrap');
-  wrap.innerHTML = '<div class="cr-hint" style="padding:1rem 0;">Compiling and running against sample cases…</div>';
+  wrap.innerHTML = '<div class="cr-hint" style="padding:1rem 0;">Running your code against sample cases…</div>';
 
   try {
+    const { cases } = await apiGet(`/api/coding/questions/${q.id}/cases?mode=run`);
+    const sourceCode = crEditor.getValue();
+    const clientResults = await runCasesInBrowser(crSelectedLanguage, sourceCode, cases);
     const result = await apiPost(`/api/coding/questions/${q.id}/run`, {
       language: crSelectedLanguage,
-      source_code: crEditor.getValue(),
+      results: clientResults,
     });
-    const compileHtml = result.compile_error ? `<div class="cr-compile-error">${escapeHtml(result.compile_error)}</div>` : '';
     const banner = `<div class="cr-result-banner ${result.passed_count === result.total_count ? 'pass' : 'fail'}">${result.passed_count}/${result.total_count} sample case${result.total_count === 1 ? '' : 's'} passed</div>`;
-    const cappedHtml = result.capped ? '<div class="cr-hint" style="padding:0.5rem 0;">Some test cases weren\'t run to conserve today\'s free execution limit.</div>' : '';
-    wrap.innerHTML = banner + cappedHtml + compileHtml + renderCaseResults(result.results || []);
+    wrap.innerHTML = banner + renderCaseResults(result.results || []);
   } catch (err) {
     console.error(err);
     wrap.innerHTML = '';
@@ -409,6 +434,10 @@ document.getElementById('crRunBtn').addEventListener('click', async () => {
 
 document.getElementById('crSubmitBtn').addEventListener('click', async () => {
   if (crBusy) return;
+  if (!window.HVCodeRunner.isAvailable(crSelectedLanguage)) {
+    showToast('This language is coming soon — try Python or JavaScript for now.', true);
+    return;
+  }
   crBusy = true;
   const btn = document.getElementById('crSubmitBtn');
   btn.disabled = true;
@@ -416,22 +445,21 @@ document.getElementById('crSubmitBtn').addEventListener('click', async () => {
 
   const q = crQuestions[crCurrentIndex];
   const wrap = document.getElementById('crResultsWrap');
-  wrap.innerHTML = '<div class="cr-hint" style="padding:1rem 0;">Compiling and grading against every test case…</div>';
+  wrap.innerHTML = '<div class="cr-hint" style="padding:1rem 0;">Running your code against every test case…</div>';
 
   try {
+    const sourceCode = crEditor.getValue();
+    const { cases } = await apiGet(`/api/coding/questions/${q.id}/cases?mode=submit`);
+    const clientResults = await runCasesInBrowser(crSelectedLanguage, sourceCode, cases);
     const result = await apiPost(`/api/coding/questions/${q.id}/submit`, {
       language: crSelectedLanguage,
-      source_code: crEditor.getValue(),
+      source_code: sourceCode,
+      results: clientResults,
       attempt_id: crAttemptId,
       time_taken_seconds: Math.round((Date.now() - crStartedAt) / 1000),
     });
     crSolvedMap[q.id] = result;
     renderResultBanner(result, false);
-    document.getElementById('crResultsWrap').innerHTML += renderCaseResults(result.results || []).length
-      ? '' : '';
-    if (result.capped) {
-      document.getElementById('crResultsWrap').innerHTML += '<div class="cr-hint" style="padding:0.5rem 0;">Some test cases weren\'t run to conserve today\'s free execution limit — a full pass here doesn\'t guarantee every hidden case would also pass.</div>';
-    }
     showToast(result.is_solved ? '✅ Solved!' : `${result.passed_count}/${result.total_count} test cases passed.`, !result.is_solved);
   } catch (err) {
     console.error(err);
@@ -547,4 +575,5 @@ function resetToSetup() {
 (async function init() {
   await loadLanguages();
   loadTopicsForSetup();
+  window.HVCodeRunner.preload(crSelectedLanguage); // warm up Pyodide in the background if needed
 })();

@@ -120,39 +120,20 @@ except ImportError:
 
 # ============================================================
 # CODE EXECUTION (Coding Round)
-# Code is compiled/run remotely by the JDoodle Compiler API
-# (https://jdoodle.com/compiler-api) — the backend never runs
-# candidate-submitted code locally. See models/jdoodle_client.py for
-# the full setup note and — importantly — the free-tier quota caveats.
+# Python and JavaScript run entirely in the candidate's own browser
+# now (js/code-runner.js — Pyodide for Python, a sandboxed Web Worker
+# for JavaScript). The backend never executes candidate code and no
+# longer talks to any external compiler API (JDoodle/Judge0 are gone
+# — see models/languages.py). There's no execution-service quota left
+# to configure or protect: the backend's only job is to hold the
+# hidden test cases' expected_output and compare it against whatever
+# actual_output the browser reports (see routes/coding.py's
+# _grade_cases).
 #
-# You MUST set JDOODLE_CLIENT_ID and JDOODLE_CLIENT_SECRET yourself:
-# sign up (free, no credit card) at https://www.jdoodle.com/compiler-api
-# and copy the pair from your account's Compiler API tab.
-#
-# (models/judge0_client.py is kept in the repo, unused, in case you
-# move to Judge0 or a paid plan later — see jdoodle_client.py's module
-# docstring for why we moved off it.)
+# C, C++, and Java are listed as "coming soon" (no in-browser runtime
+# wired up yet) — see models/languages.py.
 # ============================================================
-JDOODLE_API_URL     = os.getenv("JDOODLE_API_URL", "https://api.jdoodle.com/v1").rstrip("/")
-JDOODLE_CLIENT_ID     = os.getenv("JDOODLE_CLIENT_ID", "")
-JDOODLE_CLIENT_SECRET = os.getenv("JDOODLE_CLIENT_SECRET", "")
-CODE_RUN_TIMEOUT_SECONDS = int(os.getenv("CODE_RUN_TIMEOUT_SECONDS", "8"))   # per-test-case CPU time limit
 MAX_SOURCE_CODE_CHARS = 20000   # sanity cap so nobody pastes a multi-MB file into the editor
-
-# JDoodle's free tier is 200 executions/day for the WHOLE account, shared
-# across every candidate — not per user. Each test case run against a
-# submission costs one call, so these caps limit how many test cases get
-# executed per Run/Submit click to make that quota stretch across
-# multiple concurrent users. Lower these if you're still running out;
-# raise them (or drop them entirely once you're on a bigger execution
-# plan) if you have headroom to spare.
-# NOTE: capping test cases is a grading trade-off, not just a cost one —
-# a submission that passes every test case UP TO the cap but would have
-# failed a later hidden one still can't be told apart from a truly
-# correct solution. See routes/coding.py's _run_against_cases for how
-# this is surfaced back to the candidate.
-MAX_TEST_CASES_PER_RUN    = int(os.getenv("MAX_TEST_CASES_PER_RUN", "3"))
-MAX_TEST_CASES_PER_SUBMIT = int(os.getenv("MAX_TEST_CASES_PER_SUBMIT", "6"))
 
 # ============================================================
 # LIMITS

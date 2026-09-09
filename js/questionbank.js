@@ -247,10 +247,12 @@
    
    // ────────────────────────────────────────────
    // Coding practice — in-modal compiler
-   // Talks to /api/coding/questions/{id}/run and /submit (routes/coding.py),
-   // the same Piston-backed grading engine the full Coding Round page uses.
+   // Python/JavaScript run right here in the browser (js/code-runner.js);
+   // /api/coding/questions/{id}/cases + /run|/submit (routes/coding.py)
+   // supply the stdin to run against and grade the resulting output.
    // This is the ungraded, one-off "practice a single problem" flow —
    // no attempt_id is sent, so nothing here counts toward a Coding Round.
+   // C/C++/Java show as "Coming soon" — no in-browser runtime for them yet.
    // ────────────────────────────────────────────
    const QB_CM_MODE = {
      c: 'text/x-csrc', cpp: 'text/x-c++src', java: 'text/x-java',
@@ -268,7 +270,7 @@
        qbLanguagesCache = data.languages || [];
      } catch (err) {
        console.error(err);
-       qbLanguagesCache = [{ id: 'c', label: 'C (GCC)', monaco_language: 'c' }];
+       qbLanguagesCache = [{ id: 'python', label: 'Python 3', monaco_language: 'python', available: true }];
      }
      return qbLanguagesCache;
    }
@@ -303,7 +305,7 @@
      `).join('') || '<div class="qb-coding-note">No sample cases for this problem.</div>';
 
      const languages = await qbLoadLanguages();
-     const langOptionsHtml = languages.map(l => `<option value="${l.id}">${escapeHtml(l.label)}</option>`).join('');
+     const langOptionsHtml = languages.map(l => `<option value="${l.id}" ${l.available ? '' : 'disabled'}>${escapeHtml(l.label)}${l.available ? '' : ' (Coming soon)'}</option>`).join('');
 
      modal.innerHTML = `
        <div class="qb-modal-head">
@@ -334,7 +336,8 @@
 
      qbEditorQuestion = q;
      const textarea = document.getElementById('qbCodeArea');
-     const defaultLang = languages[0]?.id || 'c';
+     const defaultLang = (languages.find(l => l.available) || languages[0])?.id || 'python';
+     document.getElementById('qbLangSelect').value = defaultLang;
      qbCodeEditor = CodeMirror.fromTextArea(textarea, {
        lineNumbers: true,
        theme: 'dracula',
@@ -344,7 +347,14 @@
        matchBrackets: true,
        extraKeys: { Tab: (cm) => cm.replaceSelection('    ', 'end') },
      });
-     qbCodeEditor.setValue(q.starter_code || '');
+     window.HVCodeRunner.preload(defaultLang); // warm up Pyodide in the background if needed
+
+     // Starter code should match whatever language ended up selected
+     // (q.starter_code is only meaningful for the C starter) — load it
+     // properly instead of assuming q.starter_code fits defaultLang.
+     apiGet(`/api/coding/questions/${q.id}/starter?language=${defaultLang}`)
+       .then(data => qbCodeEditor.setValue(data.starter_code || ''))
+       .catch(() => qbCodeEditor.setValue(q.starter_code || ''));
      setTimeout(() => qbCodeEditor.refresh(), 0);
 
      document.getElementById('qbLangSelect').addEventListener('change', async (e) => {
@@ -374,6 +384,11 @@
 
    async function qbRunOrSubmit(mode) {
      if (qbEditorBusy || !qbEditorQuestion) return;
+     const language = document.getElementById('qbLangSelect').value;
+     if (!window.HVCodeRunner.isAvailable(language)) {
+       showToast('This language is coming soon — try Python or JavaScript for now.', true);
+       return;
+     }
      qbEditorBusy = true;
      const btn = document.getElementById(mode === 'run' ? 'qbRunBtn' : 'qbSubmitBtn');
      const originalLabel = btn.textContent;
@@ -381,24 +396,31 @@
      btn.textContent = mode === 'run' ? 'Running…' : 'Grading…';
 
      const wrap = document.getElementById('qbCodeResultWrap');
-     wrap.innerHTML = `<div class="qb-coding-note">Compiling and ${mode === 'run' ? 'running against sample cases' : 'grading against every test case'}…</div>`;
+     wrap.innerHTML = `<div class="qb-coding-note">Running your code ${mode === 'run' ? 'against sample cases' : 'against every test case'}…</div>`;
 
-     const language = document.getElementById('qbLangSelect').value;
+     const sourceCode = qbCodeEditor.getValue();
      const path = mode === 'run'
        ? `/api/coding/questions/${qbEditorQuestion.id}/run`
        : `/api/coding/questions/${qbEditorQuestion.id}/submit`;
 
      try {
-       const result = await apiPost(path, { language, source_code: qbCodeEditor.getValue() });
+       const { cases } = await apiGet(`/api/coding/questions/${qbEditorQuestion.id}/cases?mode=${mode}`);
+       const clientResults = [];
+       for (const c of cases) {
+         const r = await window.HVCodeRunner.run(language, sourceCode, c.input);
+         clientResults.push({ case_id: c.case_id, actual_output: r.output || '', error: r.error || null, timed_out: !!r.timed_out });
+       }
+       const body = mode === 'run'
+         ? { language, results: clientResults }
+         : { language, source_code: sourceCode, results: clientResults };
+       const result = await apiPost(path, body);
        const total = result.total_count;
        const passed = result.passed_count;
        const bannerLabel = mode === 'run'
          ? `${passed}/${total} sample case${total === 1 ? '' : 's'} passed`
          : (result.is_solved ? 'All test cases passed!' : `${passed}/${total} test cases passed`);
-       const compileHtml = result.compile_error ? `<div class="qb-compile-error">${escapeHtml(result.compile_error)}</div>` : '';
        wrap.innerHTML = `
          <div class="qb-result-banner-run ${passed === total ? 'pass' : 'fail'}">${passed === total ? '✅ ' : ''}${bannerLabel}</div>
-         ${compileHtml}
          ${qbRenderCaseResults(result.results)}
        `;
        if (mode === 'submit') {

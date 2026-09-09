@@ -407,8 +407,9 @@ class CodingAttempt(Base):
 # CODING SUBMISSION TABLE
 # One row per "Submit" click on a single coding question. Stores the
 # candidate's exact source code, the language used, and the graded
-# per-test-case result (produced by routes/coding.py running the code
-# through the Piston execution API). attempt_id is set when the
+# per-test-case result (produced by routes/coding.py, comparing output
+# the browser ran locally — js/code-runner.js — against the stored
+# expected_output). attempt_id is set when the
 # submission happened inside a Coding Round session; it's left NULL
 # for one-off practice submissions made from the Question Bank page,
 # so both flows share the same grading engine and history.
