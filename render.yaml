@@ -12,6 +12,10 @@ services:
         generateValue: true
       - key: GROQ_API_KEY
         sync: false
+      - key: JDOODLE_CLIENT_ID
+        sync: false
+      - key: JDOODLE_CLIENT_SECRET
+        sync: false
       - key: FRONTEND_URL
         sync: false
       - key: DEBUG

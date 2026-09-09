@@ -37,8 +37,9 @@ from models.database import (
     get_db, QuestionBank, CodingTestCase, CodingAttempt, CodingSubmission,
     User, to_utc_iso,
 )
-from models.judge0_client import (
-    LANGUAGES, LANGUAGES_BY_ID, Judge0Error, execute_code, normalize_output, get_starter_code,
+from models.jdoodle_client import (
+    LANGUAGES, LANGUAGES_BY_ID, JdoodleError, JdoodleQuotaExceeded,
+    execute_code, normalize_output, get_starter_code,
 )
 from routes.auth import get_current_user
 import random
@@ -103,15 +104,29 @@ def _get_question_or_404(db: Session, question_id: int) -> QuestionBank:
     return q
 
 
-def _run_against_cases(language: str, source_code: str, cases: List[CodingTestCase]) -> dict:
-    """Runs source_code against every case in `cases`, stopping early (and
-    marking every case as failed) if compilation fails — no point burning
-    API calls re-compiling the same broken code once per test case."""
+def _run_against_cases(language: str, source_code: str, cases: List[CodingTestCase], max_cases: int) -> dict:
+    """Runs source_code against cases in `cases`, up to `max_cases` of them
+    (JDoodle's free tier is a shared 200 calls/day across all users, so
+    this cap keeps one submission from eating the whole day's quota —
+    see config.MAX_TEST_CASES_PER_RUN/SUBMIT). Any cases beyond the cap
+    are reported as "not run" rather than failed or passed, and
+    is_solved in the caller only counts a submission as solved if EVERY
+    case was actually run and passed — a submission that hits the cap
+    is never silently marked correct.
+
+    Also stops early (marking every remaining case as failed) if
+    compilation fails — no point burning API calls re-compiling the same
+    broken code once per test case. NOTE: JDoodle doesn't separate
+    compiler errors from program output the way Judge0 did, so this
+    early-stop can't reliably trigger here; see jdoodle_client.py."""
     results = []
     passed_count = 0
     compile_error = None
+    sorted_cases = sorted(cases, key=lambda t: t.order_index)
+    cases_to_run = sorted_cases[:max_cases]
+    skipped_cases = sorted_cases[max_cases:]
 
-    for i, tc in enumerate(sorted(cases, key=lambda t: t.order_index)):
+    for i, tc in enumerate(cases_to_run):
         if compile_error is not None:
             results.append({
                 "is_sample": tc.is_sample,
@@ -125,7 +140,9 @@ def _run_against_cases(language: str, source_code: str, cases: List[CodingTestCa
 
         try:
             outcome = execute_code(language, source_code, tc.input)
-        except Judge0Error as e:
+        except JdoodleQuotaExceeded as e:
+            raise HTTPException(status_code=429, detail=str(e))
+        except JdoodleError as e:
             raise HTTPException(status_code=503, detail=str(e))
 
         if outcome["compile_stderr"]:
@@ -160,11 +177,27 @@ def _run_against_cases(language: str, source_code: str, cases: List[CodingTestCa
             "error": error,
         })
 
+    for tc in skipped_cases:
+        results.append({
+            "is_sample": tc.is_sample,
+            "input": tc.input if tc.is_sample else None,
+            "expected_output": tc.expected_output if tc.is_sample else None,
+            "actual_output": "",
+            "passed": False,
+            "error": "Not run — reached this submission's test-case execution limit.",
+            "skipped": True,
+        })
+
     return {
         "results": results,
         "passed_count": passed_count,
-        "total_count": len(cases),
+        # Deliberately the FULL case count, not just how many were run: a
+        # capped submission then can't pass_count == total_count unless the
+        # cap covered every case, so is_solved (computed by callers) can
+        # never mark a truncated run as fully solved without special-casing.
+        "total_count": len(sorted_cases),
         "compile_error": compile_error,
+        "capped": len(skipped_cases) > 0,
     }
 
 
@@ -215,7 +248,7 @@ def run_code(
     if not sample_cases:
         raise HTTPException(status_code=400, detail="This question has no sample test cases to run against")
 
-    outcome = _run_against_cases(payload.language, payload.source_code, sample_cases)
+    outcome = _run_against_cases(payload.language, payload.source_code, sample_cases, config.MAX_TEST_CASES_PER_RUN)
     return outcome
 
 
@@ -253,7 +286,7 @@ def submit_code(
         if question_id not in json.loads(attempt.question_ids):
             raise HTTPException(status_code=400, detail="This question isn't part of that coding round")
 
-    outcome = _run_against_cases(payload.language, payload.source_code, all_cases)
+    outcome = _run_against_cases(payload.language, payload.source_code, all_cases, config.MAX_TEST_CASES_PER_SUBMIT)
 
     submission = CodingSubmission(
         attempt_id=payload.attempt_id,
@@ -279,6 +312,7 @@ def submit_code(
         "is_solved": submission.is_solved,
         "compile_error": submission.compile_error,
         "results": outcome["results"],
+        "capped": outcome["capped"],
     }
 
 

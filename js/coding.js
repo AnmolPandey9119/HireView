@@ -394,7 +394,8 @@ document.getElementById('crRunBtn').addEventListener('click', async () => {
     });
     const compileHtml = result.compile_error ? `<div class="cr-compile-error">${escapeHtml(result.compile_error)}</div>` : '';
     const banner = `<div class="cr-result-banner ${result.passed_count === result.total_count ? 'pass' : 'fail'}">${result.passed_count}/${result.total_count} sample case${result.total_count === 1 ? '' : 's'} passed</div>`;
-    wrap.innerHTML = banner + compileHtml + renderCaseResults(result.results || []);
+    const cappedHtml = result.capped ? '<div class="cr-hint" style="padding:0.5rem 0;">Some test cases weren\'t run to conserve today\'s free execution limit.</div>' : '';
+    wrap.innerHTML = banner + cappedHtml + compileHtml + renderCaseResults(result.results || []);
   } catch (err) {
     console.error(err);
     wrap.innerHTML = '';
@@ -428,6 +429,9 @@ document.getElementById('crSubmitBtn').addEventListener('click', async () => {
     renderResultBanner(result, false);
     document.getElementById('crResultsWrap').innerHTML += renderCaseResults(result.results || []).length
       ? '' : '';
+    if (result.capped) {
+      document.getElementById('crResultsWrap').innerHTML += '<div class="cr-hint" style="padding:0.5rem 0;">Some test cases weren\'t run to conserve today\'s free execution limit — a full pass here doesn\'t guarantee every hidden case would also pass.</div>';
+    }
     showToast(result.is_solved ? '✅ Solved!' : `${result.passed_count}/${result.total_count} test cases passed.`, !result.is_solved);
   } catch (err) {
     console.error(err);

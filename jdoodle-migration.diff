@@ -1,0 +1,479 @@
+diff --git a/hireview-backend/.env.example b/hireview-backend/.env.example
+index 271d620..8bae700 100644
+--- a/hireview-backend/.env.example
++++ b/hireview-backend/.env.example
+@@ -7,6 +7,14 @@ GROQ_API_KEY=your_groq_api_key_here
+ # get one free at https://aistudio.google.com/apikey
+ GEMINI_API_KEY=your_gemini_api_key_here
+ 
++# JDoodle Compiler API — powers Run/Submit on the Coding Round. Free tier,
++# no credit card, but capped at 200 executions/day shared across ALL users
++# (see models/jdoodle_client.py and config.MAX_TEST_CASES_PER_RUN/SUBMIT).
++# Get your pair (free) at: https://www.jdoodle.com/compiler-api
++#   -> sign up/log in -> "Compiler API" tab -> copy clientId/clientSecret
++JDOODLE_CLIENT_ID=your_jdoodle_client_id_here
++JDOODLE_CLIENT_SECRET=your_jdoodle_client_secret_here
++
+ # Razorpay keys — from Dashboard -> Account & Settings -> API keys & integration
+ # Use TEST mode keys for development, LIVE keys only in production.
+ RAZORPAY_KEY_ID=your_razorpay_key_id_here
+diff --git a/hireview-backend/config.py b/hireview-backend/config.py
+index f89af08..78ea906 100644
+--- a/hireview-backend/config.py
++++ b/hireview-backend/config.py
+@@ -120,22 +120,40 @@ except ImportError:
+ 
+ # ============================================================
+ # CODE EXECUTION (Coding Round)
+-# Code is compiled/run remotely by Judge0 CE (https://judge0.com), a
+-# sandboxed multi-language execution API — the backend never runs
+-# candidate-submitted code locally.
++# Code is compiled/run remotely by the JDoodle Compiler API
++# (https://jdoodle.com/compiler-api) — the backend never runs
++# candidate-submitted code locally. See models/jdoodle_client.py for
++# the full setup note and — importantly — the free-tier quota caveats.
+ #
+-# Default JUDGE0_API_URL/HOST point at the hosted RapidAPI instance.
+-# You MUST set JUDGE0_API_KEY yourself — get a free key (no approval
+-# needed) at https://rapidapi.com/judge0-official/api/judge0-ce by
+-# subscribing to the Basic (free) plan. See the setup note at the top
+-# of models/judge0_client.py for details.
+-# ============================================================
+-JUDGE0_API_URL  = os.getenv("JUDGE0_API_URL", "https://judge0-ce.p.rapidapi.com").rstrip("/")
+-JUDGE0_API_KEY  = os.getenv("JUDGE0_API_KEY", "")
+-JUDGE0_API_HOST = os.getenv("JUDGE0_API_HOST", "judge0-ce.p.rapidapi.com")
++# You MUST set JDOODLE_CLIENT_ID and JDOODLE_CLIENT_SECRET yourself:
++# sign up (free, no credit card) at https://www.jdoodle.com/compiler-api
++# and copy the pair from your account's Compiler API tab.
++#
++# (models/judge0_client.py is kept in the repo, unused, in case you
++# move to Judge0 or a paid plan later — see jdoodle_client.py's module
++# docstring for why we moved off it.)
++# ============================================================
++JDOODLE_API_URL     = os.getenv("JDOODLE_API_URL", "https://api.jdoodle.com/v1").rstrip("/")
++JDOODLE_CLIENT_ID     = os.getenv("JDOODLE_CLIENT_ID", "")
++JDOODLE_CLIENT_SECRET = os.getenv("JDOODLE_CLIENT_SECRET", "")
+ CODE_RUN_TIMEOUT_SECONDS = int(os.getenv("CODE_RUN_TIMEOUT_SECONDS", "8"))   # per-test-case CPU time limit
+ MAX_SOURCE_CODE_CHARS = 20000   # sanity cap so nobody pastes a multi-MB file into the editor
+ 
++# JDoodle's free tier is 200 executions/day for the WHOLE account, shared
++# across every candidate — not per user. Each test case run against a
++# submission costs one call, so these caps limit how many test cases get
++# executed per Run/Submit click to make that quota stretch across
++# multiple concurrent users. Lower these if you're still running out;
++# raise them (or drop them entirely once you're on a bigger execution
++# plan) if you have headroom to spare.
++# NOTE: capping test cases is a grading trade-off, not just a cost one —
++# a submission that passes every test case UP TO the cap but would have
++# failed a later hidden one still can't be told apart from a truly
++# correct solution. See routes/coding.py's _run_against_cases for how
++# this is surfaced back to the candidate.
++MAX_TEST_CASES_PER_RUN    = int(os.getenv("MAX_TEST_CASES_PER_RUN", "3"))
++MAX_TEST_CASES_PER_SUBMIT = int(os.getenv("MAX_TEST_CASES_PER_SUBMIT", "6"))
++
+ # ============================================================
+ # LIMITS
+ # ============================================================
+diff --git a/hireview-backend/models/jdoodle_client.py b/hireview-backend/models/jdoodle_client.py
+new file mode 100644
+index 0000000..64b7187
+--- /dev/null
++++ b/hireview-backend/models/jdoodle_client.py
+@@ -0,0 +1,241 @@
++# ============================================================
++# JDoodle Client
++# File: models/jdoodle_client.py
++#
++# Thin wrapper around the JDoodle Compiler API (https://jdoodle.com/compiler-api)
++# — this is what actually compiles/runs a candidate's submitted code for
++# the Coding Round; routes/coding.py never executes untrusted code itself.
++#
++# We moved here from Judge0 CE (models/judge0_client.py, kept in the repo
++# for reference/rollback) because Judge0's free RapidAPI tier requires a
++# credit card on file even to activate the free plan. JDoodle's free tier
++# doesn't: you only need an email address.
++#
++# ── One-time setup (takes ~2 minutes, no card) ──
++#   1. Go to https://www.jdoodle.com/compiler-api and sign up / log in.
++#   2. Open the "Compiler API" tab of your account — it shows a
++#      clientId and clientSecret pair (generated automatically).
++#   3. Set them as JDOODLE_CLIENT_ID and JDOODLE_CLIENT_SECRET in the
++#      backend's environment (.env locally, or Render's env vars).
++# No other config is required.
++#
++# ── The catch: 200 free executions/day, shared across ALL users ──
++# JDoodle's free tier is capped at 200 API calls/day for the whole
++# account — not per user. Every call to execute_code() below spends one,
++# so with multiple concurrent candidates this WILL run out on a busy day.
++# Two things in this codebase exist specifically to manage that:
++#   1. config.MAX_TEST_CASES_PER_RUN / MAX_TEST_CASES_PER_SUBMIT cap how
++#      many test cases get executed per Run/Submit click (see
++#      routes/coding.py's _run_against_cases) — tune these down if you're
++#      burning through the quota too fast, up if you have headroom.
++#   2. JdoodleQuotaExceeded (below) is raised distinctly from other
++#      errors so routes/coding.py can show the candidate a clear
++#      "come back tomorrow" message instead of a generic failure.
++# If/when you outgrow this, models/judge0_client.py + a paid Judge0 plan,
++# or a self-hosted sandbox, are the next steps — see the conversation
++# that added this file for the fuller comparison.
++#
++# ── Known limitation vs. Judge0: no separate compile-error signal ──
++# Judge0 returns stdout/stderr/compile_output as separate fields, so
++# routes/coding.py can detect "compilation failed" and stop burning API
++# calls re-running the same broken code against every remaining test
++# case. JDoodle's /execute only returns a single merged `output` string
++# (stdout + stderr + any compiler diagnostics, all mixed together) — it
++# does NOT tell you whether that output came from a compiler or the
++# program itself. So here, compile_stderr is always None and a
++# compilation failure just shows up as a non-matching `stdout` on every
++# test case (each one still costs a call). If that quota cost becomes a
++# problem, self-hosting Piston/Judge0 (which DO separate compile errors)
++# is the fix — see the note above.
++# ============================================================
++
++import httpx
++import config
++
++# JDoodle's language code + versionIndex per runtime. These are the
++# versions available on JDoodle's free tier as of when this was written —
++# if compilation starts failing with an "invalid version index" style
++# message, check https://www.jdoodle.com/compiler-api for current values
++# and update here.
++LANGUAGES = [
++    {"id": "c", "label": "C (GCC)", "jdoodle_language": "c", "jdoodle_version_index": "5", "monaco_language": "c"},
++    {"id": "cpp", "label": "C++ (GCC)", "jdoodle_language": "cpp17", "jdoodle_version_index": "1", "monaco_language": "cpp"},
++    {"id": "python", "label": "Python 3", "jdoodle_language": "python3", "jdoodle_version_index": "4", "monaco_language": "python"},
++    {"id": "java", "label": "Java", "jdoodle_language": "java", "jdoodle_version_index": "4", "monaco_language": "java"},
++    {"id": "javascript", "label": "JavaScript (Node.js)", "jdoodle_language": "nodejs", "jdoodle_version_index": "4", "monaco_language": "javascript"},
++]
++
++LANGUAGES_BY_ID = {lang["id"]: lang for lang in LANGUAGES}
++
++# JDoodle statusCodes that matter to us — see
++# https://www.jdoodle.com/compiler-api for the full list.
++STATUS_INVALID_REQUEST = 400
++STATUS_UNAUTHORIZED = 401
++STATUS_UNSUPPORTED_MEDIA_TYPE = 415
++STATUS_DAILY_LIMIT_REACHED = 429
++STATUS_SERVER_ERROR = 500
++
++
++class Judge0Error(Exception):
++    """Kept as an alias of JdoodleError (see below) so any code still
++    importing the old name from models.judge0_client keeps working."""
++    pass
++
++
++class JdoodleError(Judge0Error):
++    """Raised when the execution service itself can't be reached, isn't
++    configured, or errors out (as opposed to the candidate's code simply
++    failing/erroring, which is a normal, expected outcome and never
++    raises)."""
++    pass
++
++
++class JdoodleQuotaExceeded(JdoodleError):
++    """Raised specifically when JDoodle's daily free-tier limit (200
++    calls/day, shared across all users) has been hit. Kept as its own
++    exception type so routes/coding.py can show a distinct, honest
++    message instead of a generic 'execution service unreachable' one."""
++    pass
++
++
++def execute_code(language_id: str, source_code: str, stdin: str) -> dict:
++    """Run one piece of source code against one stdin payload via JDoodle.
++
++    Returns a dict:
++      {
++        "stdout": str,                  # JDoodle's merged output (see
++                                         # module docstring — this may
++                                         # include stderr/compiler text)
++        "stderr": str,                  # always "" — JDoodle doesn't
++                                         # separate this out
++        "exit_code": int,                # always 0 — JDoodle doesn't
++                                         # report a real exit code; rely
++                                         # on comparing stdout instead
++        "compile_stderr": str | None,   # always None, see module docstring
++        "timed_out": bool,               # best-effort guess from the
++                                         # output text; JDoodle doesn't
++                                         # give a structured timeout flag
++      }
++
++    Raises JdoodleQuotaExceeded if the daily free-tier limit has been
++    hit, or JdoodleError for any other configuration/connectivity issue.
++    """
++    lang = LANGUAGES_BY_ID.get(language_id)
++    if not lang:
++        raise ValueError(f"Unsupported language: {language_id}")
++
++    if not config.JDOODLE_CLIENT_ID or not config.JDOODLE_CLIENT_SECRET:
++        raise JdoodleError(
++            "Code execution isn't configured yet — set JDOODLE_CLIENT_ID and "
++            "JDOODLE_CLIENT_SECRET in the backend's environment (see the "
++            "setup note at the top of models/jdoodle_client.py)."
++        )
++
++    payload = {
++        "clientId": config.JDOODLE_CLIENT_ID,
++        "clientSecret": config.JDOODLE_CLIENT_SECRET,
++        "script": source_code,
++        "language": lang["jdoodle_language"],
++        "versionIndex": lang["jdoodle_version_index"],
++        "stdin": stdin or "",
++    }
++
++    try:
++        resp = httpx.post(
++            f"{config.JDOODLE_API_URL}/execute",
++            json=payload,
++            timeout=30.0,
++        )
++        data = resp.json()
++    except httpx.HTTPError as e:
++        raise JdoodleError(f"Couldn't reach the code execution service: {e}")
++    except ValueError:
++        raise JdoodleError("Code execution service returned an unreadable response.")
++
++    status_code = data.get("statusCode", resp.status_code)
++
++    if status_code == STATUS_DAILY_LIMIT_REACHED:
++        raise JdoodleQuotaExceeded(
++            "We've hit today's free code-execution limit. Please try again after "
++            "midnight UTC, when JDoodle's daily quota resets."
++        )
++    if status_code in (STATUS_UNAUTHORIZED,):
++        raise JdoodleError(
++            "Code execution service rejected our credentials — double-check "
++            "JDOODLE_CLIENT_ID/JDOODLE_CLIENT_SECRET."
++        )
++    if status_code in (STATUS_INVALID_REQUEST, STATUS_UNSUPPORTED_MEDIA_TYPE, STATUS_SERVER_ERROR):
++        raise JdoodleError(f"Code execution service error (status {status_code}).")
++
++    output = data.get("output") or ""
++
++    return {
++        "stdout": output,
++        "stderr": "",
++        "exit_code": 0,
++        "compile_stderr": None,
++        # JDoodle has no structured timeout signal — this is a best-effort
++        # text match on the couple of phrasings it's known to emit.
++        "timed_out": "time limit" in output.lower() or "timed out" in output.lower(),
++    }
++
++
++def normalize_output(s: str) -> str:
++    """Normalizes program output before comparing it to expected_output:
++    trims trailing whitespace on every line and trailing blank lines, so
++    a trailing newline or trailing spaces (which almost every language's
++    print/println adds) don't cause a false mismatch. Does NOT touch
++    internal spacing/case — the actual content still has to match."""
++    if s is None:
++        return ""
++    lines = s.replace("\r\n", "\n").strip("\n").split("\n")
++    return "\n".join(line.rstrip() for line in lines).strip()
++
++
++# ============================================================
++# Per-language starter code
++# Identical to the templates that lived in judge0_client.py — JDoodle
++# vs. Judge0 doesn't change what a candidate's starting point should
++# look like, only how the code gets executed.
++# ============================================================
++_GENERIC_TEMPLATES = {
++    "cpp": (
++        "#include <bits/stdc++.h>\n"
++        "using namespace std;\n\n"
++        "int main() {\n"
++        "    // TODO: read the input (see the problem statement for the exact format)\n"
++        "    // and print your answer to stdout.\n\n"
++        "    return 0;\n"
++        "}\n"
++    ),
++    "python": (
++        "import sys\n\n"
++        "def main():\n"
++        "    data = sys.stdin.read().split()\n"
++        "    # TODO: parse `data` per the input format in the problem statement,\n"
++        "    # then print your answer.\n\n"
++        "if __name__ == '__main__':\n"
++        "    main()\n"
++    ),
++    "java": (
++        "import java.util.*;\n\n"
++        "public class Main {\n"
++        "    public static void main(String[] args) {\n"
++        "        Scanner sc = new Scanner(System.in);\n"
++        "        // TODO: read the input (see the problem statement for the exact format)\n"
++        "        // and print your answer to stdout.\n"
++        "    }\n"
++        "}\n"
++    ),
++    "javascript": (
++        "const lines = require('fs').readFileSync('/dev/stdin', 'utf8').split('\\n');\n\n"
++        "// TODO: parse `lines`/the raw input per the problem statement,\n"
++        "// then console.log your answer.\n"
++    ),
++}
++
++
++def get_starter_code(language_id: str, db_starter_code: str | None) -> str:
++    if language_id == "c":
++        return db_starter_code or "#include <stdio.h>\n\nint main() {\n    return 0;\n}\n"
++    return _GENERIC_TEMPLATES.get(language_id, "")
+diff --git a/hireview-backend/routes/coding.py b/hireview-backend/routes/coding.py
+index d18613f..9d8c718 100644
+--- a/hireview-backend/routes/coding.py
++++ b/hireview-backend/routes/coding.py
+@@ -37,8 +37,9 @@ from models.database import (
+     get_db, QuestionBank, CodingTestCase, CodingAttempt, CodingSubmission,
+     User, to_utc_iso,
+ )
+-from models.judge0_client import (
+-    LANGUAGES, LANGUAGES_BY_ID, Judge0Error, execute_code, normalize_output, get_starter_code,
++from models.jdoodle_client import (
++    LANGUAGES, LANGUAGES_BY_ID, JdoodleError, JdoodleQuotaExceeded,
++    execute_code, normalize_output, get_starter_code,
+ )
+ from routes.auth import get_current_user
+ import random
+@@ -103,15 +104,29 @@ def _get_question_or_404(db: Session, question_id: int) -> QuestionBank:
+     return q
+ 
+ 
+-def _run_against_cases(language: str, source_code: str, cases: List[CodingTestCase]) -> dict:
+-    """Runs source_code against every case in `cases`, stopping early (and
+-    marking every case as failed) if compilation fails — no point burning
+-    API calls re-compiling the same broken code once per test case."""
++def _run_against_cases(language: str, source_code: str, cases: List[CodingTestCase], max_cases: int) -> dict:
++    """Runs source_code against cases in `cases`, up to `max_cases` of them
++    (JDoodle's free tier is a shared 200 calls/day across all users, so
++    this cap keeps one submission from eating the whole day's quota —
++    see config.MAX_TEST_CASES_PER_RUN/SUBMIT). Any cases beyond the cap
++    are reported as "not run" rather than failed or passed, and
++    is_solved in the caller only counts a submission as solved if EVERY
++    case was actually run and passed — a submission that hits the cap
++    is never silently marked correct.
++
++    Also stops early (marking every remaining case as failed) if
++    compilation fails — no point burning API calls re-compiling the same
++    broken code once per test case. NOTE: JDoodle doesn't separate
++    compiler errors from program output the way Judge0 did, so this
++    early-stop can't reliably trigger here; see jdoodle_client.py."""
+     results = []
+     passed_count = 0
+     compile_error = None
++    sorted_cases = sorted(cases, key=lambda t: t.order_index)
++    cases_to_run = sorted_cases[:max_cases]
++    skipped_cases = sorted_cases[max_cases:]
+ 
+-    for i, tc in enumerate(sorted(cases, key=lambda t: t.order_index)):
++    for i, tc in enumerate(cases_to_run):
+         if compile_error is not None:
+             results.append({
+                 "is_sample": tc.is_sample,
+@@ -125,7 +140,9 @@ def _run_against_cases(language: str, source_code: str, cases: List[CodingTestCa
+ 
+         try:
+             outcome = execute_code(language, source_code, tc.input)
+-        except Judge0Error as e:
++        except JdoodleQuotaExceeded as e:
++            raise HTTPException(status_code=429, detail=str(e))
++        except JdoodleError as e:
+             raise HTTPException(status_code=503, detail=str(e))
+ 
+         if outcome["compile_stderr"]:
+@@ -160,11 +177,27 @@ def _run_against_cases(language: str, source_code: str, cases: List[CodingTestCa
+             "error": error,
+         })
+ 
++    for tc in skipped_cases:
++        results.append({
++            "is_sample": tc.is_sample,
++            "input": tc.input if tc.is_sample else None,
++            "expected_output": tc.expected_output if tc.is_sample else None,
++            "actual_output": "",
++            "passed": False,
++            "error": "Not run — reached this submission's test-case execution limit.",
++            "skipped": True,
++        })
++
+     return {
+         "results": results,
+         "passed_count": passed_count,
+-        "total_count": len(cases),
++        # Deliberately the FULL case count, not just how many were run: a
++        # capped submission then can't pass_count == total_count unless the
++        # cap covered every case, so is_solved (computed by callers) can
++        # never mark a truncated run as fully solved without special-casing.
++        "total_count": len(sorted_cases),
+         "compile_error": compile_error,
++        "capped": len(skipped_cases) > 0,
+     }
+ 
+ 
+@@ -215,7 +248,7 @@ def run_code(
+     if not sample_cases:
+         raise HTTPException(status_code=400, detail="This question has no sample test cases to run against")
+ 
+-    outcome = _run_against_cases(payload.language, payload.source_code, sample_cases)
++    outcome = _run_against_cases(payload.language, payload.source_code, sample_cases, config.MAX_TEST_CASES_PER_RUN)
+     return outcome
+ 
+ 
+@@ -253,7 +286,7 @@ def submit_code(
+         if question_id not in json.loads(attempt.question_ids):
+             raise HTTPException(status_code=400, detail="This question isn't part of that coding round")
+ 
+-    outcome = _run_against_cases(payload.language, payload.source_code, all_cases)
++    outcome = _run_against_cases(payload.language, payload.source_code, all_cases, config.MAX_TEST_CASES_PER_SUBMIT)
+ 
+     submission = CodingSubmission(
+         attempt_id=payload.attempt_id,
+@@ -279,6 +312,7 @@ def submit_code(
+         "is_solved": submission.is_solved,
+         "compile_error": submission.compile_error,
+         "results": outcome["results"],
++        "capped": outcome["capped"],
+     }
+ 
+ 
+diff --git a/js/coding.js b/js/coding.js
+index 45196c1..4d7e3c9 100644
+--- a/js/coding.js
++++ b/js/coding.js
+@@ -394,7 +394,8 @@ document.getElementById('crRunBtn').addEventListener('click', async () => {
+     });
+     const compileHtml = result.compile_error ? `<div class="cr-compile-error">${escapeHtml(result.compile_error)}</div>` : '';
+     const banner = `<div class="cr-result-banner ${result.passed_count === result.total_count ? 'pass' : 'fail'}">${result.passed_count}/${result.total_count} sample case${result.total_count === 1 ? '' : 's'} passed</div>`;
+-    wrap.innerHTML = banner + compileHtml + renderCaseResults(result.results || []);
++    const cappedHtml = result.capped ? '<div class="cr-hint" style="padding:0.5rem 0;">Some test cases weren\'t run to conserve today\'s free execution limit.</div>' : '';
++    wrap.innerHTML = banner + cappedHtml + compileHtml + renderCaseResults(result.results || []);
+   } catch (err) {
+     console.error(err);
+     wrap.innerHTML = '';
+@@ -428,6 +429,9 @@ document.getElementById('crSubmitBtn').addEventListener('click', async () => {
+     renderResultBanner(result, false);
+     document.getElementById('crResultsWrap').innerHTML += renderCaseResults(result.results || []).length
+       ? '' : '';
++    if (result.capped) {
++      document.getElementById('crResultsWrap').innerHTML += '<div class="cr-hint" style="padding:0.5rem 0;">Some test cases weren\'t run to conserve today\'s free execution limit — a full pass here doesn\'t guarantee every hidden case would also pass.</div>';
++    }
+     showToast(result.is_solved ? '✅ Solved!' : `${result.passed_count}/${result.total_count} test cases passed.`, !result.is_solved);
+   } catch (err) {
+     console.error(err);
+diff --git a/render.yaml b/render.yaml
+index 264c7e3..68a47b8 100644
+--- a/render.yaml
++++ b/render.yaml
+@@ -12,6 +12,10 @@ services:
+         generateValue: true
+       - key: GROQ_API_KEY
+         sync: false
++      - key: JDOODLE_CLIENT_ID
++        sync: false
++      - key: JDOODLE_CLIENT_SECRET
++        sync: false
+       - key: FRONTEND_URL
+         sync: false
+       - key: DEBUG
