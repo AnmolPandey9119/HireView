@@ -3,30 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Terms of Service — HireView</title>
+  <title>Privacy Policy — HireView</title>
   <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
-  <meta name="description" content="HireView's Terms of Service — the rules for using our AI mock interview platform.">
+  <meta name="description" content="HireView's Privacy Policy — how we collect, use, and protect your data.">
   <meta name="robots" content="index, follow">
   <meta name="author" content="Anmol Pandey">
-  <link rel="canonical" href="https://hireview-ai.vercel.app/terms">
+  <link rel="canonical" href="https://hireview-ai.vercel.app/privacy">
   <meta name="theme-color" content="#07080f">
 
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://hireview-ai.vercel.app/terms">
+  <meta property="og:url" content="https://hireview-ai.vercel.app/privacy">
   <meta property="og:site_name" content="HireView">
-  <meta property="og:title" content="Terms of Service — HireView">
-  <meta property="og:description" content="HireView's Terms of Service — the rules for using our AI mock interview platform.">
+  <meta property="og:title" content="Privacy Policy — HireView">
+  <meta property="og:description" content="HireView's Privacy Policy — how we collect, use, and protect your data.">
   <meta property="og:image" content="https://hireview-ai.vercel.app/assets/og-image.jpg">
   <meta property="og:image:alt" content="HireView — AI-powered mock interview platform for Indian job seekers">
   <meta property="og:image:width" content="1200">
   <meta property="og:locale" content="en_IN">
 
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Terms of Service — HireView">
-  <meta name="twitter:description" content="HireView's Terms of Service — the rules for using our AI mock interview platform.">
+  <meta name="twitter:title" content="Privacy Policy — HireView">
+  <meta name="twitter:description" content="HireView's Privacy Policy — how we collect, use, and protect your data.">
   <meta name="twitter:image" content="https://hireview-ai.vercel.app/assets/og-image.jpg">
 
   <script type="application/ld+json">
@@ -35,7 +35,7 @@
     "@type": "BreadcrumbList",
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://hireview-ai.vercel.app/" },
-      { "@type": "ListItem", "position": 2, "name": "Terms of Service", "item": "https://hireview-ai.vercel.app/terms" }
+      { "@type": "ListItem", "position": 2, "name": "Privacy Policy", "item": "https://hireview-ai.vercel.app/privacy" }
     ]
   }
   </script>
@@ -170,68 +170,86 @@
   <script src="/js/legal-nav.js"></script>
 
   <main>
-    <h1>Terms of Service</h1>
-    <p class="updated">Last updated: July 29, 2026</p>
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: July 20, 2026</p>
 
-    <p>These Terms of Service ("Terms") govern your use of HireView ("HireView", "we", "us", or "our"), an AI-powered mock interview practice platform. By creating an account or using HireView, you agree to these Terms. If you don't agree, please don't use the Service.</p>
+    <p>HireView ("HireView", "we", "us", or "our") provides AI-powered mock interview practice. This Privacy Policy explains what information we collect when you use our website and services (the "Service"), how we use it, who we share it with, and the choices you have. By creating an account or using HireView, you agree to the practices described here.</p>
 
-    <h2><span class="num">1.</span>What HireView Is</h2>
-    <p>HireView provides AI-generated mock interview practice — including an AI interviewer ("Arjun"), resume/biodata-based questions, spoken and typed responses, feedback scoring, and cheating/integrity detection during practice sessions. HireView is a <strong>practice tool</strong>, not a real interview, a job-placement service, or a guarantee of employment outcomes.</p>
+    <div class="callout">
+      <strong>In short:</strong> we collect the account details and interview data needed to run mock interviews and give you feedback, we never sell your personal data, and your camera/microphone are only used live during a session — we do not record or store interview video or audio.
+    </div>
 
-    <h2><span class="num">2.</span>Eligibility &amp; Your Account</h2>
+    <h2><span class="num">1.</span>Information We Collect</h2>
+
+    <p><strong>Account information.</strong> When you sign up, we collect your name, email address, and a securely hashed password. We send a one-time verification code (OTP) to your email to confirm it's really you, and use the same mechanism for password resets. If you add a profile picture, we store that too.</p>
+
+    <p><strong>Interview data.</strong> When you take a mock interview, we collect and store:</p>
     <ul>
-      <li>You must provide accurate information when creating an account and keep your login credentials confidential.</li>
-      <li>You're responsible for all activity that happens under your account.</li>
-      <li>HireView is intended for job seekers aged 16 and above (see our <a class="inline" href="/privacy">Privacy Policy</a> for details on children's privacy).</li>
+      <li>The role, language, and settings you choose for the session</li>
+      <li>The questions asked and your spoken/typed responses (converted to text via your browser's speech recognition)</li>
+      <li>AI-generated feedback and scores for your session, and your interview history</li>
     </ul>
 
-    <h2><span class="num">3.</span>Free Trial &amp; Paid Plans</h2>
-    <p>New accounts get a free trial of 3 mock interviews. To continue beyond the trial, you can purchase a plan:</p>
+    <p><strong>Camera, microphone &amp; proctoring signals.</strong> With your permission, we access your camera and microphone during a live interview so the AI interviewer can see and hear you and so we can generate feedback on your delivery. Alongside this, to keep practice sessions honest, we detect (locally, in your browser):</p>
+    <ul>
+      <li>Whether you switch tabs or the browser window loses focus during a session</li>
+      <li>Whether a face is consistently visible, or multiple faces appear, on camera</li>
+    </ul>
+    <p>Face detection runs client-side and is used only to generate a signal (e.g. "no face detected"); we do <strong>not</strong> record, store, or transmit your raw video or audio stream to our servers. Only the resulting text-based signals (such as counts of tab switches or face-detection flags) are saved with your interview record.</p>
+
+    <p><strong>Technical information.</strong> We may automatically collect limited technical data such as browser type, device information, and general usage logs (e.g. timestamps, error logs) to keep the Service secure and working correctly.</p>
+
+    <h2><span class="num">2.</span>How We Use Your Information</h2>
+    <ul>
+      <li>To create and manage your account, and verify your identity via OTP</li>
+      <li>To run mock interview sessions and generate AI feedback on your answers</li>
+      <li>To show you your interview history and track your progress over time</li>
+      <li>To detect and discourage cheating during practice sessions</li>
+      <li>To send you transactional emails (OTP codes, password resets, account notices)</li>
+      <li>To maintain the security, integrity, and performance of the Service</li>
+      <li>To improve HireView's features based on aggregated, non-identifying usage patterns</li>
+    </ul>
+    <p>We do not use your interview answers or personal data to train third-party AI models, and we do not sell your personal information to anyone.</p>
+
+    <h2><span class="num">3.</span>Who We Share Data With</h2>
+    <p>We only share data with service providers who help us run HireView, under obligations to protect it:</p>
     <table>
-      <tr><th>Plan</th><th>Price</th><th>Validity</th></tr>
-      <tr><td>Weekly</td><td>₹99</td><td>7 days from purchase, unlimited interviews</td></tr>
-      <tr><td>Monthly</td><td>₹299</td><td>30 days from purchase, unlimited interviews</td></tr>
+      <tr><th>Provider</th><th>Purpose</th><th>Data shared</th></tr>
+      <tr><td>AI interview/feedback provider</td><td>Generates interview questions, responses, and feedback</td><td>Your interview conversation text (not raw audio/video)</td></tr>
+      <tr><td>Transactional email provider</td><td>Delivers OTP verification and account emails</td><td>Your email address, name, and verification code</td></tr>
+      <tr><td>Hosting infrastructure</td><td>Runs our website, backend, and database</td><td>All data described above, stored securely</td></tr>
     </table>
-    <p>These are <strong>one-time payments</strong> for a fixed validity period — plans do <strong>not</strong> auto-renew and you will not be charged again unless you choose to purchase another plan. Prices are shown in INR and are subject to change; the price shown to you at checkout is the price you pay for that purchase.</p>
-    <p>Payments are processed securely through Razorpay. HireView does not store your card, UPI, or bank details.</p>
+    <p>We may also disclose information if required by law, to protect the rights and safety of HireView or our users, or in connection with a merger, acquisition, or sale of assets — in which case we'll notify you.</p>
 
-    <h2><span class="num">4.</span>Acceptable Use</h2>
-    <p>When using HireView, you agree not to:</p>
+    <h2><span class="num">4.</span>Cookies &amp; Local Storage</h2>
+    <p>We use essential cookies/local storage to keep you logged in and remember your session and preferences (e.g. selected interview language). We don't use third-party advertising trackers.</p>
+
+    <h2><span class="num">5.</span>Data Retention</h2>
+    <p>We retain your account information and interview history for as long as your account is active, so you can track your progress over time. You can request deletion of your account and associated data at any time (see Section 7). We do not retain raw camera or microphone streams at all — these exist only transiently in your browser during a live session.</p>
+
+    <h2><span class="num">6.</span>Data Security</h2>
+    <p>We use industry-standard measures to protect your data, including password hashing, encrypted connections (HTTPS), and access controls on our database. No method of transmission or storage is 100% secure, but we work to protect your information to the best of our ability.</p>
+
+    <h2><span class="num">7.</span>Your Rights &amp; Choices</h2>
     <ul>
-      <li>Use the Service for any unlawful purpose, or to harass, abuse, or impersonate others</li>
-      <li>Attempt to circumvent cheating-detection, proctoring, or session-integrity features</li>
-      <li>Attempt to access another user's account or data without authorization</li>
-      <li>Probe, scan, or attack the Service's security, or attempt to disrupt its normal operation</li>
-      <li>Scrape, reverse-engineer, or resell access to the Service without our written permission</li>
+      <li><strong>Access &amp; correction:</strong> You can view and update your profile information from your account settings.</li>
+      <li><strong>Deletion:</strong> You can request deletion of your account and all associated data by contacting us (below).</li>
+      <li><strong>Camera/microphone:</strong> You can deny or revoke camera/microphone permissions in your browser at any time; note that this may prevent you from taking a live interview.</li>
+      <li><strong>Marketing emails:</strong> We currently only send transactional emails (OTP, account/security notices), not marketing emails.</li>
     </ul>
-    <p>We may suspend or terminate accounts that violate these Terms, at our discretion, with or without notice for serious violations.</p>
+    <p>If you are located in a region with specific data protection laws (such as the EU/UK GDPR or India's DPDP Act), you may have additional rights, including the right to lodge a complaint with your local data protection authority.</p>
 
-    <h2><span class="num">5.</span>Interview Content &amp; Feedback</h2>
-    <p>Questions, follow-ups, scores, and feedback are generated by AI models based on your resume/biodata and responses. They're intended as practice aids and may contain inaccuracies — HireView doesn't guarantee that AI feedback reflects how any specific real interviewer or employer would evaluate you. Use your judgment, and treat feedback as one input among many when preparing for real interviews.</p>
+    <h2><span class="num">8.</span>Children's Privacy</h2>
+    <p>HireView is intended for job seekers and is not directed at children under 16. We do not knowingly collect personal information from children under 16. If you believe a child has provided us with personal data, please contact us and we will delete it.</p>
 
-    <h2><span class="num">6.</span>Camera, Microphone &amp; Integrity Detection</h2>
-    <p>Live interview sessions use your camera and microphone, and monitor signals such as tab switches and face presence, to simulate real interview/proctoring conditions and generate an integrity score. Details on what is and isn't recorded are in our <a class="inline" href="/privacy">Privacy Policy</a>. Repeated integrity violations (e.g. excessive tab-switching, prolonged face absence) may end a session early.</p>
+    <h2><span class="num">9.</span>International Users</h2>
+    <p>HireView is built primarily for job seekers in India, and your data may be processed on servers located outside your country of residence. By using the Service, you consent to this transfer and processing.</p>
 
-    <h2><span class="num">7.</span>Intellectual Property</h2>
-    <p>HireView's branding, design, and underlying software are owned by HireView/Anmol Pandey. Your resume, biodata, and interview responses remain yours — by using the Service you grant us a limited license to process that content solely to generate your interview session and feedback.</p>
+    <h2><span class="num">10.</span>Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. If we make material changes, we'll update the "Last updated" date above and, where appropriate, notify you via email or an in-app notice.</p>
 
-    <h2><span class="num">8.</span>Disclaimers</h2>
-    <p>The Service is provided "as is" and "as available." We don't guarantee uninterrupted or error-free operation, and AI-generated content may occasionally be inaccurate or incomplete. HireView is not liable for interview or employment outcomes, technical issues on your device (camera/mic/network), or content generated by third-party AI providers we integrate with.</p>
-
-    <h2><span class="num">9.</span>Limitation of Liability</h2>
-    <p>To the maximum extent permitted by law, HireView's total liability for any claim arising from your use of the Service is limited to the amount you paid us in the 3 months preceding the claim. We are not liable for indirect, incidental, or consequential damages.</p>
-
-    <h2><span class="num">10.</span>Payments, Refunds &amp; Cancellation</h2>
-    <p>Full details on refund eligibility and the cancellation process are in our <a class="inline" href="/refund-policy">Refund &amp; Cancellation Policy</a>.</p>
-
-    <h2><span class="num">11.</span>Changes to the Service or These Terms</h2>
-    <p>We may update these Terms or modify/discontinue parts of the Service from time to time. If we make material changes to these Terms, we'll update the "Last updated" date above and, where appropriate, notify you via email or an in-app notice. Continued use of HireView after changes take effect means you accept the updated Terms.</p>
-
-    <h2><span class="num">12.</span>Governing Law</h2>
-    <p>These Terms are governed by the laws of India. Any disputes will be subject to the exclusive jurisdiction of the courts in India.</p>
-
-    <h2><span class="num">13.</span>Contact Us</h2>
-    <p>Questions about these Terms? <a class="inline" href="/contact">Contact us</a>.</p>
+    <h2><span class="num">11.</span>Contact Us</h2>
+    <p>If you have questions about this Privacy Policy or want to exercise any of your rights, <a class="inline" href="/contact">contact us</a>.</p>
   </main>
 
 
