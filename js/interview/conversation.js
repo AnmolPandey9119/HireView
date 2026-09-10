@@ -509,6 +509,7 @@ async function endInterview(autoEnded = false) {
 
   if (typeof stopFaceDetection === 'function') stopFaceDetection();
   if (typeof stopIntegrityAudioMonitor === 'function') stopIntegrityAudioMonitor();
+  if (typeof unlockInterviewFullscreen === 'function') unlockInterviewFullscreen();
   window.speechSynthesis.cancel();
 
   const closingMsg = autoEnded

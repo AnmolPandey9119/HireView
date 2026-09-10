@@ -50,6 +50,12 @@ class SubmitAptitudeRequest(BaseModel):
     time_taken_seconds: int = 0
 
 
+class TerminateAptitudeRequest(BaseModel):
+    answers: List[AnswerItem] = []
+    time_taken_seconds: int = 0
+    reason: Optional[str] = None
+
+
 # ────────────────────────────────────────────
 # Helpers
 # ────────────────────────────────────────────
@@ -207,6 +213,60 @@ def submit_aptitude_test(
 
 
 # ────────────────────────────────────────────
+# POST /aptitude/{attempt_id}/terminate -- ended early by the
+# frontend's fullscreen/tab-switch integrity guard
+# (js/fullscreen-guard.js). Grades whatever was selected up to this
+# point, same as a normal /submit, but marks the attempt
+# cheating_terminated instead of completed so My Reports and admin
+# can tell the two apart.
+# ────────────────────────────────────────────
+@router.post("/aptitude/{attempt_id}/terminate")
+def terminate_aptitude_test(
+    attempt_id: int,
+    payload: TerminateAptitudeRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    attempt = db.query(AptitudeAttempt).filter(
+        AptitudeAttempt.id == attempt_id,
+        AptitudeAttempt.user_id == current_user.id,
+    ).first()
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+    if attempt.status in ("completed", "cheating_terminated"):
+        # Already finished (e.g. a duplicate/retried request) -- just
+        # hand back the existing review instead of erroring.
+        return _build_review(attempt, db)
+
+    question_ids = json.loads(attempt.question_ids)
+    questions_by_id = {
+        q.id: q for q in db.query(QuestionBank).filter(QuestionBank.id.in_(question_ids)).all()
+    }
+
+    answers_map = {}
+    correct_count = 0
+    for item in payload.answers:
+        if item.question_id not in questions_by_id:
+            continue
+        answers_map[str(item.question_id)] = item.selected_index
+        if item.selected_index == questions_by_id[item.question_id].correct_index:
+            correct_count += 1
+
+    total = len(question_ids)
+    attempt.answers = json.dumps(answers_map)
+    attempt.correct_count = correct_count
+    attempt.score_percent = round((correct_count / total) * 100, 1) if total else 0.0
+    attempt.time_taken_seconds = max(0, payload.time_taken_seconds or 0)
+    attempt.status = "cheating_terminated"
+    attempt.completed_at = datetime.utcnow()
+
+    db.commit()
+    db.refresh(attempt)
+
+    return _build_review(attempt, db)
+
+
+# ────────────────────────────────────────────
 # GET /aptitude/attempts — for My Reports
 # ────────────────────────────────────────────
 @router.get("/aptitude/attempts")
@@ -216,7 +276,7 @@ def list_aptitude_attempts(
 ):
     attempts = db.query(AptitudeAttempt).filter(
         AptitudeAttempt.user_id == current_user.id,
-        AptitudeAttempt.status == "completed",
+        AptitudeAttempt.status.in_(["completed", "cheating_terminated"]),
     ).order_by(AptitudeAttempt.completed_at.desc()).all()
 
     return {"count": len(attempts), "attempts": [_attempt_summary(a) for a in attempts]}
@@ -237,7 +297,7 @@ def get_aptitude_attempt(
     ).first()
     if not attempt:
         raise HTTPException(status_code=404, detail="Attempt not found")
-    if attempt.status != "completed":
+    if attempt.status not in ("completed", "cheating_terminated"):
         raise HTTPException(status_code=400, detail="This attempt hasn't been submitted yet")
 
     return _build_review(attempt, db)

@@ -95,6 +95,11 @@ class FinishCodingRoundRequest(BaseModel):
     time_taken_seconds: int = 0
 
 
+class TerminateCodingRoundRequest(BaseModel):
+    time_taken_seconds: int = 0
+    reason: Optional[str] = Field(None, max_length=100)
+
+
 # ------------------------------------------------
 # Helpers
 # ------------------------------------------------
@@ -427,6 +432,56 @@ def finish_coding_round(
     return _attempt_review(attempt, db)
 
 
+# ------------------------------------------------
+# POST /coding/{attempt_id}/terminate -- ended early by the frontend's
+# fullscreen/tab-switch integrity guard (js/fullscreen-guard.js).
+# Grades whatever was submitted up to this point, same aggregation as
+# a normal /finish, but marks the attempt cheating_terminated instead
+# of completed so My Reports and admin can tell the two apart.
+# ------------------------------------------------
+@router.post("/coding/{attempt_id}/terminate")
+def terminate_coding_round(
+    attempt_id: int,
+    payload: TerminateCodingRoundRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    attempt = db.query(CodingAttempt).filter(
+        CodingAttempt.id == attempt_id,
+        CodingAttempt.user_id == current_user.id,
+    ).first()
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Coding round attempt not found")
+    if attempt.status in ("completed", "cheating_terminated"):
+        # Already finished (e.g. a duplicate/retried request) -- just
+        # hand back the existing review instead of erroring.
+        return _attempt_review(attempt, db)
+
+    question_ids = json.loads(attempt.question_ids)
+    solved_count = 0
+    total_ratio = 0.0
+    for qid in question_ids:
+        latest = db.query(CodingSubmission).filter(
+            CodingSubmission.attempt_id == attempt_id,
+            CodingSubmission.question_id == qid,
+        ).order_by(CodingSubmission.created_at.desc()).first()
+        if latest:
+            if latest.is_solved:
+                solved_count += 1
+            if latest.total_count:
+                total_ratio += latest.passed_count / latest.total_count
+
+    attempt.solved_count = solved_count
+    attempt.score_percent = round((total_ratio / len(question_ids)) * 100, 1) if question_ids else 0.0
+    attempt.time_taken_seconds = max(0, payload.time_taken_seconds or 0)
+    attempt.status = "cheating_terminated"
+    attempt.completed_at = datetime.utcnow()
+    db.commit()
+    db.refresh(attempt)
+
+    return _attempt_review(attempt, db)
+
+
 def _attempt_summary(a: CodingAttempt) -> dict:
     return {
         "id": a.id,
@@ -484,7 +539,7 @@ def list_coding_attempts(
 ):
     attempts = db.query(CodingAttempt).filter(
         CodingAttempt.user_id == current_user.id,
-        CodingAttempt.status == "completed",
+        CodingAttempt.status.in_(["completed", "cheating_terminated"]),
     ).order_by(CodingAttempt.completed_at.desc()).all()
 
     return {"count": len(attempts), "attempts": [_attempt_summary(a) for a in attempts]}
@@ -505,7 +560,7 @@ def get_coding_attempt(
     ).first()
     if not attempt:
         raise HTTPException(status_code=404, detail="Attempt not found")
-    if attempt.status != "completed":
+    if attempt.status not in ("completed", "cheating_terminated"):
         raise HTTPException(status_code=400, detail="This coding round hasn't been finished yet")
 
     return _attempt_review(attempt, db)
