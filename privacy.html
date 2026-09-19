@@ -41,8 +41,8 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"></noscript>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet"></noscript>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -59,8 +59,8 @@
       inset: -10% -10% auto -10%;
       height: 130vh;
       background:
-        radial-gradient(50% 40% at 15% 0%, rgba(99,102,241,0.14) 0%, transparent 60%),
-        radial-gradient(40% 35% at 90% 10%, rgba(236,72,153,0.09) 0%, transparent 60%);
+        radial-gradient(50% 40% at 15% 0%, rgba(198,93,58,0.14) 0%, transparent 60%),
+        radial-gradient(40% 35% at 90% 10%, rgba(23,43,58,0.09) 0%, transparent 60%);
       pointer-events: none;
       z-index: 0;
     }
@@ -76,7 +76,7 @@
     }
     .logo-text {
       font-size: 1.25rem; font-weight: 800;
-      background: linear-gradient(135deg, #818cf8, #ec4899);
+      background: linear-gradient(135deg, #E8935F, #172B3A);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
       text-decoration: none;
     }
@@ -94,7 +94,7 @@
       animation: pageFadeIn 0.5s cubic-bezier(0.16,1,0.3,1) both;
     }
     @keyframes pageFadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-    h1 {
+    h1 { font-family: 'Fraunces', serif;
       font-size: clamp(2rem, 5vw, 2.85rem);
       font-weight: 900;
       letter-spacing: -0.025em;
@@ -107,7 +107,7 @@
       font-size: 0.9rem;
       margin-bottom: 3rem;
     }
-    h2 {
+    h2 { font-family: 'Fraunces', serif;
       font-size: 1.35rem;
       font-weight: 800;
       margin: 2.75rem 0 1rem;
@@ -115,7 +115,7 @@
       letter-spacing: -0.01em;
     }
     h2 span.num {
-      color: #818cf8;
+      color: #E8935F;
       margin-right: 0.5rem;
     }
     p, li {
@@ -126,19 +126,19 @@
     ul { padding-left: 1.4rem; margin-bottom: 1rem; }
     li { margin-bottom: 0.5rem; }
     strong { color: rgba(255,255,255,0.88); }
-    a.inline { color: #a5b4fc; transition: color 0.2s ease; }
+    a.inline { color: #E8935F; transition: color 0.2s ease; }
     a.inline:hover { color: #fff; }
 
     .callout {
-      background: rgba(99,102,241,0.09);
-      border: 1px solid rgba(99,102,241,0.28);
-      border-left: 3px solid #6366f1;
+      background: rgba(198,93,58,0.09);
+      border: 1px solid rgba(198,93,58,0.28);
+      border-left: 3px solid #C65D3A;
       border-radius: 14px;
       padding: 1.25rem 1.5rem;
       margin: 1.5rem 0;
       font-size: 0.92rem;
       color: rgba(255,255,255,0.82);
-      box-shadow: 0 8px 24px rgba(99,102,241,0.12);
+      box-shadow: 0 8px 24px rgba(198,93,58,0.12);
     }
 
     table {

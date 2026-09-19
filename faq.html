@@ -116,8 +116,8 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"></noscript>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet"></noscript>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -135,8 +135,8 @@
       inset: -10% -10% auto -10%;
       height: 130vh;
       background:
-        radial-gradient(50% 40% at 15% 0%, rgba(99,102,241,0.14) 0%, transparent 60%),
-        radial-gradient(40% 35% at 90% 10%, rgba(236,72,153,0.09) 0%, transparent 60%);
+        radial-gradient(50% 40% at 15% 0%, rgba(198,93,58,0.14) 0%, transparent 60%),
+        radial-gradient(40% 35% at 90% 10%, rgba(23,43,58,0.09) 0%, transparent 60%);
       pointer-events: none;
       z-index: 0;
     }
@@ -152,7 +152,7 @@
     }
     .logo-text {
       font-size: 1.25rem; font-weight: 800;
-      background: linear-gradient(135deg, #818cf8, #ec4899);
+      background: linear-gradient(135deg, #E8935F, #172B3A);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
       text-decoration: none;
     }
@@ -170,7 +170,7 @@
       animation: pageFadeIn 0.5s cubic-bezier(0.16,1,0.3,1) both;
     }
     @keyframes pageFadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-    h1 {
+    h1 { font-family: 'Fraunces', serif;
       font-size: clamp(2rem, 5vw, 2.85rem);
       font-weight: 900;
       letter-spacing: -0.025em;
@@ -193,8 +193,8 @@
       overflow: hidden;
       transition: border-color 0.25s ease, box-shadow 0.25s ease;
     }
-    .faq-item:hover { border-color: rgba(129,140,248,0.28); }
-    .faq-item.open { border-color: rgba(99,102,241,0.4); box-shadow: 0 12px 30px rgba(99,102,241,0.14); }
+    .faq-item:hover { border-color: rgba(232,147,95,0.28); }
+    .faq-item.open { border-color: rgba(198,93,58,0.4); box-shadow: 0 12px 30px rgba(198,93,58,0.14); }
     .faq-question {
       width: 100%;
       display: flex; justify-content: space-between; align-items: center;
@@ -212,13 +212,13 @@
       width: 24px; height: 24px;
       display: flex; align-items: center; justify-content: center;
       border-radius: 50%;
-      background: rgba(99,102,241,0.16);
-      border: 1px solid rgba(99,102,241,0.25);
-      color: #a5b4fc;
+      background: rgba(198,93,58,0.16);
+      border: 1px solid rgba(198,93,58,0.25);
+      color: #E8935F;
       font-size: 1rem; font-weight: 800;
       transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), background 0.25s ease;
     }
-    .faq-item.open .faq-icon { transform: rotate(45deg); background: rgba(99,102,241,0.32); }
+    .faq-item.open .faq-icon { transform: rotate(45deg); background: rgba(198,93,58,0.32); }
     .faq-answer {
       max-height: 0;
       overflow: hidden;
@@ -239,23 +239,23 @@
       text-align: center;
       padding: 2.75rem 1.5rem;
       border-radius: 22px;
-      background: linear-gradient(160deg, rgba(99,102,241,0.12), rgba(236,72,153,0.07));
-      border: 1px solid rgba(99,102,241,0.28);
-      box-shadow: 0 16px 40px rgba(99,102,241,0.14);
+      background: linear-gradient(160deg, rgba(198,93,58,0.12), rgba(23,43,58,0.07));
+      border: 1px solid rgba(198,93,58,0.28);
+      box-shadow: 0 16px 40px rgba(198,93,58,0.14);
     }
     .faq-cta h2 { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.6rem; letter-spacing: -0.01em; }
     .faq-cta p { color: rgba(255,255,255,0.62); font-size: 0.95rem; margin-bottom: 1.5rem; }
     .btn-primary {
       padding: 0.95rem 2.3rem;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+      background: linear-gradient(135deg, #C65D3A, #E8935F, #172B3A);
       border: none; border-radius: 14px;
       color: white; font-weight: 700; font-size: 0.95rem;
       cursor: pointer; font-family: inherit;
-      box-shadow: 0 10px 32px rgba(99,102,241,0.45);
+      box-shadow: 0 10px 32px rgba(198,93,58,0.45);
       text-decoration: none; display: inline-block;
       transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s ease;
     }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(99,102,241,0.6); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(198,93,58,0.6); }
 
     @media (max-width: 640px) {
       main { padding: 7rem 1.25rem 4rem; }
