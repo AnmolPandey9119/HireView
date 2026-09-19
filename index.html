@@ -1,125 +1,1145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('hv-theme');
+        var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+      } catch (e) {}
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Blog — Interview Prep Tips & Guides | HireView</title>
+  <title>HireView — Practice Like It's Real</title>
   <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
-  <meta name="description" content="Interview preparation guides for Indian job seekers — HR round questions, UPSC/SSC personality test tips, resume advice, and more from HireView.">
-  <meta name="keywords" content="interview preparation blog, HR interview tips, UPSC interview tips, job interview guide India">
+  <meta name="description" content="AI-powered mock interviews for Indian job seekers. Get real feedback, detect cheating, and practice like it's real.">
+  <meta name="keywords" content="mock interview, AI interview practice, interview preparation India, UPSC interview practice, SSC interview prep, job interview simulator, AI interviewer, resume based interview questions, Hinglish interview practice, placement interview prep">
   <meta name="robots" content="index, follow">
   <meta name="author" content="Anmol Pandey">
-  <link rel="canonical" href="https://hireview-ai.vercel.app/blog">
-  <meta name="theme-color" content="#07080f">
+  <link rel="canonical" href="https://hireview-ai.vercel.app/">
+  <meta name="theme-color" content="#172B3A">
 
+  <!-- Open Graph / Facebook, LinkedIn, WhatsApp previews -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://hireview-ai.vercel.app/blog">
+  <meta property="og:url" content="https://hireview-ai.vercel.app/">
   <meta property="og:site_name" content="HireView">
-  <meta property="og:title" content="Blog — Interview Prep Tips & Guides | HireView">
-  <meta property="og:description" content="Interview preparation guides for Indian job seekers — HR round questions, UPSC/SSC personality test tips, and more.">
+  <meta property="og:title" content="HireView — Practice Like It's Real">
+  <meta property="og:description" content="AI-powered mock interviews for Indian job seekers. Get real feedback, detect cheating, and practice like it's real.">
   <meta property="og:image" content="https://hireview-ai.vercel.app/assets/og-image.jpg">
+  <meta property="og:image:alt" content="HireView — AI-powered mock interview platform for Indian job seekers">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta property="og:locale" content="en_IN">
+
+  <!-- Twitter/X Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="HireView — Practice Like It's Real">
+  <meta name="twitter:description" content="AI-powered mock interviews for Indian job seekers. Get real feedback, detect cheating, and practice like it's real.">
+  <meta name="twitter:image" content="https://hireview-ai.vercel.app/assets/og-image.jpg">
 
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://hireview-ai.vercel.app/" },
-      { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://hireview-ai.vercel.app/blog" }
-    ]
+    "@type": "SoftwareApplication",
+    "name": "HireView",
+    "url": "https://hireview-ai.vercel.app/",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Web",
+    "description": "AI-powered mock interviews for Indian job seekers. Get real feedback, detect cheating, and practice like it's real.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "INR"
+    },
+    "inLanguage": ["en-IN"],
+    "author": {
+      "@type": "Person",
+      "name": "Anmol Pandey"
+    }
   }
   </script>
-
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "HireView",
+    "url": "https://hireview-ai.vercel.app/",
+    "logo": "https://hireview-ai.vercel.app/assets/apple-touch-icon.png",
+    "description": "AI-powered mock interview platform for Indian job seekers, covering private-sector and government exam interview practice.",
+    "founder": {
+      "@type": "Person",
+      "name": "Anmol Pandey"
+    },
+    "sameAs": [
+      "https://github.com/AnmolPandey9119/HireView",
+      "https://linkedin.com/in/anmol-pandey-240105376"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "email": "hireviewadmin@gmail.com",
+      "contactType": "customer support"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "HireView",
+    "url": "https://hireview-ai.vercel.app/",
+    "inLanguage": "en-IN"
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet"></noscript>
-
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Caveat:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Caveat:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
   <style>
+    :root {
+      --hv-navy: #172B3A;
+      --hv-navy-2: #0F1E29;
+      --hv-ivory: #F7F3ED;
+      --hv-cream: #FFFDF9;
+      --hv-terracotta: #C65D3A;
+      --hv-terracotta-dark: #A84A2C;
+      --hv-terracotta-tint: #F1DCD1;
+      --hv-peach: #F7CBA4;
+      --hv-charcoal: #1F2528;
+      --hv-stone: #756F69;
+      --hv-border: #DED8D0;
+      --hv-success: #4C7A5E;
+      --hv-glass: rgba(255,253,249,0.62);
+      --hv-glass-strong: rgba(255,253,249,0.82);
+      --hv-glass-border: rgba(255,255,255,0.65);
+      --hv-ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --hv-dur: 240ms;
+      --hv-radius-sm: 10px;
+      --hv-radius-md: 16px;
+      --hv-radius-lg: 22px;
+      --hv-radius-xl: 28px;
+      --hv-shadow-1: 0 2px 10px rgba(23,43,58,0.07);
+      --hv-shadow-2: 0 16px 40px rgba(23,43,58,0.14);
+      --hv-shadow-3: 0 30px 70px rgba(23,43,58,0.2);
+
+      /* Ink/body — text that sits on the page canvas or a glass panel.
+         Paper elements (tickets, pinned notes) keep --hv-navy/--hv-charcoal
+         fixed on purpose: paper doesn't change colour when the room dims. */
+      --hv-ink: var(--hv-navy);
+      --hv-body: var(--hv-charcoal);
+      --hv-body-muted: var(--hv-stone);
+      --hv-mesh: 820px 620px at 6% 4% rgba(198,93,58,0.38), 720px 680px at 96% 2% rgba(23,43,58,0.30), 900px 700px at 46% 108% rgba(198,93,58,0.24), 620px 600px at 102% 62% rgba(247,203,164,0.65), 520px 520px at -4% 58% rgba(23,43,58,0.18), 700px 500px at 55% 36% rgba(255,255,255,0.5);
+      --hv-mesh-bg: #FCF1E4;
+    }
+
+    :root[data-theme="dark"] {
+      --hv-ink: var(--hv-cream);
+      --hv-body: #D9D2C6;
+      --hv-body-muted: #9C9488;
+      --hv-glass: rgba(15,30,41,0.6);
+      --hv-glass-strong: rgba(15,30,41,0.8);
+      --hv-glass-border: rgba(255,255,255,0.1);
+      --hv-border: rgba(255,255,255,0.14);
+      --hv-mesh-bg: #0B161E;
+      --hv-shadow-1: 0 2px 10px rgba(0,0,0,0.3);
+      --hv-shadow-2: 0 16px 40px rgba(0,0,0,0.4);
+      --hv-shadow-3: 0 30px 70px rgba(0,0,0,0.5);
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #07080f; color: #fff; line-height: 1.7; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: var(--hv-body);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      background-color: var(--hv-mesh-bg);
+      background-image:
+        radial-gradient(ellipse 820px 620px at 6% 4%, rgba(198,93,58,0.38), transparent 58%),
+        radial-gradient(ellipse 720px 680px at 96% 2%, rgba(23,43,58,0.30), transparent 54%),
+        radial-gradient(ellipse 900px 700px at 46% 108%, rgba(198,93,58,0.24), transparent 55%),
+        radial-gradient(ellipse 620px 600px at 102% 62%, rgba(247,203,164,0.65), transparent 55%),
+        radial-gradient(ellipse 520px 520px at -4% 58%, rgba(23,43,58,0.18), transparent 55%),
+        radial-gradient(ellipse 700px 500px at 55% 36%, rgba(255,255,255,0.5), transparent 60%);
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      transition: background-color var(--hv-dur) var(--hv-ease), color var(--hv-dur) var(--hv-ease);
+    }
+    :root[data-theme="dark"] body {
+      background-image:
+        radial-gradient(ellipse 820px 620px at 6% 4%, rgba(198,93,58,0.28), transparent 58%),
+        radial-gradient(ellipse 720px 680px at 96% 2%, rgba(198,93,58,0.14), transparent 54%),
+        radial-gradient(ellipse 900px 700px at 46% 108%, rgba(198,93,58,0.2), transparent 55%),
+        radial-gradient(ellipse 620px 600px at 102% 62%, rgba(247,203,164,0.1), transparent 55%),
+        radial-gradient(ellipse 520px 520px at -4% 58%, rgba(255,255,255,0.05), transparent 55%);
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    }
+    main, nav, footer { position: relative; z-index: 1; }
 
+    ::selection { background: var(--hv-terracotta); color: var(--hv-cream); }
+
+    .scroll-progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--hv-terracotta); z-index: 300; width: 0%; transition: width 0.1s linear; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+    }
+
+    /* ── GLASS — the one repeated material every panel on the page is cut from ── */
+    .glass {
+      background: var(--hv-glass);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border: 1px solid var(--hv-glass-border);
+      box-shadow: var(--hv-shadow-2), inset 0 1px 0 rgba(255,255,255,0.55);
+    }
+
+    /* ── LOGO — glowing 3D rotating rings, matching the reference recording ── */
+    .hv-logo-wrap { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .hv-logo-badge {
+      position: relative; width: 40px; height: 40px; border-radius: 11px;
+      background: var(--hv-navy); overflow: hidden; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--hv-shadow-1);
+      transition: transform var(--hv-dur) var(--hv-ease);
+    }
+    .hv-logo-wrap:hover .hv-logo-badge { transform: scale(1.08); }
+    .hv-logo-rings { position: relative; width: 30px; height: 30px; perspective: 220px; }
+    .hv-logo-outer-glow {
+      position: absolute; inset: -6px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(198,93,58,0.35) 0%, transparent 70%);
+    }
+    .hv-ring { position: absolute; border-radius: 50%; border: 1.5px solid transparent; }
+    .hv-ring-1 { inset: 0; border-color: #C65D3A; box-shadow: 0 0 8px #C65D3A, 0 0 14px rgba(198,93,58,0.55); animation: hvRingSpin 8s linear infinite; }
+    .hv-ring-2 { inset: 22%; border-color: #E8935F; box-shadow: 0 0 6px #E8935F, 0 0 10px rgba(232,147,95,0.55); animation: hvRingSpin 6s linear infinite reverse; }
+    .hv-ring-3 { inset: 40%; border-color: #F7CBA4; box-shadow: 0 0 5px #F7CBA4, 0 0 9px rgba(247,203,164,0.6); animation: hvRingSpin 5s linear infinite; }
+    @keyframes hvRingSpin { 0% { transform: rotate(0deg) rotateY(0deg); } 100% { transform: rotate(360deg) rotateY(360deg); } }
+    .hv-ring-center {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      font-family: 'Fraunces', serif; font-weight: 700; font-size: 0.66rem; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #C65D3A 0%, #E8935F 50%, #F7CBA4 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 6px rgba(198,93,58,0.85));
+      animation: hvCenterPulse 3s ease-in-out infinite;
+    }
+    @keyframes hvCenterPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+    .hv-logo-text { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.3rem; letter-spacing: -0.01em; color: var(--hv-ink); }
+
+    /* ── NAV — a floating glass pill, not a full-bleed bar ── */
     nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      padding: 1.25rem 2rem;
+      position: fixed; top: 1.1rem; left: 50%; transform: translateX(-50%);
+      width: min(1140px, calc(100% - 2rem));
+      z-index: 100;
+      padding: 0.75rem 0.75rem 0.75rem 1.35rem;
       display: flex; justify-content: space-between; align-items: center;
-      background: rgba(7,8,15,0.85);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      border-radius: 100px;
     }
-    .logo-text {
-      font-size: 1.25rem; font-weight: 800;
-      background: linear-gradient(135deg, #E8935F, #172B3A);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      text-decoration: none;
+    .nav-links { display: flex; gap: 0.3rem; align-items: center; }
+    .nav-links a { color: var(--hv-body); text-decoration: none; font-size: 0.88rem; font-weight: 600; padding: 0.55rem 0.9rem; border-radius: 100px; transition: background var(--hv-dur) var(--hv-ease); }
+    .nav-links a:hover { background: color-mix(in srgb, var(--hv-ink) 8%, transparent); }
+    .nav-cta {
+      background: var(--hv-terracotta); color: var(--hv-cream) !important;
+      box-shadow: 0 3px 0 var(--hv-terracotta-dark);
+      transition: background var(--hv-dur) var(--hv-ease), transform var(--hv-dur) var(--hv-ease), box-shadow var(--hv-dur) var(--hv-ease);
     }
-    nav a.back { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.9rem; font-weight: 600; }
-    nav a.back:hover { color: #fff; }
+    .nav-cta:hover { background: var(--hv-terracotta-dark); transform: translateY(-1px); box-shadow: 0 4px 0 var(--hv-terracotta-dark); }
+    .nav-cta:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--hv-terracotta-dark); }
+    .nav-toggle { display: none; flex-direction: column; justify-content: center; gap: 5px; width: 38px; height: 38px; background: none; border: none; cursor: pointer; padding: 0; }
+    .nav-toggle span { display: block; width: 20px; height: 2px; background: var(--hv-ink); border-radius: 2px; transition: transform 0.25s ease, opacity 0.25s ease; }
+    .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .nav-toggle.open span:nth-child(2) { opacity: 0; }
+    .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-    main { max-width: 780px; margin: 0 auto; padding: 8rem 2rem 6rem; }
-    h1 { font-family: 'Fraunces', serif;
-      font-size: clamp(2rem, 5vw, 2.75rem); font-weight: 900; letter-spacing: -0.02em; margin-bottom: 0.75rem;
-      background: linear-gradient(135deg, #fff, #c7c9ff);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    /* ── THEME TOGGLE ── */
+    .theme-toggle {
+      width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--hv-glass-border);
+      background: rgba(255,255,255,0.25); cursor: pointer; margin-left: 0.3rem;
+      display: flex; align-items: center; justify-content: center; position: relative;
+      flex-shrink: 0; transition: background var(--hv-dur) var(--hv-ease), transform var(--hv-dur) var(--hv-ease);
     }
-    .subtitle { color: rgba(255,255,255,0.6); font-size: 1rem; margin-bottom: 3rem; max-width: 560px; }
+    .theme-toggle:hover { transform: scale(1.08); }
+    .theme-toggle-icon { position: absolute; font-size: 1.05rem; transition: opacity var(--hv-dur) var(--hv-ease), transform var(--hv-dur) var(--hv-ease); }
+    .theme-toggle-icon--moon { opacity: 0; transform: rotate(-90deg) scale(0.5); }
+    :root[data-theme="dark"] .theme-toggle-icon--sun { opacity: 0; transform: rotate(90deg) scale(0.5); }
+    :root[data-theme="dark"] .theme-toggle-icon--moon { opacity: 1; transform: rotate(0deg) scale(1); }
 
-    .post-card {
-      display: block; text-decoration: none; color: inherit;
-      border: 1px solid rgba(255,255,255,0.08); border-radius: 16px;
-      background: rgba(255,255,255,0.02);
-      padding: 1.75rem 1.75rem; margin-bottom: 1.25rem;
-      transition: border-color 0.2s ease, background 0.2s ease;
+    /* ── HERO — headline sits straight on the painted canvas, no card ── */
+    .hero { position: relative; padding: 10.5rem 2rem 4rem; display: flex; align-items: center; justify-content: center; text-align: left; overflow: hidden; }
+    .hero-inner { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 4rem; align-items: center; max-width: 1180px; margin: 0 auto; width: 100%; }
+    .hero-copy { max-width: 560px; }
+    .hero-visual { position: relative; perspective: 1400px; }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      padding: 0.42rem 1.05rem; border-radius: 100px;
+      font-size: 0.82rem; font-weight: 600; color: var(--hv-ink);
+      margin-bottom: 1.75rem;
+      animation: fadeInUp 0.6s ease both;
     }
-    .post-card:hover { border-color: rgba(198,93,58,0.4); background: rgba(198,93,58,0.05); }
-    .post-tag { display: inline-block; font-size: 0.75rem; font-weight: 700; color: #E8935F; background: rgba(198,93,58,0.15); padding: 0.25rem 0.7rem; border-radius: 20px; margin-bottom: 0.75rem; }
-    .post-title { font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem; }
-    .post-desc { color: rgba(255,255,255,0.6); font-size: 0.9rem; margin-bottom: 0.75rem; }
-    .post-meta { color: rgba(255,255,255,0.4); font-size: 0.8rem; }
+    .hero-badge span { width: 6px; height: 6px; border-radius: 50%; background: var(--hv-success); animation: pulse 1.8s infinite; display: inline-block; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
 
-    @media (max-width: 640px) { main { padding: 7rem 1.25rem 4rem; } }
+    h1 { font-family: 'Fraunces', serif; font-size: clamp(3rem, 7vw, 5.4rem); font-weight: 500; line-height: 1.04; letter-spacing: -0.02em; color: var(--hv-ink); margin-bottom: 1.4rem; animation: fadeInUp 0.6s 0.1s ease both; text-shadow: 0 2px 24px var(--hv-h1-glow, rgba(255,255,255,0.5)); }
+    :root[data-theme="dark"] h1 { --hv-h1-glow: rgba(0,0,0,0.35); }
+    h1 .accent { color: var(--hv-terracotta); }
+    .hero-sub { font-size: clamp(1.02rem, 1.6vw, 1.15rem); color: var(--hv-body); opacity: 0.75; max-width: 520px; margin: 0 0 2.25rem; line-height: 1.7; font-weight: 400; animation: fadeInUp 0.6s 0.2s ease both; }
+    .hero-actions { display: flex; gap: 1rem; justify-content: flex-start; flex-wrap: wrap; animation: fadeInUp 0.6s 0.3s ease both; }
+    .btn-primary {
+      padding: 1rem 2.3rem; background: var(--hv-terracotta); border: none; border-radius: var(--hv-radius-md);
+      color: var(--hv-cream); font-weight: 600; font-size: 1rem; cursor: pointer; font-family: inherit;
+      box-shadow: 0 4px 0 var(--hv-terracotta-dark), var(--hv-shadow-2);
+      transition: background var(--hv-dur) var(--hv-ease), transform var(--hv-dur) var(--hv-ease), box-shadow var(--hv-dur) var(--hv-ease);
+      text-decoration: none; display: inline-block; transform: translateY(0);
+    }
+    .btn-primary:hover { background: var(--hv-terracotta-dark); transform: translateY(-2px); box-shadow: 0 6px 0 var(--hv-terracotta-dark), var(--hv-shadow-2); }
+    .btn-primary:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--hv-terracotta-dark); }
+    .btn-secondary {
+      padding: 1rem 2.3rem; background: var(--hv-glass); backdrop-filter: blur(14px);
+      border: 1.5px solid var(--hv-ink); border-radius: var(--hv-radius-md); color: var(--hv-ink);
+      font-weight: 600; font-size: 1rem; cursor: pointer; font-family: inherit;
+      transition: background var(--hv-dur) var(--hv-ease), color var(--hv-dur) var(--hv-ease), transform var(--hv-dur) var(--hv-ease), border-color var(--hv-dur) var(--hv-ease);
+      text-decoration: none; display: inline-block;
+    }
+    .btn-secondary:hover { background: var(--hv-terracotta); border-color: var(--hv-terracotta); color: var(--hv-cream); transform: translateY(-2px); }
+
+    .hero-stats { display: flex; gap: 1.1rem; justify-content: flex-start; margin-top: 3rem; flex-wrap: wrap; animation: fadeInUp 0.6s 0.4s ease both; perspective: 500px; }
+    .stat { text-align: left; border-radius: var(--hv-radius-sm); padding: 0.85rem 1.15rem; transition: transform var(--hv-dur) var(--hv-ease), box-shadow var(--hv-dur) var(--hv-ease); }
+    .stat:hover { transform: translateY(-4px) rotateX(6deg); }
+    .stat-num { font-family: 'Fraunces', serif; font-size: 1.9rem; font-weight: 600; color: var(--hv-ink); letter-spacing: -0.01em; }
+    .stat-label { font-size: 0.82rem; color: var(--hv-body); opacity: 0.7; margin-top: 0.3rem; font-weight: 500; }
+
+    /* ── HERO VIDEO CARD ── */
+    .transcript-stack { position: relative; transform-style: preserve-3d; animation: stackFloat 6s ease-in-out infinite; }
+    @keyframes stackFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+    .transcript-stack::before, .transcript-stack::after {
+      content: ''; position: absolute; inset: 0; border-radius: var(--hv-radius-md);
+      background: var(--hv-glass); border: 1px solid var(--hv-glass-border); box-shadow: var(--hv-shadow-2);
+    }
+    .transcript-stack::before { transform: translateZ(-18px) rotate(5deg) translate(14px, 10px); opacity: 0.7; }
+    .transcript-stack::after { transform: translateZ(-36px) rotate(-7deg) translate(-16px, 16px); opacity: 0.5; }
+    .transcript-card {
+      position: relative; z-index: 2; border-radius: var(--hv-radius-md); padding: 1.75rem;
+      transform: rotate(-1.4deg);
+      transition: transform 0.15s ease-out, box-shadow var(--hv-dur) var(--hv-ease);
+      transform-style: preserve-3d; will-change: transform;
+    }
+    .hero-stamp {
+      position: absolute; top: -16px; right: -6px; width: 88px; height: 88px; border-radius: 50%;
+      background: var(--hv-glass-strong); border: 2px dashed var(--hv-terracotta);
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      font-family: 'Caveat', cursive; font-weight: 600; font-size: 0.92rem; line-height: 1.2;
+      color: var(--hv-terracotta-dark); transform: rotate(11deg) translateZ(20px);
+      box-shadow: var(--hv-shadow-2); z-index: 3; animation: stampFloat 4s ease-in-out infinite;
+    }
+    @keyframes stampFloat { 0%,100% { transform: rotate(11deg) translateZ(20px) translateY(0); } 50% { transform: rotate(9deg) translateZ(20px) translateY(-6px); } }
+    .transcript-meta { display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; margin-bottom: 1.1rem; border-bottom: 1px dashed rgba(23,43,58,0.15); }
+    .transcript-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; letter-spacing: 0.02em; color: var(--hv-body-muted); }
+    .transcript-tag--live { color: var(--hv-terracotta); }
+
+    .video-stage { position: relative; aspect-ratio: 4 / 3; border-radius: var(--hv-radius-sm); overflow: hidden; margin-bottom: 1.1rem; background: linear-gradient(160deg, var(--hv-navy-2) 0%, var(--hv-navy) 55%, #223A4D 100%); border: 1px solid rgba(23,43,58,0.4); }
+    .video-ai { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.75rem; }
+    .video-ai-avatar { position: relative; width: 72px; height: 72px; border-radius: 50%; background: rgba(198,93,58,0.16); display: flex; align-items: center; justify-content: center; font-size: 1.9rem; }
+    .avatar-ring { position: absolute; inset: -8px; border-radius: 50%; border: 1.5px solid var(--hv-terracotta); opacity: 0.55; animation: avatarPulse 2.6s ease-out infinite; }
+    .avatar-ring-2 { animation-delay: 1.3s; }
+    @keyframes avatarPulse { 0% { transform: scale(0.85); opacity: 0.55; } 100% { transform: scale(1.6); opacity: 0; } }
+    .video-name-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; color: rgba(247,243,237,0.78); background: rgba(15,30,41,0.55); padding: 0.28rem 0.7rem; border-radius: 20px; }
+    .video-you { position: absolute; bottom: 10px; right: 10px; width: 62px; height: 46px; border-radius: 8px; background: rgba(23,43,58,0.92); border: 1.5px solid rgba(247,243,237,0.28); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; box-shadow: 0 4px 10px rgba(0,0,0,0.35); }
+    .video-caption { background: rgba(198,93,58,0.14); border: 1px solid rgba(198,93,58,0.2); border-radius: var(--hv-radius-sm); padding: 0.85rem 1.05rem; margin-bottom: 1.1rem; }
+    .caption-label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 0.64rem; letter-spacing: 0.05em; color: var(--hv-terracotta-dark); margin-bottom: 0.35rem; }
+    .video-caption p { font-size: 0.9rem; line-height: 1.55; color: var(--hv-body); }
+    .video-controls { display: flex; gap: 0.6rem; align-items: center; }
+    .control-pill { padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+    .control-pill--active { background: rgba(76,122,94,0.16); color: var(--hv-success); }
+    .control-pill--end { background: #B4402E; color: var(--hv-cream); margin-left: auto; }
+
+    .hero-annotation { position: absolute; bottom: -2.6rem; left: 1rem; font-size: 1.35rem; transform: rotate(-2deg); display: none; font-family: 'Caveat', cursive; font-weight: 600; color: var(--hv-terracotta-dark); }
+    .floating-chip { position: absolute; border-radius: 999px; padding: 0.55rem 1.1rem; font-size: 0.78rem; font-weight: 600; color: var(--hv-ink); z-index: 4; white-space: nowrap; transition: transform 0.15s ease-out; animation: chipFloat 5s ease-in-out infinite; }
+    .floating-chip--1 { top: 8%; left: -9%; animation-delay: 0s; }
+    .floating-chip--2 { bottom: 16%; left: -7%; animation-delay: 1.7s; }
+    @keyframes chipFloat { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-10px) rotate(2deg); } }
+
+    /* ── SECTION SHELL ── */
+    .section { padding: 6rem 2rem; position: relative; overflow: hidden; }
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+    .section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--hv-terracotta); margin-bottom: 1rem; }
+    .section-title { font-family: 'Fraunces', serif; font-size: clamp(2.1rem, 4.6vw, 3.4rem); font-weight: 500; line-height: 1.14; letter-spacing: -0.015em; margin-bottom: 1rem; color: var(--hv-ink); }
+    .section-sub { font-size: 1rem; color: var(--hv-body); opacity: 0.7; max-width: 500px; line-height: 1.7; }
+
+    /* ── FEATURES — a corkboard of pinned notes ── */
+    .corkboard {
+      margin-top: 2.75rem; position: relative; border-radius: 22px; padding: 2.4rem 1.9rem;
+      background: var(--hv-peach);
+      box-shadow: var(--hv-shadow-3); border: 1px solid rgba(31,37,40,0.15);
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.6rem 1.35rem;
+      counter-reset: notenum;
+    }
+    .note-card {
+      position: relative; background: var(--hv-cream); color: var(--hv-charcoal);
+      border-radius: 10px 26px 26px 26px; padding: 2.4rem 1.5rem 1.6rem; box-shadow: var(--hv-shadow-1);
+      transform: rotate(var(--tilt, 0deg));
+      transition: transform var(--hv-dur) var(--hv-ease), box-shadow var(--hv-dur) var(--hv-ease);
+      counter-increment: notenum;
+    }
+    .note-card:nth-child(even) { border-radius: 26px 10px 26px 26px; }
+    .note-card::before {
+      content: ''; position: absolute; bottom: 0; left: 0; width: 65%; height: 65%; border-radius: inherit;
+      background: radial-gradient(circle at 0% 100%, rgba(198,93,58,0.2), transparent 70%);
+      pointer-events: none; opacity: 0.55; transition: transform 0.5s var(--hv-ease), opacity 0.5s var(--hv-ease);
+    }
+    .note-card:nth-child(3n+2)::before { background: radial-gradient(circle at 0% 100%, rgba(76,122,94,0.2), transparent 70%); }
+    .note-card:nth-child(3n+3)::before { background: radial-gradient(circle at 0% 100%, rgba(23,43,58,0.16), transparent 70%); }
+    .note-card > * { position: relative; z-index: 1; }
+    .note-card:nth-child(1) { --tilt: -1.4deg; }
+    .note-card:nth-child(2) { --tilt: 1.1deg; }
+    .note-card:nth-child(3) { --tilt: 0.9deg; }
+    .note-card:nth-child(4) { --tilt: -1.2deg; }
+    .note-card:nth-child(5) { --tilt: -0.8deg; }
+    .note-card:nth-child(6) { --tilt: 1.3deg; }
+    .note-card:nth-child(7) { --tilt: 1deg; }
+    .note-card:nth-child(8) { --tilt: -0.7deg; }
+    .note-card:nth-child(9) { --tilt: -1.1deg; }
+    .note-card:nth-child(10) { --tilt: 0.8deg; }
+    .note-card:hover { transform: rotate(0deg) translateY(-5px); box-shadow: var(--hv-shadow-2); }
+    .note-card:hover::before { transform: scale(1.35); opacity: 1; }
+    .note-pin {
+      position: absolute; top: -18px; left: -18px; width: 38px; height: 38px; border-radius: 50%;
+      background: var(--hv-terracotta);
+      box-shadow: var(--hv-shadow-1); z-index: 2;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.85rem; color: var(--hv-cream);
+    }
+    .note-pin::before { content: counter(notenum); }
+    .note-icon { font-size: 1.4rem; margin-bottom: 0.85rem; }
+    .note-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.15rem; margin-bottom: 0.55rem; color: var(--hv-navy); }
+    .note-desc { font-size: 0.92rem; opacity: 0.75; line-height: 1.6; }
+
+    /* ── HOW IT WORKS ── */
+    .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-top: 3rem; position: relative; }
+    .step { text-align: center; padding: 1.9rem 1.5rem; border-radius: var(--hv-radius-md); perspective: 500px; transition: transform var(--hv-dur) var(--hv-ease), box-shadow var(--hv-dur) var(--hv-ease); }
+    .step:hover { transform: translateY(-5px); }
+    .step-num {
+      position: relative; width: 58px; height: 58px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Fraunces', serif; font-size: 1.25rem; font-weight: 600; color: var(--hv-ink);
+      margin: 0 auto 1.4rem; transition: transform var(--hv-dur) var(--hv-ease);
+      background:
+        linear-gradient(var(--hv-glass-strong), var(--hv-glass-strong)) padding-box,
+        conic-gradient(from 180deg, var(--hv-terracotta), var(--hv-peach), var(--hv-terracotta)) border-box;
+      border: 2px solid transparent;
+    }
+    .step:hover .step-num { transform: rotateX(12deg) translateZ(6px); }
+    .step-icon { position: absolute; bottom: -4px; right: -4px; width: 24px; height: 24px; border-radius: 50%; background: var(--hv-navy); color: var(--hv-cream); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; box-shadow: var(--hv-shadow-1); }
+    .step-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--hv-ink); }
+    .step-desc { font-size: 0.9rem; color: var(--hv-body); opacity: 0.7; line-height: 1.6; }
+
+    /* ── TOOLKIT ── */
+    .toolkit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.25rem; margin-top: 3rem; }
+    .toolkit-tile { border-radius: 8px 26px 26px 26px; padding: 1.9rem; position: relative; overflow: hidden; perspective: 700px; transition: transform var(--hv-dur) var(--hv-ease), box-shadow var(--hv-dur) var(--hv-ease); }
+    .toolkit-tile:nth-child(even) { border-radius: 26px 26px 8px 26px; }
+    .toolkit-tile::before {
+      content: ''; position: absolute; bottom: -45%; left: -30%; width: 70%; height: 70%;
+      background: radial-gradient(circle, rgba(198,93,58,0.2), transparent 70%);
+      pointer-events: none; transition: transform 0.5s var(--hv-ease), opacity 0.5s var(--hv-ease); opacity: 0.55;
+    }
+    .toolkit-tile:nth-child(3n+2)::before { background: radial-gradient(circle, rgba(76,122,94,0.2), transparent 70%); }
+    .toolkit-tile:nth-child(3n+3)::before { background: radial-gradient(circle, rgba(23,43,58,0.16), transparent 70%); }
+    .toolkit-tile:hover { transform: translateY(-6px) rotateX(6deg) rotateY(-5deg); box-shadow: var(--hv-shadow-3), inset 0 1px 0 rgba(255,255,255,0.55); }
+    .toolkit-tile:hover::before { transform: scale(1.35); opacity: 1; }
+    .toolkit-tag { position: absolute; top: 1.15rem; right: 1.15rem; z-index: 1; font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: var(--hv-navy); letter-spacing: 0.03em; background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.6); padding: 0.25rem 0.55rem; border-radius: 20px; }
+    .toolkit-icon {
+      position: relative; z-index: 1;
+      width: 50px; height: 50px; border-radius: 13px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; margin-bottom: 1.15rem;
+      background: linear-gradient(135deg, rgba(198,93,58,0.28), rgba(198,93,58,0.06));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+    }
+    .toolkit-tile:nth-child(3n+2) .toolkit-icon { background: linear-gradient(135deg, rgba(76,122,94,0.28), rgba(76,122,94,0.06)); }
+    .toolkit-tile:nth-child(3n+3) .toolkit-icon { background: linear-gradient(135deg, rgba(23,43,58,0.22), rgba(23,43,58,0.04)); }
+    .toolkit-title { position: relative; z-index: 1; font-weight: 600; color: var(--hv-ink); margin-bottom: 0.4rem; font-size: 1.05rem; }
+    .toolkit-desc { position: relative; z-index: 1; font-size: 0.88rem; color: var(--hv-body); opacity: 0.72; line-height: 1.65; }
+
+    /* ── INTEGRITY ── */
+    .integrity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+    .integrity-signals { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 2rem; }
+    .signal-item { display: flex; align-items: center; gap: 1rem; border-radius: var(--hv-radius-sm); padding: 1rem 1.25rem; transition: transform var(--hv-dur) var(--hv-ease), box-shadow var(--hv-dur) var(--hv-ease); }
+    .signal-item:hover { box-shadow: var(--hv-shadow-2), inset 0 1px 0 rgba(255,255,255,0.55); }
+    .signal-item:hover { transform: translateX(6px); }
+    .signal-icon { font-size: 1.2rem; flex-shrink: 0; }
+    .signal-text { font-size: 0.88rem; color: var(--hv-body); font-weight: 500; }
+    .integrity-report { border-radius: 10px 28px 28px 28px; padding: 2rem; color: var(--hv-body); position: relative; }
+    .integrity-report::before {
+      content: ''; position: absolute; top: -40%; right: -25%; width: 65%; height: 65%;
+      background: radial-gradient(circle, rgba(76,122,94,0.22), transparent 70%);
+      pointer-events: none; border-radius: 50%; z-index: 0;
+    }
+    .integrity-report::after {
+      content: '96/100'; position: absolute; top: -18px; right: 8px; width: 70px; height: 70px;
+      border-radius: 50%; border: 3px solid var(--hv-terracotta); color: var(--hv-terracotta-dark);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Fraunces', serif; font-weight: 700; font-size: 0.9rem;
+      transform: rotate(-8deg); background: rgba(255,253,249,0.85);
+      box-shadow: var(--hv-shadow-1); z-index: 2;
+    }
+    .integrity-report > * { position: relative; z-index: 1; }
+    .integrity-title { font-size: 0.8rem; font-weight: 600; color: var(--hv-body-muted); margin-bottom: 1.25rem; font-family: 'JetBrains Mono', monospace; }
+    .integrity-verdict { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px dashed rgba(23,43,58,0.15); }
+    .verdict-label { font-size: 1rem; font-weight: 600; color: var(--hv-ink); }
+    .verdict-badge { padding: 0.35rem 1rem; border-radius: 20px; font-size: 0.82rem; font-weight: 600; }
+    .verdict-clean { background: rgba(76,122,94,0.14); color: var(--hv-success); border: 1px solid rgba(76,122,94,0.3); }
+    .integrity-bars { display: flex; flex-direction: column; gap: 0.75rem; }
+    .bar-item { display: flex; justify-content: space-between; align-items: center; }
+    .bar-label { font-size: 0.82rem; color: var(--hv-body-muted); }
+    .bar-value { font-size: 0.82rem; font-weight: 600; color: var(--hv-success); font-family: 'JetBrains Mono', monospace; display: inline-flex; align-items: center; gap: 0.45rem; }
+    .bar-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--hv-success); box-shadow: 0 0 8px rgba(76,122,94,0.7); animation: dotGlow 2s ease-in-out infinite; }
+    @keyframes dotGlow { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* ── PRICING — admit cards / tickets ── */
+    .ticket-row { margin-top: 2.75rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.75rem; max-width: 940px; margin-left: auto; margin-right: auto; }
+    .ticket {
+      position: relative; background: var(--hv-cream); color: var(--hv-charcoal);
+      border-radius: 14px; padding: 1.9rem 1.5rem 1.7rem;
+      box-shadow: var(--hv-shadow-2); text-align: left; overflow: hidden;
+      transition: transform var(--hv-dur) var(--hv-ease), box-shadow var(--hv-dur) var(--hv-ease);
+    }
+    .ticket:hover { transform: translateY(-6px); box-shadow: var(--hv-shadow-3); }
+    .ticket::before { content: ''; position: absolute; left: 0; right: 0; top: 78px; border-top: 2px dashed rgba(31,37,40,0.2); }
+    .ticket-perf { position: absolute; top: 71px; left: -9px; width: 18px; height: 18px; border-radius: 50%; background: var(--hv-navy); }
+    .ticket-perf.r { left: auto; right: -9px; }
+    .ticket-featured { border: 2px solid var(--hv-terracotta); }
+    .ticket-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.9rem; }
+    .ticket-kind { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.03em; color: var(--hv-terracotta-dark); }
+    .ticket-photo { width: 34px; height: 34px; border-radius: 4px; background: var(--hv-navy); color: var(--hv-cream); display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+    .ticket-price { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 600; margin-bottom: 1.6rem; color: var(--hv-navy); }
+    .ticket-price span { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.78rem; font-weight: 400; opacity: 0.6; }
+    .ticket-list { list-style: none; font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .ticket-list li { display: flex; gap: 0.5rem; opacity: 0.8; }
+    .ticket-list li::before { content: '✓'; color: var(--hv-success); font-weight: 700; flex-shrink: 0; }
+    .ticket-barcode { height: 24px; margin-bottom: 1.2rem; background-image: repeating-linear-gradient(90deg, var(--hv-charcoal) 0 2px, transparent 2px 4px, var(--hv-charcoal) 4px 5px, transparent 5px 9px); opacity: 0.55; }
+    .ticket-cta { display: block; width: 100%; text-align: center; padding: 0.72rem 1rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none; cursor: pointer; border: 1.5px solid var(--hv-charcoal); color: var(--hv-charcoal); background: transparent; transition: background var(--hv-dur) var(--hv-ease), color var(--hv-dur) var(--hv-ease); }
+    .ticket-cta:hover { background: var(--hv-charcoal); color: var(--hv-cream); }
+    .ticket-cta--solid { background: var(--hv-terracotta); border-color: var(--hv-terracotta); color: var(--hv-cream); }
+    .ticket-cta--solid:hover { background: var(--hv-terracotta-dark); color: var(--hv-cream); }
+    .cta-annotation { margin-top: 1.5rem; font-size: 1.25rem; transform: rotate(-1deg); font-family: 'Caveat', cursive; font-weight: 600; }
+
+    /* ── CTA — a bold floating card, not a full-bleed strip ── */
+    .cta-section { padding: 3rem 2rem 6rem; text-align: center; }
+    .cta-card {
+      max-width: 900px; margin: 0 auto; background: var(--hv-navy);
+      border-radius: 16px 48px 48px 48px; padding: 5rem 3rem; box-shadow: var(--hv-shadow-3);
+      position: relative; overflow: hidden;
+    }
+    .cta-pin {
+      position: absolute; top: -20px; left: 50%; transform: translateX(-50%) rotate(-2deg);
+      width: 44px; height: 44px; border-radius: 50%; background: var(--hv-terracotta);
+      box-shadow: var(--hv-shadow-2); z-index: 2;
+      display: flex; align-items: center; justify-content: center; font-size: 1.15rem;
+    }
+    .cta-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 30% 20%, rgba(198,93,58,0.35), transparent 55%), radial-gradient(circle at 80% 90%, rgba(198,93,58,0.2), transparent 50%); }
+    .cta-card > * { position: relative; z-index: 1; }
+    .cta-section h2 { font-family: 'Fraunces', serif; font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 500; letter-spacing: -0.01em; margin-bottom: 1rem; color: var(--hv-cream); }
+    .cta-section p { color: rgba(247,243,237,0.7); font-size: 1.05rem; margin-bottom: 2.5rem; }
+
+    /* ── TAPE SEAM — a small washi-tape divider between sections ── */
+    .tape-seam { position: relative; height: 1px; max-width: 1080px; margin: 0 auto; background: var(--hv-border); }
+    .tape-seam::before {
+      content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-2deg);
+      width: 60px; height: 16px; border-radius: 2px;
+      background: repeating-linear-gradient(45deg, rgba(198,93,58,0.35) 0 4px, rgba(198,93,58,0.15) 4px 8px);
+      box-shadow: var(--hv-shadow-1);
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .reveal { opacity: 0; transform: perspective(1000px) translateY(34px) rotateX(-10deg); transform-origin: bottom center; transition: opacity 0.8s var(--hv-ease), transform 0.8s var(--hv-ease); }
+    .reveal.visible { opacity: 1; transform: perspective(1000px) translateY(0) rotateX(0deg); }
+
+    /* Cascading entrance — grid children arrive one after another rather
+       than all snapping in at once */
+    .corkboard .reveal:nth-child(1), .toolkit-grid .reveal:nth-child(1), .steps-grid .reveal:nth-child(1) { transition-delay: 0s; }
+    .corkboard .reveal:nth-child(2), .toolkit-grid .reveal:nth-child(2), .steps-grid .reveal:nth-child(2) { transition-delay: 0.08s; }
+    .corkboard .reveal:nth-child(3), .toolkit-grid .reveal:nth-child(3), .steps-grid .reveal:nth-child(3) { transition-delay: 0.16s; }
+    .corkboard .reveal:nth-child(4), .toolkit-grid .reveal:nth-child(4) { transition-delay: 0.24s; }
+    .corkboard .reveal:nth-child(5), .toolkit-grid .reveal:nth-child(5) { transition-delay: 0.32s; }
+    .corkboard .reveal:nth-child(6), .toolkit-grid .reveal:nth-child(6) { transition-delay: 0.4s; }
+    .corkboard .reveal:nth-child(7), .toolkit-grid .reveal:nth-child(7) { transition-delay: 0.48s; }
+    .corkboard .reveal:nth-child(8) { transition-delay: 0.56s; }
+    .corkboard .reveal:nth-child(9) { transition-delay: 0.64s; }
+    .corkboard .reveal:nth-child(10) { transition-delay: 0.72s; }
+    .hero-stats .stat:nth-child(1) { transition-delay: 0s; }
+    .hero-stats .stat:nth-child(2) { transition-delay: 0.1s; }
+    .hero-stats .stat:nth-child(3) { transition-delay: 0.2s; }
+
+    /* ── DECORATIVE BLOBS — soft painterly shapes that sit behind a
+       section's content, distinct from the page-wide mesh background ── */
+    .section-blob { position: absolute; border-radius: 50%; filter: blur(60px); pointer-events: none; z-index: 0; opacity: 0.55; }
+    .section-inner, .hero-inner { position: relative; z-index: 1; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .corkboard { grid-template-columns: 1fr; padding: 1.75rem 1.25rem; }
+      .nav-toggle { display: flex; }
+      .nav-links { display: none; position: absolute; top: calc(100% + 0.6rem); left: 0; right: 0; flex-direction: column; align-items: stretch; gap: 0.3rem; padding: 0.75rem; border-radius: var(--hv-radius-md); background: var(--hv-glass-strong); backdrop-filter: blur(22px); border: 1px solid var(--hv-glass-border); box-shadow: var(--hv-shadow-2); }
+      .nav-links.open { display: flex; }
+      .nav-links a { padding: 0.8rem 0.9rem; }
+      .nav-links .nav-cta { text-align: center; }
+      .integrity-grid { grid-template-columns: 1fr; }
+      .hero-stats { gap: 1.5rem; }
+      .hero { padding: 8.5rem 1.25rem 3rem; }
+      h1 { font-size: clamp(2.2rem, 9vw, 3rem); }
+      .hero-inner { grid-template-columns: 1fr; gap: 3rem; }
+      .hero-copy { max-width: 100%; }
+      .transcript-card { transform: none; }
+      .transcript-stack::before, .transcript-stack::after { display: none; }
+      .hero-stamp { width: 68px; height: 68px; font-size: 0.75rem; top: -10px; right: -6px; }
+      .hero-annotation { display: none !important; }
+      .floating-chip { display: none; }
+      .ticket-row { gap: 1.25rem; }
+      .cta-card { padding: 3rem 1.5rem; }
+    }
+    @media (min-width: 769px) { .hero-annotation { display: block; } }
+
   </style>
 </head>
 <body>
+  <div class="scroll-progress" id="scrollProgress"></div>
 
-  <nav>
-    <a href="/" class="logo-text">HireView</a>
-    <a href="/" class="back">← Back to Home</a>
+  <!-- NAV -->
+  <nav class="glass">
+    <a href="/" class="hv-logo-wrap">
+      <span class="hv-logo-badge">
+        <span class="hv-logo-rings">
+          <span class="hv-logo-outer-glow"></span>
+          <span class="hv-ring hv-ring-1"></span>
+          <span class="hv-ring hv-ring-2"></span>
+          <span class="hv-ring hv-ring-3"></span>
+          <span class="hv-ring-center">HV</span>
+        </span>
+      </span>
+      <span class="hv-logo-text">HireView</span>
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" onclick="
+      this.classList.toggle('open');
+      document.getElementById('navLinks').classList.toggle('open');
+      this.setAttribute('aria-expanded', this.classList.contains('open'));
+    ">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="#features" onclick="document.getElementById('navLinks').classList.remove('open');document.getElementById('navToggle').classList.remove('open')">Features</a>
+      <a href="#how-it-works" onclick="document.getElementById('navLinks').classList.remove('open');document.getElementById('navToggle').classList.remove('open')">How it works</a>
+      <a href="#toolkit" onclick="document.getElementById('navLinks').classList.remove('open');document.getElementById('navToggle').classList.remove('open')">Toolkit</a>
+      <a href="#pricing" onclick="document.getElementById('navLinks').classList.remove('open');document.getElementById('navToggle').classList.remove('open')">Pricing</a>
+      <a href="/faq">FAQ</a>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <span class="theme-toggle-icon theme-toggle-icon--sun">☀️</span>
+        <span class="theme-toggle-icon theme-toggle-icon--moon">🌙</span>
+      </button>
+      <a href="#" onclick="goToAuth('signupPage');return false;" class="nav-cta">Start free</a>
+    </div>
   </nav>
 
   <main>
-    <h1>Interview Prep Blog</h1>
-    <p class="subtitle">Practical guides for HR rounds, government exam interviews, and everything in between.</p>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="section-blob" style="width:520px;height:520px;top:-160px;right:-140px;background:radial-gradient(circle, rgba(198,93,58,0.4), transparent 70%);"></div>
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <div class="hero-badge glass">
+          <span></span> AI Interviewer is live — try for free
+        </div>
+        <h1>
+          Practice interviews<br>
+          <span class="accent">that actually prepare you.</span>
+        </h1>
+        <p class="hero-sub">
+          Meet Arjun — your AI interviewer who asks real questions based on your resume, adapts to your answers, and gives you honest feedback. No fluff.
+        </p>
+        <div class="hero-actions">
+          <a href="#" onclick="goToAuth('signupPage');return false;" class="btn-primary">Start free interview</a>
+          <a href="#how-it-works" class="btn-secondary">See how it works</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat glass">
+            <div class="stat-num">3</div>
+            <div class="stat-label">Free interviews</div>
+          </div>
+          <div class="stat glass">
+            <div class="stat-num">35+</div>
+            <div class="stat-label">Job domains</div>
+          </div>
+          <div class="stat glass">
+            <div class="stat-num">2</div>
+            <div class="stat-label">Languages (English, Hinglish)</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual reveal">
+        <div class="floating-chip floating-chip--1 glass" data-depth="26">📊 Score 88/100</div>
+        <div class="floating-chip floating-chip--2 glass" data-depth="42">🎯 Technical · HR · Mixed</div>
+        <div class="transcript-stack">
+        <div class="transcript-card glass" id="heroTiltCard">
+          <div class="hero-stamp">3 free<br>interviews</div>
+          <div class="transcript-meta">
+            <span class="transcript-tag transcript-tag--live">● REC 04:32</span>
+            <span class="transcript-tag">Technical Round</span>
+          </div>
+          <div class="video-stage">
+            <div class="video-ai">
+              <div class="video-ai-avatar">
+                <span class="avatar-ring avatar-ring-1"></span>
+                <span class="avatar-ring avatar-ring-2"></span>
+                <span>🧑‍💼</span>
+              </div>
+              <span class="video-name-tag">Arjun — AI Interviewer</span>
+            </div>
+            <div class="video-you">🙂</div>
+          </div>
+          <div class="video-caption">
+            <span class="caption-label">LIVE · QUESTION 4</span>
+            <p>"You mentioned deploying a FastAPI model on AWS EC2 — how did you handle scaling?"</p>
+          </div>
+          <div class="video-controls">
+            <span class="control-pill control-pill--active">🎙️ Mic</span>
+            <span class="control-pill control-pill--active">🎥 Camera</span>
+            <span class="control-pill control-pill--end">End</span>
+          </div>
+        </div>
+        </div>
+        <div class="hero-annotation hv-annotation">Real video call,<br>not a script.</div>
+      </div>
+    </div>
+  </section>
 
-    <a href="/blog/common-hr-interview-questions-freshers-india" class="post-card">
-      <span class="post-tag">HR Round</span>
-      <div class="post-title">25 Common HR Interview Questions & Answers for Freshers in India</div>
-      <div class="post-desc">The questions that come up again and again in campus placements and entry-level interviews — with sample answers and what each one is really testing.</div>
-      <div class="post-meta">8 min read · Updated 29 Jul 2026</div>
-    </a>
+  <!-- FEATURES -->
+  <section class="section" id="features">
+    <div class="section-blob" style="width:420px;height:420px;top:-100px;left:-120px;background:radial-gradient(circle, rgba(198,93,58,0.5), transparent 70%);"></div>
+    <div class="section-inner">
+      <div class="section-head reveal">
+        <div class="section-label">What makes HireView different</div>
+        <h2 class="section-title">Built for India.<br>Built for real interviews.</h2>
+        <p class="section-sub">Not a question bank. Not a quiz app. An actual adaptive interviewer that reads your resume and responds to what you say.</p>
+      </div>
+      <div class="corkboard">
+        <div class="note-card reveal">
+          <span class="note-pin"></span>
+          <div class="note-icon">🎯</div>
+          <h3 class="note-title">Resume-aware questions</h3>
+          <p class="note-desc">Arjun reads your resume before the interview begins. Every question is specific to your projects, skills, and experience.</p>
+        </div>
+        <div class="note-card reveal">
+          <span class="note-pin"></span>
+          <div class="note-icon">🏢</div>
+          <h3 class="note-title">Target a specific company</h3>
+          <p class="note-desc">Tell Arjun which company you're prepping for — optional — and he'll shape questions to match that company's real interview style.</p>
+        </div>
+        <div class="note-card reveal">
+          <span class="note-pin"></span>
+          <div class="note-icon">🎚️</div>
+          <h3 class="note-title">Choose your round</h3>
+          <p class="note-desc">Technical, HR, or Mixed — pick the round you actually need to practice for, run the way that round really goes.</p>
+        </div>
+        <div class="note-card reveal">
+          <span class="note-pin"></span>
+          <div class="note-icon">📄</div>
+          <h3 class="note-title">Job Description mode</h3>
+          <p class="note-desc">Paste or upload the JD for your target role, and Arjun tailors the interview to the skills and gaps that role cares about.</p>
+        </div>
+        <div class="note-card reveal">
+          <span class="note-pin"></span>
+          <div class="note-icon">🏛️</div>
+          <h3 class="note-title">Government Sector track</h3>
+          <p class="note-desc">A dedicated exam-style interview track for UPSC, SSC, IBPS, and more — built for the way government interviews actually run.</p>
+        </div>
+        <div class="note-card reveal">
+          <span class="note-pin"></span>
+          <div class="note-icon">📈</div>
+          <h3 class="note-title">Adaptive difficulty</h3>
+          <p class="note-desc">Answer well? The next question gets harder. Struggle? Arjun eases back — just like a real interviewer would.</p>
+        </div>
+        <div class="note-card reveal">
+          <span class="note-pin"></span>
+          <div class="note-icon">🗣️</div>
+          <h3 class="note-title">Voice-first, English + Hinglish</h3>
+          <p class="note-desc">Arjun speaks, you speak back — in English or natural Hinglish, the way Indian professionals actually talk.</p>
+        </div>
+        <div class="note-card reveal">
+          <span class="note-pin"></span>
+          <div class="note-icon">🔍</div>
+          <h3 class="note-title">Integrity detection</h3>
+          <p class="note-desc">Multiple face detection, tab switching, and response timing analysis — so practice reflects real exam conditions.</p>
+        </div>
+        <div class="note-card reveal">
+          <span class="note-pin"></span>
+          <div class="note-icon">📊</div>
+          <h3 class="note-title">Honest feedback</h3>
+          <p class="note-desc">Overall, technical and soft-skills scores, a hiring recommendation, strengths, and what to work on. No sugarcoating.</p>
+        </div>
+        <div class="note-card reveal">
+          <span class="note-pin"></span>
+          <div class="note-icon">🎥</div>
+          <h3 class="note-title">Session recording</h3>
+          <p class="note-desc">Record your interview and download it to review your body language, pacing, and confidence. Your data, your control.</p>
+        </div>
+                  </div>
+    </div>
+  </section>
 
-    <a href="/blog/technical-interview-questions-freshers-india" class="post-card">
-      <span class="post-tag">Technical Round</span>
-      <div class="post-title">Technical Interview Questions & Prep Guide for Freshers in India</div>
-      <div class="post-desc">DSA, CS fundamentals, and how to talk through your own projects — what technical interviewers actually check for beyond the right answer.</div>
-      <div class="post-meta">7 min read · Updated 10 Aug 2026</div>
-    </a>
+  <!-- HOW IT WORKS -->
+  <section class="section" id="how-it-works">
+    <div class="section-inner">
+      <div class="reveal" style="text-align:center;margin-bottom:0">
+        <div class="section-label" style="text-align:center">Simple process</div>
+        <h2 class="section-title" style="text-align:center">Interview ready in 3 steps</h2>
+      </div>
+      <div class="steps-grid timeline">
+        <div class="step glass reveal">
+          <div class="step-num">1<span class="step-icon">📄</span></div>
+          <div class="step-title">Upload your resume</div>
+          <div class="step-desc">Drop your PDF or text resume. Arjun reads it and builds your interview around your actual background.</div>
+        </div>
+        <div class="step glass reveal">
+          <div class="step-num">2<span class="step-icon">🎯</span></div>
+          <div class="step-title">Pick your role, round & language</div>
+          <div class="step-desc">Choose the job you're targeting, the round you want to face (Technical / HR / Mixed), optionally a target company, and English or Hinglish.</div>
+        </div>
+        <div class="step glass reveal">
+          <div class="step-num">3<span class="step-icon">🎥</span></div>
+          <div class="step-title">Interview with Arjun</div>
+          <div class="step-desc">Speak your answers, get cross-questioned, and receive detailed feedback with your score and next steps.</div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <a href="/blog/upsc-ssc-interview-preparation-guide" class="post-card">
-      <span class="post-tag">Government Exams</span>
-      <div class="post-title">UPSC & SSC Personality Test (Interview) Preparation Guide</div>
-      <div class="post-desc">What the interview board actually evaluates, how to prepare your DAF-based answers, and how to handle stress questions calmly.</div>
-      <div class="post-meta">7 min read · Updated 29 Jul 2026</div>
-    </a>
+  <div class="tape-seam"></div>
+  <!-- TOOLKIT -->
+  <section class="section" id="toolkit">
+    <div class="section-blob" style="width:460px;height:460px;top:20%;right:-160px;background:radial-gradient(circle, rgba(23,43,58,0.4), transparent 70%);"></div>
+    <div class="section-inner">
+      <div class="section-head reveal">
+        <div class="section-label">More than one interview format</div>
+        <h2 class="section-title">One dashboard.<br>Every round covered.</h2>
+        <p class="section-sub">Video interviews are just the start. Your HireView dashboard also has these, all in one place.</p>
+      </div>
+      <div class="toolkit-grid">
+        <div class="toolkit-tile glass reveal">
+          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
+          <div class="toolkit-icon">💻</div>
+          <div class="toolkit-title">Coding Round</div>
+          <div class="toolkit-desc">Pick a topic, difficulty and 1–8 problems in C++, Java, Python or JavaScript. Run your code against sample cases, then submit to grade against hidden test cases — a real in-browser editor, timed per problem.</div>
+        </div>
+        <div class="toolkit-tile glass reveal">
+          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
+          <div class="toolkit-icon">🧮</div>
+          <div class="toolkit-title">Aptitude Tests</div>
+          <div class="toolkit-desc">Timed MCQ sets of 5, 10, 15 or 20 questions — 45 seconds each, topic and difficulty your choice, graded instantly with a full explanation on every answer.</div>
+        </div>
+        <div class="toolkit-tile glass reveal">
+          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
+          <div class="toolkit-icon">📚</div>
+          <div class="toolkit-title">Question Bank</div>
+          <div class="toolkit-desc">Browse and practice real Aptitude, Coding, and Interview questions by topic and difficulty — no signup walls or random PDFs, just open a question and go.</div>
+        </div>
+        <div class="toolkit-tile glass reveal">
+          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
+          <div class="toolkit-icon">🏆</div>
+          <div class="toolkit-title">Leaderboard</div>
+          <div class="toolkit-desc">Ranked by your HireView Score — a blend of your Interview, Aptitude and Coding performance. See where you stand all-time, this month, or this week.</div>
+        </div>
+        <div class="toolkit-tile glass reveal">
+          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
+          <div class="toolkit-icon">📈</div>
+          <div class="toolkit-title">Progress Analytics</div>
+          <div class="toolkit-desc">A score-trend line, a skill radar, and topic-wise breakdowns across Interviews, Aptitude and Coding — so you know exactly where to focus next.</div>
+        </div>
+        <div class="toolkit-tile glass reveal">
+          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
+          <div class="toolkit-icon">🎖️</div>
+          <div class="toolkit-title">Achievement Badges</div>
+          <div class="toolkit-desc">Earn badges as you practice — each one unlocks and lights up on your profile the moment you hit the milestone behind it.</div>
+        </div>
+        <div class="toolkit-tile glass reveal">
+          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
+          <div class="toolkit-icon">🕘</div>
+          <div class="toolkit-title">My Reports</div>
+          <div class="toolkit-desc">Every interview, aptitude attempt and coding round — full transcripts, question-by-question review, and feedback, saved and revisit-able anytime.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTEGRITY SECTION -->
+  <section class="section" id="integrity">
+    <div class="section-blob" style="width:380px;height:380px;bottom:-80px;left:10%;background:radial-gradient(circle, rgba(76,122,94,0.45), transparent 70%);"></div>
+    <div class="section-inner">
+      <div class="integrity-grid">
+        <div class="reveal">
+          <div class="section-label">For institutes & recruiters</div>
+          <h2 class="section-title">Every session comes with an integrity report.</h2>
+          <p class="section-sub">HireView monitors the full session — not just the answers. Tab switches, multiple faces on camera, and suspiciously consistent response timing are all flagged.</p>
+          <div class="integrity-signals">
+            <div class="signal-item glass">
+              <div class="signal-icon">👁️</div>
+              <div class="signal-text">Multiple face detection via camera</div>
+            </div>
+            <div class="signal-item glass">
+              <div class="signal-icon">🔀</div>
+              <div class="signal-text">Tab & window switch tracking</div>
+            </div>
+            <div class="signal-item glass">
+              <div class="signal-icon">⏱️</div>
+              <div class="signal-text">Response timing consistency analysis</div>
+            </div>
+          </div>
+        </div>
+        <div class="reveal">
+          <div class="integrity-report glass">
+            <div class="integrity-title">Integrity report</div>
+            <div class="integrity-verdict">
+              <div class="verdict-label">Session verdict</div>
+              <div class="verdict-badge verdict-clean">Clean</div>
+            </div>
+            <div class="integrity-bars">
+              <div class="bar-item">
+                <span class="bar-label">Tab switches</span>
+                <span class="bar-value"><span class="bar-dot"></span>0</span>
+              </div>
+              <div class="bar-item">
+                <span class="bar-label">Window switches</span>
+                <span class="bar-value"><span class="bar-dot"></span>1</span>
+              </div>
+              <div class="bar-item">
+                <span class="bar-label">Multiple faces detected</span>
+                <span class="bar-value"><span class="bar-dot"></span>0</span>
+              </div>
+              <div class="bar-item">
+                <span class="bar-label">Response timing</span>
+                <span class="bar-value"><span class="bar-dot"></span>Natural</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="tape-seam"></div>
+  <!-- PRICING -->
+  <section class="section" id="pricing">
+    <div class="section-blob" style="width:400px;height:400px;top:-60px;right:5%;background:radial-gradient(circle, rgba(198,93,58,0.45), transparent 70%);"></div>
+    <div class="section-inner">
+      <div class="reveal" style="text-align:center">
+        <div class="section-label" style="text-align:center">Simple pricing</div>
+        <h2 class="section-title" style="text-align:center">Start free. Pay only when you're ready.</h2>
+      </div>
+      <div class="ticket-row">
+        <div class="ticket reveal">
+          <div class="ticket-perf"></div><div class="ticket-perf r"></div>
+          <div class="ticket-head"><span class="ticket-kind">FREE TRIAL</span><div class="ticket-photo">🎫</div></div>
+          <div class="ticket-price">₹0<span>/3 interviews</span></div>
+          <ul class="ticket-list">
+            <li>3 interviews total, once</li>
+            <li>Private sector</li>
+            <li>Detailed feedback report</li>
+            <li>English + Hinglish</li>
+          </ul>
+          <div class="ticket-barcode"></div>
+          <a href="#" onclick="goToAuth('signupPage');return false;" class="ticket-cta">Get started free</a>
+        </div>
+        <div class="ticket reveal">
+          <div class="ticket-perf"></div><div class="ticket-perf r"></div>
+          <div class="ticket-head"><span class="ticket-kind">WEEK PASS</span><div class="ticket-photo">🎫</div></div>
+          <div class="ticket-price">₹99<span>/7 days</span></div>
+          <ul class="ticket-list">
+            <li>Up to 6 interviews / day</li>
+            <li>Private &amp; Government</li>
+            <li>Detailed feedback report</li>
+            <li>One-time, no auto-renewal</li>
+          </ul>
+          <div class="ticket-barcode"></div>
+          <a href="#" onclick="goToAuth('signupPage');return false;" class="ticket-cta">Get Weekly</a>
+        </div>
+        <div class="ticket ticket-featured reveal">
+          <div class="ticket-perf"></div><div class="ticket-perf r"></div>
+          <div class="ticket-head"><span class="ticket-kind">MONTH ADMIT CARD</span><div class="ticket-photo">🎫</div></div>
+          <div class="ticket-price">₹299<span>/30 days</span></div>
+          <ul class="ticket-list">
+            <li>Up to 6 interviews / day</li>
+            <li>Private &amp; Government</li>
+            <li>Detailed feedback report</li>
+            <li>One-time, no auto-renewal</li>
+          </ul>
+          <div class="ticket-barcode"></div>
+          <a href="#" onclick="goToAuth('signupPage');return false;" class="ticket-cta ticket-cta--solid">Get Monthly</a>
+        </div>
+      </div>
+      <p class="reveal" style="text-align:center;margin-top:1.5rem;color:var(--hv-stone);font-size:0.85rem;">
+        One-time payments, no auto-renewal. See our <a href="/refund-policy" style="color:var(--hv-ink);text-decoration:underline;">Refund Policy</a> and <a href="/terms" style="color:var(--hv-ink);text-decoration:underline;">Terms</a>.
+      </p>
+      <p class="reveal" style="text-align:center;margin-top:0.5rem;color:var(--hv-stone);font-size:0.85rem;">
+        Preparing for something specific? Read our guides on <a href="/blog/common-hr-interview-questions-freshers-india" style="color:var(--hv-ink);text-decoration:underline;">HR interview questions</a>, <a href="/blog/technical-interview-questions-freshers-india" style="color:var(--hv-ink);text-decoration:underline;">technical interview prep</a>, and <a href="/blog/upsc-ssc-interview-preparation-guide" style="color:var(--hv-ink);text-decoration:underline;">UPSC &amp; SSC interview preparation</a>.
+      </p>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="cta-card reveal">
+      <div class="cta-pin">🎙️</div>
+      <h2>Your next interview<br>starts here.</h2>
+      <p>First 3 interviews are free. No card required.</p>
+      <a href="#" onclick="goToAuth('signupPage');return false;" class="btn-primary" style="font-size:1.1rem;padding:1.15rem 3rem;">Start an interview with Arjun</a>
+      <div class="cta-annotation hv-annotation" style="color:var(--hv-terracotta);">P.S. no card, no catch.</div>
+    </div>
+  </section>
+
   </main>
 
-  <script src="../js/config.js"></script>
-  <script src="../js/assistant-widget.js"></script>
-  <script src="../js/footer.js"></script>
+  <!-- Static footer fallback: the real footer is injected by js/footer.js,
+       but crawlers/clients that don't execute JS need these internal links
+       present in the raw HTML too. Hidden visually when JS runs. -->
+  <noscript>
+    <footer style="padding:2rem;text-align:center;border-top:1px solid var(--hv-border);color:var(--hv-stone);font-size:0.85rem;background:var(--hv-cream);">
+      <a href="/auth" style="color:inherit;margin:0 0.75rem;">Login</a>
+      <a href="/blog" style="color:inherit;margin:0 0.75rem;">Blog</a>
+      <a href="/faq" style="color:inherit;margin:0 0.75rem;">FAQ</a>
+      <a href="/privacy" style="color:inherit;margin:0 0.75rem;">Privacy Policy</a>
+      <a href="/terms" style="color:inherit;margin:0 0.75rem;">Terms</a>
+      <a href="/refund-policy" style="color:inherit;margin:0 0.75rem;">Refund Policy</a>
+      <a href="/contact" style="color:inherit;margin:0 0.75rem;">Contact</a>
+    </footer>
+  </noscript>
+
+  <script src="js/config.js"></script>
+  <script src="js/footer.js"></script>
+  <script src="js/translate.js"></script>
+  <script src="js/assistant-widget.js"></script>
+  <script>
+    // Scroll reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // ── THEME TOGGLE ──
+    (function () {
+      const btn = document.getElementById('themeToggle');
+      if (!btn) return;
+      btn.addEventListener('click', () => {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+          document.documentElement.removeAttribute('data-theme');
+          try { localStorage.setItem('hv-theme', 'light'); } catch (e) {}
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          try { localStorage.setItem('hv-theme', 'dark'); } catch (e) {}
+        }
+      });
+    })();
+
+    // ── SCROLL PROGRESS ──
+    (function () {
+      const bar = document.getElementById('scrollProgress');
+      if (!bar) return;
+      const update = () => {
+        const h = document.documentElement;
+        const scrolled = h.scrollTop;
+        const max = h.scrollHeight - h.clientHeight;
+        bar.style.width = (max > 0 ? (scrolled / max) * 100 : 0) + '%';
+      };
+      document.addEventListener('scroll', update, { passive: true });
+      update();
+    })();
+
+    // ── MAGNETIC BUTTONS — primary CTAs pull very slightly toward the
+    // cursor when it's near, a small tactile detail rather than a static
+    // rectangle sitting on the page. ──
+    (function () {
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const hasHover = window.matchMedia('(hover: hover)').matches;
+      if (prefersReducedMotion || !hasHover) return;
+      document.querySelectorAll('.btn-primary, .nav-cta').forEach((btn) => {
+        btn.addEventListener('mousemove', (e) => {
+          const r = btn.getBoundingClientRect();
+          const x = e.clientX - r.left - r.width / 2;
+          const y = e.clientY - r.top - r.height / 2;
+          btn.style.transform = `translate(${(x * 0.15).toFixed(1)}px, ${(y * 0.3 - 2).toFixed(1)}px)`;
+        });
+        btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
+        btn.addEventListener('mousedown', () => { btn.style.transform = 'translateY(2px)'; });
+      });
+    })();
+
+    // ── 3D TILT — the hero transcript card tracks the cursor like a
+    // physical card, respects reduced-motion and skips touch devices ──
+    (function () {
+      const card = document.getElementById('heroTiltCard');
+      const wrap = card && card.closest('.hero-visual');
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const hasHover = window.matchMedia('(hover: hover)').matches;
+      if (!card || !wrap || prefersReducedMotion || !hasHover) return;
+      const chips = wrap.querySelectorAll('.floating-chip');
+      wrap.addEventListener('mousemove', (e) => {
+        const r = wrap.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width - 0.5;
+        const y = (e.clientY - r.top) / r.height - 0.5;
+        card.style.transform = `rotate(-1.4deg) rotateX(${(-y * 10).toFixed(2)}deg) rotateY(${(x * 14).toFixed(2)}deg)`;
+        chips.forEach((chip) => {
+          const depth = parseFloat(chip.dataset.depth) || 20;
+          chip.style.transform = `translate(${(x * depth).toFixed(1)}px, ${(y * depth).toFixed(1)}px)`;
+        });
+      });
+      wrap.addEventListener('mouseleave', () => {
+        card.style.transform = 'rotate(-1.4deg)';
+        chips.forEach((chip) => { chip.style.transform = ''; });
+      });
+    })();
+
+    // Send visitors to /auth on the right tab (login vs signup)
+    function goToAuth(targetView) {
+      localStorage.setItem('hv_preferred_view', targetView);
+      window.location.href = '/auth';
+    }
+
+    // Already logged in? Skip the landing page entirely.
+    window.addEventListener('DOMContentLoaded', () => {
+      const token = localStorage.getItem('hv_token');
+      if (token) {
+        window.location.href = '/dashboard';
+      }
+    });
+
+    // ── VISITOR COUNTER (home page only) ──
+    // Increments once per page open of the HOME page specifically — not
+    // wired on any other page, so browsing the dashboard, history, auth,
+    // or policy pages never bumps this number. Fails silently if the
+    // backend is unreachable — nice-to-have, never blocks the page.
+    (function trackAndShowVisitorCount(){
+      const API = (typeof BACKEND_URL !== 'undefined' ? BACKEND_URL : '').replace(/\/$/, '') + '/api';
+      const countEl = document.getElementById('visitorCount');
+
+      const showCount = (n) => {
+        if (countEl) countEl.textContent = `${n.toLocaleString()} visitors`;
+      };
+
+      fetch(API + '/visits/track', { method: 'POST' })
+        .then((res) => res.json())
+        .then((data) => showCount(data.total_visits))
+        .catch(() => { if (countEl) countEl.textContent = ''; });
+    })();
+  </script>
 </body>
-</html>
