@@ -75,8 +75,26 @@
   
     var brand = document.createElement('div');
     brand.className = 'app-sidebar-brand';
-    brand.innerHTML = '<a href="/" class="app-sidebar-logo">HireView</a>';
+    brand.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">' +
+      '<a href="/" class="app-sidebar-logo">HireView</a>' +
+      '<button type="button" id="sidebarThemeToggle" class="app-sidebar-theme-toggle" aria-label="Toggle light mode" title="Toggle light mode">' +
+      '<span class="theme-toggle-icon theme-toggle-icon--sun">\u2600\uFE0F</span>' +
+      '<span class="theme-toggle-icon theme-toggle-icon--moon">\u{1F319}</span>' +
+      '</button></div>';
     aside.appendChild(brand);
+
+    var themeBtn = brand.querySelector('#sidebarThemeToggle');
+    themeBtn.addEventListener('click', function () {
+      var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        try { localStorage.setItem('hv-theme', 'light'); } catch (e) {}
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        try { localStorage.setItem('hv-theme', 'dark'); } catch (e) {}
+      }
+    });
   
     var nav = document.createElement('nav');
     nav.className = 'app-sidebar-nav';
