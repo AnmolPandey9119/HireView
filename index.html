@@ -150,6 +150,35 @@
       --hv-shadow-3: 0 30px 70px rgba(0,0,0,0.5);
     }
 
+    :root[data-theme="dark"] .corkboard {
+      background: #3A2A1C;
+      border-color: rgba(255,255,255,0.08);
+    }
+    :root[data-theme="dark"] .note-card {
+      background: #4A3524;
+      color: var(--hv-cream);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+    }
+    :root[data-theme="dark"] .note-card:hover {
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+    }
+    :root[data-theme="dark"] .note-title { color: var(--hv-cream); }
+    :root[data-theme="dark"] .note-desc { opacity: 0.72; }
+    :root[data-theme="dark"] .note-pin { box-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+
+    :root[data-theme="dark"] .ticket {
+      background: #4A3524;
+      color: var(--hv-cream);
+    }
+    :root[data-theme="dark"] .ticket::before { border-top-color: rgba(255,255,255,0.15); }
+    :root[data-theme="dark"] .ticket-price { color: var(--hv-cream); }
+    :root[data-theme="dark"] .ticket-barcode {
+      background-image: repeating-linear-gradient(90deg, var(--hv-cream) 0 2px, transparent 2px 4px, var(--hv-cream) 4px 5px, transparent 5px 9px);
+      opacity: 0.4;
+    }
+    :root[data-theme="dark"] .ticket-cta { border-color: var(--hv-cream); color: var(--hv-cream); }
+    :root[data-theme="dark"] .ticket-cta:hover { background: var(--hv-cream); color: var(--hv-navy); }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
     body {
@@ -511,7 +540,7 @@
     }
     .ticket:hover { transform: translateY(-6px); box-shadow: var(--hv-shadow-3); }
     .ticket::before { content: ''; position: absolute; left: 0; right: 0; top: 78px; border-top: 2px dashed rgba(31,37,40,0.2); }
-    .ticket-perf { position: absolute; top: 71px; left: -9px; width: 18px; height: 18px; border-radius: 50%; background: var(--hv-navy); }
+    .ticket-perf { position: absolute; top: 71px; left: -9px; width: 18px; height: 18px; border-radius: 50%; background: var(--hv-mesh-bg); }
     .ticket-perf.r { left: auto; right: -9px; }
     .ticket-featured { border: 2px solid var(--hv-terracotta); }
     .ticket-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.9rem; }
