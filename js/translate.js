@@ -62,8 +62,8 @@
       "#google_translate_element { display: none !important; }",
 
       // Base button look (shared by both placements)
-      "#hv-translate-btn { display: flex; align-items: center; gap: 6px; border-radius: 999px; border: none; cursor: pointer; font-family: inherit; font-weight: 700; letter-spacing: 0.02em; color: #fff; background: linear-gradient(135deg, #818cf8, #ec4899); box-shadow: 0 4px 14px rgba(99,102,241,0.3); transition: transform 0.15s ease, box-shadow 0.15s ease; }",
-      "#hv-translate-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(99,102,241,0.4); }",
+      "#hv-translate-btn { display: flex; align-items: center; gap: 6px; border-radius: 999px; border: none; cursor: pointer; font-family: inherit; font-weight: 700; letter-spacing: 0.02em; color: #fff; background: linear-gradient(135deg, #C65D3A, #172B3A); box-shadow: 0 4px 14px rgba(198,93,58,0.35); transition: transform 0.15s ease, box-shadow 0.15s ease; }",
+      "#hv-translate-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(198,93,58,0.45); }",
       "#hv-translate-btn:active { transform: translateY(0); }",
       "#hv-translate-btn svg { width: 14px; height: 14px; flex-shrink: 0; }",
       "#hv-translate-btn.hv-loading { opacity: 0.7; cursor: wait; pointer-events: none; }",

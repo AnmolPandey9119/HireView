@@ -39,18 +39,66 @@
   // ---------- styles ----------
   const style = document.createElement('style');
   style.textContent = `
+    /* Brand colors, scoped locally to this widget so it looks right on
+       every page regardless of which token system that page's own CSS
+       uses. Values below are the LIGHT defaults; the dark block further
+       down overrides them when the host page has data-theme="dark" on
+       <html> — the same attribute every page on the site already sets. */
+    :root {
+      --hva-grad-1: #C65D3A;
+      --hva-grad-2: #172B3A;
+      --hva-panel-bg: rgba(255,253,249,0.98);
+      --hva-panel-border: rgba(198,93,58,0.25);
+      --hva-header-bg: linear-gradient(135deg, rgba(198,93,58,0.12), rgba(23,43,58,0.07));
+      --hva-header-border: rgba(31,37,40,0.08);
+      --hva-ink: #172B3A;
+      --hva-ink-muted: rgba(23,43,58,0.6);
+      --hva-scroll-thumb: rgba(23,43,58,0.15);
+      --hva-msg-assistant-bg: rgba(23,43,58,0.05);
+      --hva-msg-assistant-border: rgba(23,43,58,0.08);
+      --hva-msg-assistant-text: rgba(23,43,58,0.85);
+      --hva-chip-bg: rgba(198,93,58,0.1);
+      --hva-chip-border: rgba(198,93,58,0.28);
+      --hva-chip-text: rgba(23,43,58,0.8);
+      --hva-input-row-border: rgba(31,37,40,0.08);
+      --hva-input-bg: rgba(23,43,58,0.04);
+      --hva-input-border: rgba(198,93,58,0.28);
+      --hva-input-text: #172B3A;
+      --hva-input-placeholder: rgba(23,43,58,0.4);
+    }
+    :root[data-theme="dark"] {
+      --hva-panel-bg: rgba(20,22,40,0.98);
+      --hva-panel-border: rgba(198,93,58,0.3);
+      --hva-header-bg: linear-gradient(135deg, rgba(198,93,58,0.2), rgba(23,43,58,0.18));
+      --hva-header-border: rgba(255,255,255,0.08);
+      --hva-ink: #fff;
+      --hva-ink-muted: rgba(255,255,255,0.55);
+      --hva-scroll-thumb: rgba(255,255,255,0.15);
+      --hva-msg-assistant-bg: rgba(255,255,255,0.07);
+      --hva-msg-assistant-border: rgba(255,255,255,0.06);
+      --hva-msg-assistant-text: rgba(255,255,255,0.92);
+      --hva-chip-bg: rgba(198,93,58,0.16);
+      --hva-chip-border: rgba(198,93,58,0.35);
+      --hva-chip-text: rgba(255,255,255,0.85);
+      --hva-input-row-border: rgba(255,255,255,0.08);
+      --hva-input-bg: rgba(255,255,255,0.05);
+      --hva-input-border: rgba(198,93,58,0.3);
+      --hva-input-text: #fff;
+      --hva-input-placeholder: rgba(255,255,255,0.4);
+    }
+
     /* Shared launcher look, used both floating (bottom-right pill)
        and docked (inline in a header, e.g. next to the profile avatar). */
     .hva-launcher {
       display: inline-flex; align-items: center; gap: 0.55rem; border: none; cursor: pointer;
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+      background: linear-gradient(135deg, var(--hva-grad-1) 0%, var(--hva-grad-2) 100%);
       color: #fff; font-weight: 700; font-size: 0.85rem; white-space: nowrap;
       border-radius: 999px; padding: 0.5rem 1.1rem 0.5rem 0.5rem;
-      box-shadow: 0 8px 25px rgba(99,102,241,0.45);
+      box-shadow: 0 8px 25px rgba(198,93,58,0.4);
       transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
-    .hva-launcher:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(99,102,241,0.65); }
+    .hva-launcher:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(198,93,58,0.55); }
     .hva-launcher-icon {
       width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
       background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;
@@ -93,30 +141,30 @@
       position: fixed; bottom: 98px; right: 24px; z-index: 9999;
       width: 360px; max-width: calc(100vw - 32px);
       height: 520px; max-height: calc(100vh - 140px);
-      background: rgba(20,22,40,0.98); backdrop-filter: blur(20px);
-      border: 1px solid rgba(99,102,241,0.25); border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      background: var(--hva-panel-bg); backdrop-filter: blur(20px);
+      border: 1px solid var(--hva-panel-border); border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(23,43,58,0.35);
       display: flex; flex-direction: column; overflow: hidden;
       opacity: 0; pointer-events: none; transform: translateY(-10px) scale(0.97);
-      transition: opacity 0.22s ease, transform 0.22s ease;
+      transition: opacity 0.22s ease, transform 0.22s ease, background 0.3s ease, border-color 0.3s ease;
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
     .hva-panel.open { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
 
     .hva-header {
       padding: 1.1rem 1.25rem; display: flex; align-items: center; gap: 0.7rem;
-      background: linear-gradient(135deg, rgba(99,102,241,0.18), rgba(236,72,153,0.12));
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: var(--hva-header-bg);
+      border-bottom: 1px solid var(--hva-header-border);
     }
     .hva-avatar {
       width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+      background: linear-gradient(135deg, var(--hva-grad-1), var(--hva-grad-2));
       display: flex; align-items: center; justify-content: center;
       font-weight: 800; color: white; font-size: 0.95rem;
     }
     .hva-header-text { line-height: 1.25; }
-    .hva-header-title { font-weight: 700; color: #fff; font-size: 0.95rem; }
-    .hva-header-sub { font-size: 0.78rem; color: rgba(255,255,255,0.55); display: flex; align-items: center; gap: 0.35rem; }
+    .hva-header-title { font-weight: 700; color: var(--hva-ink); font-size: 0.95rem; }
+    .hva-header-sub { font-size: 0.78rem; color: var(--hva-ink-muted); display: flex; align-items: center; gap: 0.35rem; }
     .hva-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 6px #22c55e; }
 
     .hva-messages {
@@ -124,15 +172,16 @@
       display: flex; flex-direction: column; gap: 0.65rem;
     }
     .hva-messages::-webkit-scrollbar { width: 6px; }
-    .hva-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 6px; }
+    .hva-messages::-webkit-scrollbar-thumb { background: var(--hva-scroll-thumb); border-radius: 6px; }
 
     .hva-msg { max-width: 82%; padding: 0.65rem 0.9rem; border-radius: 14px; font-size: 0.88rem; line-height: 1.45; word-wrap: break-word; }
-    .hva-msg.user { align-self: flex-end; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border-bottom-right-radius: 4px; }
-    .hva-msg.assistant { align-self: flex-start; background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.92); border: 1px solid rgba(255,255,255,0.06); border-bottom-left-radius: 4px; }
-    .hva-msg.error { align-self: flex-start; background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+    .hva-msg.user { align-self: flex-end; background: linear-gradient(135deg, var(--hva-grad-1), var(--hva-grad-2)); color: white; border-bottom-right-radius: 4px; }
+    .hva-msg.assistant { align-self: flex-start; background: var(--hva-msg-assistant-bg); color: var(--hva-msg-assistant-text); border: 1px solid var(--hva-msg-assistant-border); border-bottom-left-radius: 4px; }
+    .hva-msg.error { align-self: flex-start; background: rgba(239,68,68,0.12); color: #dc2626; border: 1px solid rgba(239,68,68,0.25); }
+    :root[data-theme="dark"] .hva-msg.error { color: #f87171; }
 
     .hva-typing { align-self: flex-start; display: flex; gap: 4px; padding: 0.65rem 0.9rem; }
-    .hva-typing span { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.5); animation: hvaDot 1.2s infinite ease-in-out; }
+    .hva-typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--hva-ink-muted); animation: hvaDot 1.2s infinite ease-in-out; }
     .hva-typing span:nth-child(2) { animation-delay: 0.15s; }
     .hva-typing span:nth-child(3) { animation-delay: 0.3s; }
     @keyframes hvaDot { 0%,60%,100% { opacity: 0.3; transform: scale(0.85); } 30% { opacity: 1; transform: scale(1.1); } }
@@ -140,22 +189,22 @@
     .hva-suggestions { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0 1rem 0.75rem; }
     .hva-chip {
       font-size: 0.76rem; padding: 0.4rem 0.7rem; border-radius: 999px; cursor: pointer;
-      background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); color: rgba(255,255,255,0.85);
+      background: var(--hva-chip-bg); border: 1px solid var(--hva-chip-border); color: var(--hva-chip-text);
       transition: background 0.2s ease;
     }
-    .hva-chip:hover { background: rgba(99,102,241,0.22); }
+    .hva-chip:hover { background: var(--hva-chip-border); }
 
-    .hva-input-row { display: flex; gap: 0.5rem; padding: 0.85rem; border-top: 1px solid rgba(255,255,255,0.08); }
+    .hva-input-row { display: flex; gap: 0.5rem; padding: 0.85rem; border-top: 1px solid var(--hva-input-row-border); }
     .hva-input {
-      flex: 1; resize: none; background: rgba(255,255,255,0.05); border: 1.5px solid rgba(99,102,241,0.25);
-      border-radius: 12px; color: white; padding: 0.6rem 0.8rem; font-size: 0.88rem; font-family: inherit;
+      flex: 1; resize: none; background: var(--hva-input-bg); border: 1.5px solid var(--hva-input-border);
+      border-radius: 12px; color: var(--hva-input-text); padding: 0.6rem 0.8rem; font-size: 0.88rem; font-family: inherit;
       max-height: 90px; outline: none;
     }
-    .hva-input:focus { border-color: #6366f1; }
-    .hva-input::placeholder { color: rgba(255,255,255,0.4); }
+    .hva-input:focus { border-color: var(--hva-grad-1); }
+    .hva-input::placeholder { color: var(--hva-input-placeholder); }
     .hva-send {
       width: 40px; height: 40px; border-radius: 12px; border: none; cursor: pointer; flex-shrink: 0;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899); display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--hva-grad-1), var(--hva-grad-2)); display: flex; align-items: center; justify-content: center;
       transition: opacity 0.2s ease;
     }
     .hva-send:disabled { opacity: 0.45; cursor: not-allowed; }
