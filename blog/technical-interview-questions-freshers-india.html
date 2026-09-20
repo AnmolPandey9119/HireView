@@ -13,7 +13,16 @@
   <meta name="robots" content="index, follow">
   <meta name="author" content="Anmol Pandey">
   <link rel="canonical" href="https://hireview-ai.vercel.app/blog/technical-interview-questions-freshers-india">
-  <meta name="theme-color" content="#07080f">
+  <meta name="theme-color" content="#172B3A">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('hv-theme');
+        var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+      } catch (e) {}
+    })();
+  </script>
 
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://hireview-ai.vercel.app/blog/technical-interview-questions-freshers-india">
@@ -68,57 +77,92 @@
   <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet"></noscript>
 
   <style>
+    :root {
+      --hv-navy: #172B3A;
+      --hv-terracotta: #C65D3A;
+      --hv-terracotta-dark: #A84A2C;
+      --hv-cream: #FFFDF9;
+      --hv-charcoal: #1F2528;
+      --hv-stone: #756F69;
+      --hv-ink: var(--hv-navy);
+      --hv-body: var(--hv-charcoal);
+      --hv-body-muted: var(--hv-stone);
+      --hv-mesh-bg: #FCF1E4;
+      --hv-glass-strong: rgba(255,253,249,0.82);
+      --hv-glass-border: rgba(255,255,255,0.65);
+      --hv-card-bg: rgba(23,43,58,0.03);
+      --hv-card-border: rgba(23,43,58,0.1);
+      --hv-highlight: var(--hv-terracotta-dark);
+    }
+    :root[data-theme="dark"] {
+      --hv-ink: var(--hv-cream);
+      --hv-body: #D9D2C6;
+      --hv-body-muted: #9C9488;
+      --hv-mesh-bg: #07080f;
+      --hv-glass-strong: rgba(7,8,15,0.85);
+      --hv-glass-border: rgba(255,255,255,0.06);
+      --hv-card-bg: rgba(255,255,255,0.02);
+      --hv-card-border: rgba(255,255,255,0.08);
+      --hv-highlight: #c7c9ff;
+    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      background: #07080f;
-      color: #fff;
+      background: var(--hv-mesh-bg);
+      color: var(--hv-ink);
       line-height: 1.7;
+      transition: background 0.3s ease, color 0.3s ease;
     }
 
     nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       padding: 1.25rem 2rem;
       display: flex; justify-content: space-between; align-items: center;
-      background: rgba(7,8,15,0.85);
+      background: var(--hv-glass-strong);
       backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid var(--hv-glass-border);
     }
     .logo-text {
       font-size: 1.25rem; font-weight: 800;
-      background: linear-gradient(135deg, #E8935F, #172B3A);
+      background: linear-gradient(135deg, var(--hv-terracotta), var(--hv-navy));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
       text-decoration: none;
     }
-    nav a.back { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.9rem; font-weight: 600; }
-    nav a.back:hover { color: #fff; }
+    nav a.back { color: var(--hv-body-muted); text-decoration: none; font-size: 0.9rem; font-weight: 600; }
+    nav a.back:hover { color: var(--hv-ink); }
+    .nav-theme-toggle {
+      width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--hv-card-border);
+      background: var(--hv-card-bg); cursor: pointer; margin-left: 0.75rem;
+      display: inline-flex; align-items: center; justify-content: center; font-size: 0.95rem;
+      transition: transform 0.2s ease;
+    }
+    .nav-theme-toggle:hover { transform: scale(1.08); }
 
     main { max-width: 760px; margin: 0 auto; padding: 8rem 2rem 6rem; }
 
-    .breadcrumb { font-size: 0.85rem; color: rgba(255,255,255,0.45); margin-bottom: 1.5rem; }
-    .breadcrumb a { color: rgba(255,255,255,0.45); text-decoration: none; }
-    .breadcrumb a:hover { color: #fff; }
+    .breadcrumb { font-size: 0.85rem; color: var(--hv-body-muted); margin-bottom: 1.5rem; }
+    .breadcrumb a { color: var(--hv-body-muted); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--hv-ink); }
 
     h1 { font-family: 'Fraunces', serif;
       font-size: clamp(1.9rem, 5vw, 2.5rem);
       font-weight: 900;
       letter-spacing: -0.02em;
       margin-bottom: 0.9rem;
-      background: linear-gradient(135deg, #fff, #c7c9ff);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      color: var(--hv-ink);
     }
-    .meta { color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-bottom: 2.5rem; }
-    .intro { color: rgba(255,255,255,0.75); font-size: 1.05rem; margin-bottom: 2.5rem; }
+    .meta { color: var(--hv-body-muted); font-size: 0.85rem; margin-bottom: 2.5rem; }
+    .intro { color: var(--hv-body); font-size: 1.05rem; margin-bottom: 2.5rem; }
 
     h2 { font-family: 'Fraunces', serif;
       font-size: 1.4rem; font-weight: 800; margin: 2.5rem 0 1rem;
-      color: #fff;
+      color: var(--hv-ink);
     }
-    .q-block { border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; background: rgba(255,255,255,0.02); padding: 1.4rem 1.6rem; margin-bottom: 1rem; }
-    .q-block .q { font-weight: 700; color: #c7c9ff; margin-bottom: 0.5rem; font-size: 1rem; }
-    .q-block .a { color: rgba(255,255,255,0.75); font-size: 0.95rem; margin-bottom: 0.5rem; }
-    .q-block .why { color: rgba(255,255,255,0.45); font-size: 0.85rem; font-style: italic; }
+    .q-block { border: 1px solid var(--hv-card-border); border-radius: 14px; background: var(--hv-card-bg); padding: 1.4rem 1.6rem; margin-bottom: 1rem; }
+    .q-block .q { font-weight: 700; color: var(--hv-highlight); margin-bottom: 0.5rem; font-size: 1rem; }
+    .q-block .a { color: var(--hv-body); font-size: 0.95rem; margin-bottom: 0.5rem; }
+    .q-block .why { color: var(--hv-body-muted); font-size: 0.85rem; font-style: italic; }
 
     .inline-cta {
       margin: 3rem 0;
@@ -128,8 +172,8 @@
       background: rgba(198,93,58,0.08);
       border: 1px solid rgba(198,93,58,0.25);
     }
-    .inline-cta h3 { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.6rem; }
-    .inline-cta p { color: rgba(255,255,255,0.6); font-size: 0.9rem; margin-bottom: 1.4rem; }
+    .inline-cta h3 { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.6rem; color: var(--hv-ink); }
+    .inline-cta p { color: var(--hv-body-muted); font-size: 0.9rem; margin-bottom: 1.4rem; }
     .btn-primary {
       padding: 0.85rem 2rem;
       background: linear-gradient(135deg, #C65D3A, #E8935F, #172B3A);
@@ -149,8 +193,24 @@
 
   <nav>
     <a href="/" class="logo-text">HireView</a>
-    <a href="/" class="back">← Back to Home</a>
+    <div style="display:flex;align-items:center;">
+      <a href="/" class="back">← Back to Home</a>
+      <button type="button" class="nav-theme-toggle" id="blogThemeToggle" aria-label="Toggle light mode" title="Toggle light mode">🌙</button>
+    </div>
   </nav>
+  <script>
+    (function () {
+      var btn = document.getElementById('blogThemeToggle');
+      var setIcon = function () { btn.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19'; };
+      setIcon();
+      btn.addEventListener('click', function () {
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (isDark) { document.documentElement.removeAttribute('data-theme'); try { localStorage.setItem('hv-theme', 'light'); } catch (e) {} }
+        else { document.documentElement.setAttribute('data-theme', 'dark'); try { localStorage.setItem('hv-theme', 'dark'); } catch (e) {} }
+        setIcon();
+      });
+    })();
+  </script>
 
   <main>
     <div class="breadcrumb"><a href="/">Home</a> / <a href="/blog">Blog</a> / Technical Interview Questions</div>
@@ -237,15 +297,15 @@
     </div>
 
     <h2>A quick note on preparation</h2>
-    <p style="color:rgba(255,255,255,0.75);font-size:0.95rem;margin-bottom:1rem;">
+    <p style="color:var(--hv-body);font-size:0.95rem;margin-bottom:1rem;">
       You don't need to master every DSA topic or every framework before your interview. Go deep on the 2-3 projects on your resume — you should be able to defend every line of decision-making in them — and keep your fundamentals sharp enough to reason through a new problem out loud, even if you don't land on the perfect answer immediately.
     </p>
 
-    <p style="color:rgba(255,255,255,0.75);font-size:0.95rem;margin-top:1.5rem;">
+    <p style="color:var(--hv-body);font-size:0.95rem;margin-top:1.5rem;">
       Looking for the HR round instead? Read our
-      <a href="/blog/common-hr-interview-questions-freshers-india" style="color:#fff;text-decoration:underline;">25 Common HR Interview Questions for Freshers</a>,
+      <a href="/blog/common-hr-interview-questions-freshers-india" style="color:var(--hv-ink);text-decoration:underline;">25 Common HR Interview Questions for Freshers</a>,
       or if you're preparing for a government exam interview, see our
-      <a href="/blog/upsc-ssc-interview-preparation-guide" style="color:#fff;text-decoration:underline;">UPSC &amp; SSC Personality Test Preparation Guide</a>.
+      <a href="/blog/upsc-ssc-interview-preparation-guide" style="color:var(--hv-ink);text-decoration:underline;">UPSC &amp; SSC Personality Test Preparation Guide</a>.
     </p>
 
   </main>

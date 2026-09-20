@@ -12,7 +12,16 @@
   <meta name="robots" content="index, follow">
   <meta name="author" content="Anmol Pandey">
   <link rel="canonical" href="https://hireview-ai.vercel.app/contact">
-  <meta name="theme-color" content="#07080f">
+  <meta name="theme-color" content="#172B3A">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('hv-theme');
+        var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+      } catch (e) {}
+    })();
+  </script>
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://hireview-ai.vercel.app/contact">
@@ -44,14 +53,45 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet"></noscript>
   <style>
+    :root {
+      --hv-navy: #172B3A;
+      --hv-terracotta: #C65D3A;
+      --hv-terracotta-dark: #A84A2C;
+      --hv-cream: #FFFDF9;
+      --hv-charcoal: #1F2528;
+      --hv-stone: #756F69;
+      --hv-shadow-2: 0 16px 40px rgba(23,43,58,0.14);
+      --hv-ink: var(--hv-navy);
+      --hv-body: var(--hv-charcoal);
+      --hv-body-muted: var(--hv-stone);
+      --hv-mesh-bg: #FCF1E4;
+      --hv-glass-strong: rgba(255,253,249,0.82);
+      --hv-glass-border: rgba(255,255,255,0.65);
+      --hv-card-bg: linear-gradient(180deg, rgba(23,43,58,0.035), rgba(23,43,58,0.012));
+      --hv-card-border: rgba(23,43,58,0.1);
+      --hv-card-bg-hover: linear-gradient(180deg, rgba(23,43,58,0.06), rgba(23,43,58,0.02));
+    }
+    :root[data-theme="dark"] {
+      --hv-ink: var(--hv-cream);
+      --hv-body: #D9D2C6;
+      --hv-body-muted: #9C9488;
+      --hv-mesh-bg: #0B161E;
+      --hv-glass-strong: rgba(15,30,41,0.8);
+      --hv-glass-border: rgba(255,255,255,0.1);
+      --hv-shadow-2: 0 16px 40px rgba(0,0,0,0.4);
+      --hv-card-bg: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+      --hv-card-border: rgba(255,255,255,0.09);
+      --hv-card-bg-hover: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      background: #060710;
-      color: #fff;
+      background: var(--hv-mesh-bg);
+      color: var(--hv-ink);
       line-height: 1.75;
       -webkit-font-smoothing: antialiased;
+      transition: background 0.3s ease, color 0.3s ease;
     }
     body::before {
       content: '';
@@ -69,22 +109,29 @@
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       padding: 1.15rem 2rem;
       display: flex; justify-content: space-between; align-items: center;
-      background: rgba(6,7,16,0.75);
+      background: var(--hv-glass-strong);
       backdrop-filter: blur(20px) saturate(140%);
       -webkit-backdrop-filter: blur(20px) saturate(140%);
-      border-bottom: 1px solid rgba(255,255,255,0.07);
+      border-bottom: 1px solid var(--hv-glass-border);
     }
     .logo-text {
       font-size: 1.25rem; font-weight: 800;
-      background: linear-gradient(135deg, #E8935F, #172B3A);
+      background: linear-gradient(135deg, var(--hv-terracotta), var(--hv-navy));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
       text-decoration: none;
     }
     nav a.back {
-      color: rgba(255,255,255,0.62); text-decoration: none; font-size: 0.9rem; font-weight: 600;
+      color: var(--hv-body-muted); text-decoration: none; font-size: 0.9rem; font-weight: 600;
       transition: color 0.2s ease, transform 0.2s ease; display: inline-block;
     }
-    nav a.back:hover { color: #fff; transform: translateX(-3px); }
+    nav a.back:hover { color: var(--hv-ink); transform: translateX(-3px); }
+    .nav-theme-toggle {
+      width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--hv-card-border);
+      background: var(--hv-card-bg); cursor: pointer; margin-left: 0.75rem;
+      display: inline-flex; align-items: center; justify-content: center; font-size: 0.95rem;
+      transition: transform 0.2s ease;
+    }
+    .nav-theme-toggle:hover { transform: scale(1.08); }
 
     main {
       max-width: 780px;
@@ -99,11 +146,10 @@
       font-weight: 900;
       letter-spacing: -0.025em;
       margin-bottom: 0.5rem;
-      background: linear-gradient(135deg, #fff, #c7c9ff);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      color: var(--hv-ink);
     }
     .subtitle {
-      color: rgba(255,255,255,0.6);
+      color: var(--hv-body-muted);
       font-size: 1rem;
       margin-bottom: 3rem;
       max-width: 560px;
@@ -116,8 +162,8 @@
       margin-bottom: 2.5rem;
     }
     .contact-card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
-      border: 1px solid rgba(255,255,255,0.09);
+      background: var(--hv-card-bg);
+      border: 1px solid var(--hv-card-border);
       border-radius: 18px;
       padding: 1.6rem;
       text-decoration: none;
@@ -133,18 +179,18 @@
       opacity: 0; transition: opacity 0.25s ease;
     }
     .contact-card:hover {
-      border-color: rgba(232,147,95,0.55);
-      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      border-color: rgba(198,93,58,0.55);
+      background: var(--hv-card-bg-hover);
       transform: translateY(-4px);
-      box-shadow: 0 16px 36px rgba(0,0,0,0.35);
+      box-shadow: var(--hv-shadow-2);
     }
     .contact-card:hover::before { opacity: 1; }
     .contact-card .icon {
       width: 42px; height: 42px;
       border-radius: 12px;
       display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(135deg, rgba(232,147,95,0.24), rgba(23,43,58,0.2));
-      border: 1px solid rgba(232,147,95,0.25);
+      background: linear-gradient(135deg, rgba(232,147,95,0.24), rgba(23,43,58,0.14));
+      border: 1px solid rgba(232,147,95,0.3);
       margin-bottom: 1rem;
       font-size: 1.2rem;
     }
@@ -152,15 +198,15 @@
       font-size: 1rem;
       font-weight: 700;
       margin-bottom: 0.35rem;
-      color: #fff;
+      color: var(--hv-ink);
     }
     .contact-card p {
-      color: rgba(255,255,255,0.58);
+      color: var(--hv-body-muted);
       font-size: 0.88rem;
       margin: 0;
     }
     .contact-card .value {
-      color: #E8935F;
+      color: var(--hv-terracotta-dark);
       font-size: 0.9rem;
       font-weight: 600;
       margin-top: 0.5rem;
@@ -171,28 +217,28 @@
       font-size: 1.2rem;
       font-weight: 800;
       margin: 2.5rem 0 1rem;
-      color: #fff;
+      color: var(--hv-ink);
       letter-spacing: -0.01em;
     }
     p, li {
-      color: rgba(255,255,255,0.68);
+      color: var(--hv-body);
       font-size: 0.98rem;
       margin-bottom: 0.9rem;
     }
     ul { padding-left: 1.4rem; margin-bottom: 1rem; }
     li { margin-bottom: 0.5rem; }
-    a.inline { color: #E8935F; transition: color 0.2s ease; }
-    a.inline:hover { color: #fff; }
+    a.inline { color: var(--hv-terracotta-dark); transition: color 0.2s ease; }
+    a.inline:hover { color: var(--hv-ink); }
 
     .callout {
       background: rgba(198,93,58,0.09);
       border: 1px solid rgba(198,93,58,0.28);
-      border-left: 3px solid #C65D3A;
+      border-left: 3px solid var(--hv-terracotta);
       border-radius: 14px;
       padding: 1.25rem 1.5rem;
       margin: 1.5rem 0;
       font-size: 0.92rem;
-      color: rgba(255,255,255,0.82);
+      color: var(--hv-body);
       box-shadow: 0 8px 24px rgba(198,93,58,0.12);
     }
 

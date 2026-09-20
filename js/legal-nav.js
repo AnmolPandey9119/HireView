@@ -12,6 +12,26 @@
     var nav = document.createElement('nav');
     nav.innerHTML =
       '<a href="/" class="logo-text">HireView</a>' +
-      '<a href="/" class="back">\u2190 Back to home</a>';
+      '<div style="display:flex;align-items:center;">' +
+      '<a href="/" class="back">\u2190 Back to home</a>' +
+      '<button type="button" class="nav-theme-toggle" id="legalThemeToggle" aria-label="Toggle light mode" title="Toggle light mode">\u{1F319}</button>' +
+      '</div>';
     document.currentScript.insertAdjacentElement('beforebegin', nav);
+
+    var btn = nav.querySelector('#legalThemeToggle');
+    var setIcon = function () {
+      btn.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '\u2600\uFE0F' : '\u{1F319}';
+    };
+    setIcon();
+    btn.addEventListener('click', function () {
+      var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        try { localStorage.setItem('hv-theme', 'light'); } catch (e) {}
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        try { localStorage.setItem('hv-theme', 'dark'); } catch (e) {}
+      }
+      setIcon();
+    });
   })();
