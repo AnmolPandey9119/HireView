@@ -139,7 +139,12 @@
 
     if (navLinks && isVisible(navLinks)) {
       btn.classList.add("hv-inline");
-      navLinks.appendChild(btn);
+      var cta = navLinks.querySelector(".nav-cta");
+      if (cta) {
+        navLinks.insertBefore(btn, cta);
+      } else {
+        navLinks.appendChild(btn);
+      }
     } else if (nav && isVisible(nav)) {
       btn.classList.add("hv-inline");
       nav.appendChild(btn);
