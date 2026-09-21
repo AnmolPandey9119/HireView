@@ -90,6 +90,10 @@ async function handleInterviewStart(sector) {
     currentInterviewRound = 'mixed'; // round selection is private-sector only
   }
 
+  // Fullscreen must be requested synchronously inside the click, before
+  // any await below — browsers drop the user-gesture after an await.
+  if (typeof lockInterviewFullscreen === 'function') lockInterviewFullscreen();
+
   try {
     const res = await fetch(`${BACKEND_URL}/api/interviews`, {
       method: 'POST',
@@ -113,6 +117,7 @@ async function handleInterviewStart(sector) {
     });
 
     if (!res.ok) {
+      if (typeof unlockInterviewFullscreen === 'function') unlockInterviewFullscreen();
       const err = await res.json();
       if (res.status === 402) {
         const errorCode = err.detail?.error_code;
@@ -136,6 +141,7 @@ async function handleInterviewStart(sector) {
 
   } catch (err) {
     console.error('Network error:', err);
+    if (typeof unlockInterviewFullscreen === 'function') unlockInterviewFullscreen();
     if (sector === 'private') {
       showSetupError('Could not reach the server. Is the backend running?');
     } else {

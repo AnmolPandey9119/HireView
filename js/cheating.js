@@ -7,6 +7,7 @@ let windowBlurCount = 0;
 let multipleFaceCount = 0;
 let totalFaceChecks = 0;
 let cheatSignals = [];
+let fullscreenExitCount = 0;
 
 // Camera presence — gates interview start and ends the session if the
 // candidate disappears from frame mid-interview
@@ -39,6 +40,45 @@ function setupCheatDetection() {
     }
   });
 } // ← setupCheatDetection यहाँ बंद होता है
+
+// ════════════════════════════════════════════════
+// FULLSCREEN LOCK (uses js/fullscreen-guard.js)
+// Tab-switch / window-blur are already handled by setupCheatDetection()
+// above (with Arjun's voice + messaging), so FullscreenGuard is started
+// with Infinity limits for those two and only enforces the fullscreen
+// lock itself: 1st exit = warning, 2nd exit = interview terminated.
+// lockInterviewFullscreen() must be called synchronously inside the
+// "Begin Interview" click, before any await — browsers only allow a
+// fullscreen request within that user gesture.
+// ════════════════════════════════════════════════
+function lockInterviewFullscreen() {
+  if (typeof FullscreenGuard === 'undefined') return;
+  FullscreenGuard.start({
+    maxTabSwitches: Infinity,
+    maxWindowBlur: Infinity,
+    onWarn: (reason, count) => {
+      if (reason !== 'fullscreen_exit') return; // tab/blur handled by setupCheatDetection
+      if (!interviewStartTime) return;          // pre-start exits (permission prompts) aren't counted
+      fullscreenExitCount = count;
+      cheatSignals.push({ type: 'fullscreen_exit', count, time: getElapsedMinutes() });
+      showCheatWarning(`Fullscreen exited (${count}/2) — please stay in fullscreen.`);
+    },
+    onTerminate: (reason) => {
+      if (reason !== 'fullscreen_exit') return;
+      // Camera/mic permission prompts can bounce some browsers out of
+      // fullscreen before the interview has really begun — don't end a
+      // session that hasn't started, just ask for fullscreen again.
+      if (!interviewStartTime) { lockInterviewFullscreen(); return; }
+      fullscreenExitCount++;
+      cheatSignals.push({ type: 'fullscreen_exit', count: fullscreenExitCount, time: getElapsedMinutes() });
+      handleCheatLimitExceeded('fullscreen_exit');
+    }
+  });
+}
+
+function unlockInterviewFullscreen() {
+  if (typeof FullscreenGuard !== 'undefined') FullscreenGuard.stop();
+}
 
 // ════════════════════════════════════════════════
 // FACE DETECTION (MediaPipe)
@@ -219,6 +259,12 @@ function handleCheatLimitExceeded(type) {
         ? 'Aapne bahut baar tab switch kiya hai. Integrity violation ke kaaran session terminate ho raha hai.'
         : 'You have switched tabs too many times. This is an integrity violation — session terminated.'
     },
+    fullscreen_exit: {
+      warning: '🚨 Interview Terminated — Fullscreen exited more than once.',
+      arjun: selectedLanguage === 'hinglish'
+        ? 'Aapne fullscreen mode se baar-baar bahar nikla hai. Integrity policy ke kaaran session terminate ho raha hai.'
+        : 'You exited fullscreen mode more than once. This violates our integrity policy — session terminated.'
+    },
     window_blur: {
       warning: '🚨 Interview Terminated — Too many window switches.',
       arjun: selectedLanguage === 'hinglish'
@@ -266,7 +312,8 @@ function getFullIntegrityReport() {
     (windowBlurCount > 2 ? windowBlurCount - 2 : 0) +
     (faceReport?.multiple_face_detections || 0) +
     (timingReport?.suspicious ? 3 : 0) +
-    (audioReport?.off_turn_flags || 0) * 2;
+    (audioReport?.off_turn_flags || 0) * 2 +
+    fullscreenExitCount;
 
   // camera/mic access was denied or unavailable — video-based checks
   // (face presence, multi-face detection) never ran at all. Reporting
@@ -286,6 +333,7 @@ function getFullIntegrityReport() {
     integrity_score: integrityScore,
     tab_switches: tabSwitchCount,
     window_switches: windowBlurCount,
+    fullscreen_exits: fullscreenExitCount,
     face_detection: faceReport,
     response_timing: timingReport,
     off_turn_audio: audioReport,

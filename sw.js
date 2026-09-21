@@ -18,7 +18,7 @@
    cache after a deploy (old caches are swept in "activate" below).
    ════════════════════════════════════════════════ */
 
-   const CACHE_NAME = 'hireview-shell-v1';
+   const CACHE_NAME = 'hireview-shell-v2';
 
    const PRECACHE_URLS = [
      '/', '/css/main.css',
@@ -52,12 +52,17 @@
      // Only ever handle same-origin GETs — everything else (API calls to
      // the Render backend, Razorpay, POSTs, etc.) is left completely alone.
      if (req.method !== 'GET' || url.origin !== self.location.origin) return;
+
+   // Range requests (avatar/video streaming) come back as 206 Partial
+   // Content, which the Cache API refuses to store — let the browser
+   // handle those directly instead of intercepting them.
+   if (req.headers.has('range')) return;
    
      event.respondWith(
        fetch(req)
          .then((res) => {
            // Only cache real, successful, basic (same-origin) responses.
-           if (res && res.ok && res.type === 'basic') {
+           if (res && res.status === 200 && res.type === 'basic') {
              const clone = res.clone();
              caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
            }
