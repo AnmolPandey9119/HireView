@@ -24,20 +24,20 @@
   <style>
     .dashboard-header { margin-bottom: 2.5rem; display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; }
     .dashboard-welcome { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #C65D3A 0%, #E8935F 50%, #172B3A 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .dashboard-sub { color: rgba(255,255,255,0.6); font-size: 0.95rem; margin-top: 0.25rem; }
+    .dashboard-sub { color: var(--hv-text-muted); font-size: 0.95rem; margin-top: 0.25rem; }
     .header-actions { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-left: auto; }
     .start-btn { padding: 0.85rem 1.75rem; background: linear-gradient(135deg, #C65D3A, #172B3A); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(198,93,58,0.4); }
     .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(198,93,58,0.6); }
-    .start-btn.secondary-header-btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); box-shadow: none; }
-    .start-btn.secondary-header-btn:hover { background: rgba(255,255,255,0.1); box-shadow: none; }
+    .start-btn.secondary-header-btn { background: var(--hv-surface-2); border: 1px solid var(--hv-hairline); color: var(--hv-text-strong); box-shadow: none; }
+    .start-btn.secondary-header-btn:hover { background: var(--hv-surface-3); box-shadow: none; }
 
     /* Stats Grid */
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem; }
-    .stat-card { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); padding: 1.75rem; border-radius: 18px; border: 1px solid rgba(198,93,58,0.2); box-shadow: 0 8px 30px rgba(0,0,0,0.3); transition: transform 0.2s ease; }
+    .stat-card { background: var(--hv-glass-bg); backdrop-filter: blur(20px); padding: 1.75rem; border-radius: 18px; border: 1px solid rgba(198,93,58,0.2); box-shadow: var(--hv-shadow-2); transition: transform 0.2s ease; }
     .stat-card:hover { transform: translateY(-3px); }
     .stat-icon { font-size: 1.75rem; margin-bottom: 0.75rem; }
     .stat-value { font-size: 2.25rem; font-weight: 800; margin-bottom: 0.25rem; }
-    .stat-label { font-size: 0.85rem; color: rgba(255,255,255,0.6); font-weight: 600; }
+    .stat-label { font-size: 0.85rem; color: var(--hv-text-muted); font-weight: 600; }
     .stat-purple { color: #E8935F; }
     .stat-green { color: #4C7A5E; }
     .stat-pink { color: #172B3A; }
@@ -45,12 +45,12 @@
 
     /* Free Trial Banner */
     .free-trial-banner { background: linear-gradient(135deg, rgba(198,93,58,0.15), rgba(23,43,58,0.15)); border: 1px solid rgba(198,93,58,0.3); border-radius: 18px; padding: 1.5rem 2rem; margin-bottom: 2.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
-    .free-trial-text { font-weight: 700; color: rgba(255,255,255,0.6); font-size: 1rem; }
-    .free-trial-sub { font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: 0.25rem; }
+    .free-trial-text { font-weight: 700; color: var(--hv-text-muted); font-size: 1rem; }
+    .free-trial-sub { font-size: 0.85rem; color: var(--hv-text-muted); margin-top: 0.25rem; }
     .free-trial-badges { display: flex; gap: 0.5rem; }
     .trial-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700; }
     .trial-dot.used { background: rgba(198,93,58,0.3); border: 2px solid #C65D3A; }
-    .trial-dot.available { background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.2); }
+    .trial-dot.available { background: var(--hv-surface-1); border: 2px dashed var(--hv-hairline); }
 
     /* PREMIUM DASHBOARD BANNER — front-and-center on the main dashboard,
        no need to open the account panel to see it. Shown only while a
@@ -59,16 +59,16 @@
     .premium-dash-left { display: flex; align-items: center; gap: 1rem; }
     .premium-dash-crown { font-size: 2rem; filter: drop-shadow(0 0 6px rgba(250,204,21,0.6)); }
     .premium-dash-title { font-weight: 800; color: #fde68a; font-size: 1.1rem; }
-    .premium-dash-sub { font-size: 0.85rem; color: rgba(255,255,255,0.65); margin-top: 0.25rem; }
+    .premium-dash-sub { font-size: 0.85rem; color: var(--hv-text-muted); margin-top: 0.25rem; }
     .premium-dash-days { background: rgba(250,204,21,0.2); border: 1px solid rgba(250,204,21,0.45); color: #fde68a; font-weight: 800; font-size: 0.9rem; padding: 0.55rem 1.1rem; border-radius: 20px; white-space: nowrap; }
 
     /* Recent Interviews */
-    .section-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 1.25rem; color: rgba(255,255,255,0.6); }
+    .section-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 1.25rem; color: var(--hv-text-muted); }
     .interviews-list { display: flex; flex-direction: column; gap: 1rem; }
-    .interview-card { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(198,93,58,0.15); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; transition: all 0.2s ease; cursor: pointer; }
-    .interview-card:hover { border-color: rgba(198,93,58,0.4); background: rgba(255,255,255,0.06); transform: translateX(4px); }
-    .interview-role { font-weight: 700; font-size: 1rem; color: white; margin-bottom: 0.35rem; }
-    .interview-date { font-size: 0.82rem; color: rgba(255,255,255,0.6); }
+    .interview-card { background: var(--hv-glass-bg); backdrop-filter: blur(20px); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(198,93,58,0.15); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; transition: all 0.2s ease; cursor: pointer; }
+    .interview-card:hover { border-color: rgba(198,93,58,0.4); background: var(--hv-glass-bg-hover); transform: translateX(4px); }
+    .interview-role { font-weight: 700; font-size: 1rem; color: var(--hv-text-strong); margin-bottom: 0.35rem; }
+    .interview-date { font-size: 0.82rem; color: var(--hv-text-muted); }
     .interview-meta { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
     .interview-score { font-size: 1.4rem; font-weight: 800; }
     .status-badge { padding: 0.3rem 0.85rem; border-radius: 20px; font-size: 0.78rem; font-weight: 700; }
@@ -78,11 +78,24 @@
     .status-failed { background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid rgba(148,163,184,0.3); }
     .sector-badge { padding: 0.3rem 0.85rem; border-radius: 20px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
     .sector-government { background: rgba(198,93,58,0.15); color: #E8935F; border: 1px solid rgba(198,93,58,0.3); }
-    .sector-private { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.12); }
-    .empty-state { text-align: center; padding: 4rem 2rem; color: rgba(255,255,255,0.6); }
+    .sector-private { background: var(--hv-surface-2); color: var(--hv-text-muted); border: 1px solid var(--hv-hairline); }
+    .empty-state { text-align: center; padding: 4rem 2rem; color: var(--hv-text-muted); }
     .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; }
-    .loading-shimmer { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 18px; height: 100px; }
+    .loading-shimmer { background: linear-gradient(90deg, var(--hv-surface-1) 25%, var(--hv-surface-3) 50%, var(--hv-surface-1) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 18px; height: 100px; }
     @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+    /* Light-theme contrast fixes — the accent colours above (pale gold,
+       amber, salmon, light red/grey) were picked for the dark canvas and
+       wash out on the cream light canvas. Dark theme is untouched. */
+    :root:not([data-theme="dark"]) .premium-dash-title,
+    :root:not([data-theme="dark"]) .premium-dash-days { color: #92400e; }
+    :root:not([data-theme="dark"]) .premium-dash-days { background: rgba(217,119,6,0.14); border-color: rgba(180,83,9,0.4); }
+    :root:not([data-theme="dark"]) .stat-purple { color: #C65D3A; }
+    :root:not([data-theme="dark"]) .stat-yellow { color: #b45309; }
+    :root:not([data-theme="dark"]) .status-in_progress { color: #b45309; }
+    :root:not([data-theme="dark"]) .status-cheating_terminated { color: #dc2626; }
+    :root:not([data-theme="dark"]) .status-failed { color: #475569; }
+    :root:not([data-theme="dark"]) .sector-government { color: #b04a2a; }
 
     /* ════════════════════════════════════════════
        PROFILE AVATAR + GOOGLE-STYLE MINI DROPDOWN
