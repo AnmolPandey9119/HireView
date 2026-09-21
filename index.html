@@ -12,13 +12,13 @@
   </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HireView — Practice Like It's Real</title>
+  <title>HireView — Interviews, Coding, Aptitude & Govt Exam Prep in One Place</title>
   <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
-  <meta name="description" content="AI-powered mock interviews for Indian job seekers. Get real feedback, detect cheating, and practice like it's real.">
-  <meta name="keywords" content="mock interview, AI interview practice, interview preparation India, UPSC interview practice, SSC interview prep, job interview simulator, AI interviewer, resume based interview questions, Hinglish interview practice, placement interview prep">
+  <meta name="description" content="One dashboard for the whole placement process: AI mock interviews, coding rounds, aptitude tests, a question bank, analytics and a dedicated UPSC/SSC/Banking government-exam track — built for Indian job seekers.">
+  <meta name="keywords" content="mock interview, AI interview practice, interview preparation India, coding round practice, aptitude test practice, UPSC interview practice, SSC interview prep, government exam preparation, job interview simulator, AI interviewer, resume based interview questions, Hinglish interview practice, placement interview prep">
   <meta name="robots" content="index, follow">
   <meta name="author" content="Anmol Pandey">
   <link rel="canonical" href="https://hireview-ai.vercel.app/">
@@ -28,8 +28,8 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://hireview-ai.vercel.app/">
   <meta property="og:site_name" content="HireView">
-  <meta property="og:title" content="HireView — Practice Like It's Real">
-  <meta property="og:description" content="AI-powered mock interviews for Indian job seekers. Get real feedback, detect cheating, and practice like it's real.">
+  <meta property="og:title" content="HireView — Interviews, Coding, Aptitude & Govt Exam Prep">
+  <meta property="og:description" content="AI mock interviews, coding rounds, aptitude tests and a government-exam track — one dashboard covering every round recruiters actually run.">
   <meta property="og:image" content="https://hireview-ai.vercel.app/assets/og-image.jpg">
   <meta property="og:image:alt" content="HireView — AI-powered mock interview platform for Indian job seekers">
   <meta property="og:image:width" content="1200">
@@ -38,8 +38,8 @@
 
   <!-- Twitter/X Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="HireView — Practice Like It's Real">
-  <meta name="twitter:description" content="AI-powered mock interviews for Indian job seekers. Get real feedback, detect cheating, and practice like it's real.">
+  <meta name="twitter:title" content="HireView — Interviews, Coding, Aptitude & Govt Exam Prep">
+  <meta name="twitter:description" content="AI mock interviews, coding rounds, aptitude tests and a government-exam track — one dashboard covering every round recruiters actually run.">
   <meta name="twitter:image" content="https://hireview-ai.vercel.app/assets/og-image.jpg">
 
   <script type="application/ld+json">
@@ -50,7 +50,7 @@
     "url": "https://hireview-ai.vercel.app/",
     "applicationCategory": "EducationalApplication",
     "operatingSystem": "Web",
-    "description": "AI-powered mock interviews for Indian job seekers. Get real feedback, detect cheating, and practice like it's real.",
+    "description": "AI mock interviews, coding rounds, aptitude tests and a government-exam track — one dashboard covering every round recruiters actually run.",
     "offers": {
       "@type": "Offer",
       "price": "0",
@@ -151,20 +151,23 @@
     }
 
     :root[data-theme="dark"] .corkboard {
-      background: #3A2A1C;
+      background: #3A2A1C; background-image: none;
       border-color: rgba(255,255,255,0.08);
+      box-shadow: var(--hv-shadow-3), inset 0 2px 14px rgba(0,0,0,0.4);
     }
     :root[data-theme="dark"] .note-card {
       background: #4A3524;
       color: var(--hv-cream);
-      box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.3);
     }
     :root[data-theme="dark"] .note-card:hover {
-      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+      box-shadow: 0 22px 44px rgba(0,0,0,0.55), 0 6px 14px rgba(0,0,0,0.35);
     }
     :root[data-theme="dark"] .note-title { color: var(--hv-cream); }
     :root[data-theme="dark"] .note-desc { opacity: 0.72; }
-    :root[data-theme="dark"] .note-pin { box-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+    :root[data-theme="dark"] .note-pin { box-shadow: 0 4px 12px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.18); }
+    :root[data-theme="dark"] .note-icon { filter: brightness(1.2) saturate(1.1); }
+    :root[data-theme="dark"] .note-card::after { border-color: transparent transparent rgba(0,0,0,0.35) transparent; }
 
     :root[data-theme="dark"] .ticket {
       background: #4A3524;
@@ -404,27 +407,40 @@
 
     /* ── FEATURES — a corkboard of pinned notes ── */
     .corkboard {
-      margin-top: 2.75rem; position: relative; border-radius: 22px; padding: 2.4rem 1.9rem;
-      background: var(--hv-peach);
-      box-shadow: var(--hv-shadow-3); border: 1px solid rgba(31,37,40,0.15);
-      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.6rem 1.35rem;
+      margin-top: 2.75rem; position: relative; border-radius: 24px; padding: 2.85rem 2.2rem;
+      background:
+        radial-gradient(circle at 12% 15%, rgba(255,255,255,0.4), transparent 42%),
+        repeating-linear-gradient(135deg, rgba(31,37,40,0.045) 0px, rgba(31,37,40,0.045) 1.5px, transparent 1.5px, transparent 15px),
+        var(--hv-peach);
+      box-shadow: var(--hv-shadow-3), inset 0 2px 14px rgba(31,37,40,0.14);
+      border: 1px solid rgba(31,37,40,0.15);
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem 1.6rem;
       counter-reset: notenum;
     }
+    @media (max-width: 900px) { .corkboard { grid-template-columns: repeat(2, minmax(0,1fr)); } }
     .note-card {
       position: relative; background: var(--hv-cream); color: var(--hv-charcoal);
-      border-radius: 10px 26px 26px 26px; padding: 2.4rem 1.5rem 1.6rem; box-shadow: var(--hv-shadow-1);
+      border-radius: 8px 28px 28px 28px; padding: 2.7rem 1.6rem 1.8rem; overflow: hidden;
+      box-shadow: 0 10px 26px rgba(31,37,40,0.16), 0 2px 6px rgba(31,37,40,0.09);
       transform: rotate(var(--tilt, 0deg));
-      transition: transform var(--hv-dur) var(--hv-ease), box-shadow var(--hv-dur) var(--hv-ease);
+      transition: transform 0.35s var(--hv-ease), box-shadow 0.35s var(--hv-ease);
       counter-increment: notenum;
     }
-    .note-card:nth-child(even) { border-radius: 26px 10px 26px 26px; }
+    .note-card:nth-child(even) { border-radius: 28px 8px 28px 28px; }
     .note-card::before {
-      content: ''; position: absolute; bottom: 0; left: 0; width: 65%; height: 65%; border-radius: inherit;
-      background: radial-gradient(circle at 0% 100%, rgba(198,93,58,0.2), transparent 70%);
-      pointer-events: none; opacity: 0.55; transition: transform 0.5s var(--hv-ease), opacity 0.5s var(--hv-ease);
+      content: ''; position: absolute; bottom: 0; left: 0; width: 70%; height: 70%; border-radius: inherit;
+      background: radial-gradient(circle at 0% 100%, rgba(198,93,58,0.26), transparent 70%);
+      pointer-events: none; opacity: 0.7; transition: transform 0.5s var(--hv-ease), opacity 0.5s var(--hv-ease);
     }
-    .note-card:nth-child(3n+2)::before { background: radial-gradient(circle at 0% 100%, rgba(76,122,94,0.2), transparent 70%); }
-    .note-card:nth-child(3n+3)::before { background: radial-gradient(circle at 0% 100%, rgba(23,43,58,0.16), transparent 70%); }
+    .note-card::after {
+      content: ''; position: absolute; bottom: 0; right: 0; width: 0; height: 0;
+      border-style: solid; border-width: 0 0 24px 24px;
+      border-color: transparent transparent rgba(31,37,40,0.1) transparent;
+      transition: border-width 0.3s var(--hv-ease);
+    }
+    .note-card:hover::after { border-width: 0 0 30px 30px; }
+    .note-card:nth-child(3n+2)::before { background: radial-gradient(circle at 0% 100%, rgba(76,122,94,0.26), transparent 70%); }
+    .note-card:nth-child(3n+3)::before { background: radial-gradient(circle at 0% 100%, rgba(23,43,58,0.2), transparent 70%); }
     .note-card > * { position: relative; z-index: 1; }
     .note-card:nth-child(1) { --tilt: -1.4deg; }
     .note-card:nth-child(2) { --tilt: 1.1deg; }
@@ -436,19 +452,32 @@
     .note-card:nth-child(8) { --tilt: -0.7deg; }
     .note-card:nth-child(9) { --tilt: -1.1deg; }
     .note-card:nth-child(10) { --tilt: 0.8deg; }
-    .note-card:hover { transform: rotate(0deg) translateY(-5px); box-shadow: var(--hv-shadow-2); }
-    .note-card:hover::before { transform: scale(1.35); opacity: 1; }
+    .note-card:hover { transform: rotate(0deg) translateY(-9px) scale(1.025); box-shadow: 0 24px 44px rgba(31,37,40,0.24), 0 6px 16px rgba(31,37,40,0.13); }
+    .note-card:hover::before { transform: scale(1.4); opacity: 1; }
     .note-pin {
-      position: absolute; top: -18px; left: -18px; width: 38px; height: 38px; border-radius: 50%;
-      background: var(--hv-terracotta);
-      box-shadow: var(--hv-shadow-1); z-index: 2;
+      position: absolute; top: -17px; left: 22px; width: 36px; height: 36px; border-radius: 50%;
+      background: radial-gradient(circle at 32% 26%, #fff 0%, var(--hv-terracotta) 48%, var(--hv-terracotta-dark) 100%);
+      box-shadow: 0 5px 12px rgba(31,37,40,0.4), 0 2px 3px rgba(0,0,0,0.25);
+      border: 1.5px solid rgba(255,255,255,0.55);
+      z-index: 2;
       display: flex; align-items: center; justify-content: center;
-      font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.85rem; color: var(--hv-cream);
+      font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.72rem; color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
     }
     .note-pin::before { content: counter(notenum); }
-    .note-icon { font-size: 1.4rem; margin-bottom: 0.85rem; }
-    .note-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.15rem; margin-bottom: 0.55rem; color: var(--hv-navy); }
-    .note-desc { font-size: 0.92rem; opacity: 0.75; line-height: 1.6; }
+    .note-card:nth-child(3n+2) .note-pin { background: radial-gradient(circle at 32% 26%, #fff 0%, var(--hv-success) 48%, #33523D 100%); }
+    .note-card:nth-child(3n+3) .note-pin { background: radial-gradient(circle at 32% 26%, #fff 0%, var(--hv-navy) 48%, var(--hv-navy-2) 100%); }
+    .note-icon {
+      width: 54px; height: 54px; border-radius: 16px; margin-bottom: 1.15rem;
+      display: flex; align-items: center; justify-content: center; font-size: 1.65rem;
+      background: rgba(198,93,58,0.14); box-shadow: inset 0 0 0 1px rgba(198,93,58,0.22);
+      transition: transform 0.3s var(--hv-ease);
+    }
+    .note-card:hover .note-icon { transform: scale(1.08) rotate(-3deg); }
+    .note-card:nth-child(3n+2) .note-icon { background: rgba(76,122,94,0.15); box-shadow: inset 0 0 0 1px rgba(76,122,94,0.24); }
+    .note-card:nth-child(3n+3) .note-icon { background: rgba(23,43,58,0.12); box-shadow: inset 0 0 0 1px rgba(23,43,58,0.2); }
+    .note-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.2rem; margin-bottom: 0.6rem; color: var(--hv-navy); letter-spacing: -0.01em; }
+    .note-desc { font-size: 0.93rem; opacity: 0.74; line-height: 1.65; }
 
     /* ── HOW IT WORKS ── */
     .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-top: 3rem; position: relative; }
@@ -662,9 +691,9 @@
       <span></span><span></span><span></span>
     </button>
     <div class="nav-links" id="navLinks">
-      <a href="#features" onclick="document.getElementById('navLinks').classList.remove('open');document.getElementById('navToggle').classList.remove('open')">Features</a>
-      <a href="#how-it-works" onclick="document.getElementById('navLinks').classList.remove('open');document.getElementById('navToggle').classList.remove('open')">How it works</a>
       <a href="#toolkit" onclick="document.getElementById('navLinks').classList.remove('open');document.getElementById('navToggle').classList.remove('open')">Toolkit</a>
+      <a href="#features" onclick="document.getElementById('navLinks').classList.remove('open');document.getElementById('navToggle').classList.remove('open')">AI Interview</a>
+      <a href="#how-it-works" onclick="document.getElementById('navLinks').classList.remove('open');document.getElementById('navToggle').classList.remove('open')">How it works</a>
       <a href="#pricing" onclick="document.getElementById('navLinks').classList.remove('open');document.getElementById('navToggle').classList.remove('open')">Pricing</a>
       <a href="/faq">FAQ</a>
       <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
@@ -682,37 +711,37 @@
     <div class="hero-inner">
       <div class="hero-copy">
         <div class="hero-badge glass">
-          <span></span> AI Interviewer is live — try for free
+          <span></span> Your whole prep, live in one dashboard
         </div>
         <h1>
-          Practice interviews<br>
-          <span class="accent">that actually prepare you.</span>
+          Prepare for the whole process.<br>
+          <span class="accent">Not just the interview.</span>
         </h1>
         <p class="hero-sub">
-          Meet Arjun — your AI interviewer who asks real questions based on your resume, adapts to your answers, and gives you honest feedback. No fluff.
+          Meet Arjun, your AI interviewer who reads your resume and cross-questions you like a real recruiter — then keep going with a full coding round, timed aptitude tests, a growing question bank, and a dedicated track for UPSC, SSC, Banking and other government exams. One login, every round, honest feedback on all of it.
         </p>
         <div class="hero-actions">
-          <a href="#" onclick="goToAuth('signupPage');return false;" class="btn-primary">Start free interview</a>
-          <a href="#how-it-works" class="btn-secondary">See how it works</a>
+          <a href="#" onclick="goToAuth('signupPage');return false;" class="btn-primary">Start free — no card</a>
+          <a href="#toolkit" class="btn-secondary">See everything inside</a>
         </div>
         <div class="hero-stats">
           <div class="stat glass">
-            <div class="stat-num">3</div>
-            <div class="stat-label">Free interviews</div>
+            <div class="stat-num">7</div>
+            <div class="stat-label">Practice tools, one dashboard</div>
           </div>
           <div class="stat glass">
             <div class="stat-num">35+</div>
-            <div class="stat-label">Job domains</div>
+            <div class="stat-label">Job domains covered</div>
           </div>
           <div class="stat glass">
-            <div class="stat-num">2</div>
-            <div class="stat-label">Languages (English, Hinglish)</div>
+            <div class="stat-num">8</div>
+            <div class="stat-label">Govt exam tracks — UPSC, SSC &amp; more</div>
           </div>
         </div>
       </div>
       <div class="hero-visual reveal">
         <div class="floating-chip floating-chip--1 glass" data-depth="26">📊 Score 88/100</div>
-        <div class="floating-chip floating-chip--2 glass" data-depth="42">🎯 Technical · HR · Mixed</div>
+        <div class="floating-chip floating-chip--2 glass" data-depth="42">💻 Coding · 🧮 Aptitude · 🎙️ Interview</div>
         <div class="transcript-stack">
         <div class="transcript-card glass" id="heroTiltCard">
           <div class="hero-stamp">3 free<br>interviews</div>
@@ -747,14 +776,71 @@
     </div>
   </section>
 
+  <div class="tape-seam"></div>
+  <!-- TOOLKIT -->
+  <section class="section" id="toolkit">
+    <div class="section-blob" style="width:460px;height:460px;top:20%;right:-160px;background:radial-gradient(circle, rgba(23,43,58,0.4), transparent 70%);"></div>
+    <div class="section-inner">
+      <div class="section-head reveal">
+        <div class="section-label">Beyond the interview</div>
+        <h2 class="section-title">One dashboard.<br>Every round covered.</h2>
+        <p class="section-sub">The AI video interview is just where it starts. Your HireView dashboard also has these — no extra sign-up, no extra app.</p>
+      </div>
+      <div class="toolkit-grid">
+        <div class="toolkit-tile glass reveal">
+          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
+          <div class="toolkit-icon">💻</div>
+          <div class="toolkit-title">Coding Round</div>
+          <div class="toolkit-desc">Pick a topic, difficulty and 1–8 problems in C++, Java, Python or JavaScript. Run your code against sample cases, then submit to grade against hidden test cases — a real in-browser editor, timed per problem.</div>
+        </div>
+        <div class="toolkit-tile glass reveal">
+          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
+          <div class="toolkit-icon">🧮</div>
+          <div class="toolkit-title">Aptitude Tests</div>
+          <div class="toolkit-desc">Timed MCQ sets of 5, 10, 15 or 20 questions — 45 seconds each, topic and difficulty your choice, graded instantly with a full explanation on every answer.</div>
+        </div>
+        <div class="toolkit-tile glass reveal">
+          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
+          <div class="toolkit-icon">📚</div>
+          <div class="toolkit-title">Question Bank</div>
+          <div class="toolkit-desc">Browse and practice real Aptitude, Coding, and Interview questions by topic and difficulty — no signup walls or random PDFs, just open a question and go.</div>
+        </div>
+        <div class="toolkit-tile glass reveal">
+          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
+          <div class="toolkit-icon">🏆</div>
+          <div class="toolkit-title">Leaderboard</div>
+          <div class="toolkit-desc">Ranked by your HireView Score — a blend of your Interview, Aptitude and Coding performance. See where you stand all-time, this month, or this week.</div>
+        </div>
+        <div class="toolkit-tile glass reveal">
+          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
+          <div class="toolkit-icon">📈</div>
+          <div class="toolkit-title">Progress Analytics</div>
+          <div class="toolkit-desc">A score-trend line, a skill radar, and topic-wise breakdowns across Interviews, Aptitude and Coding — so you know exactly where to focus next.</div>
+        </div>
+        <div class="toolkit-tile glass reveal">
+          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
+          <div class="toolkit-icon">🎖️</div>
+          <div class="toolkit-title">Achievement Badges</div>
+          <div class="toolkit-desc">Earn badges as you practice — each one unlocks and lights up on your profile the moment you hit the milestone behind it.</div>
+        </div>
+        <div class="toolkit-tile glass reveal">
+          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
+          <div class="toolkit-icon">🕘</div>
+          <div class="toolkit-title">My Reports</div>
+          <div class="toolkit-desc">Every interview, aptitude attempt and coding round — full transcripts, question-by-question review, and feedback, saved and revisit-able anytime.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- FEATURES -->
   <section class="section" id="features">
     <div class="section-blob" style="width:420px;height:420px;top:-100px;left:-120px;background:radial-gradient(circle, rgba(198,93,58,0.5), transparent 70%);"></div>
     <div class="section-inner">
       <div class="section-head reveal">
-        <div class="section-label">What makes HireView different</div>
+        <div class="section-label">Inside the AI interview</div>
         <h2 class="section-title">Built for India.<br>Built for real interviews.</h2>
-        <p class="section-sub">Not a question bank. Not a quiz app. An actual adaptive interviewer that reads your resume and responds to what you say.</p>
+        <p class="section-sub">The interview round gets the most detail — because it's the hardest to practice for alone. An actual adaptive interviewer that reads your resume and responds to what you say, not a script.</p>
       </div>
       <div class="corkboard">
         <div class="note-card reveal">
@@ -843,63 +929,6 @@
           <div class="step-num">3<span class="step-icon">🎥</span></div>
           <div class="step-title">Interview with Arjun</div>
           <div class="step-desc">Speak your answers, get cross-questioned, and receive detailed feedback with your score and next steps.</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <div class="tape-seam"></div>
-  <!-- TOOLKIT -->
-  <section class="section" id="toolkit">
-    <div class="section-blob" style="width:460px;height:460px;top:20%;right:-160px;background:radial-gradient(circle, rgba(23,43,58,0.4), transparent 70%);"></div>
-    <div class="section-inner">
-      <div class="section-head reveal">
-        <div class="section-label">More than one interview format</div>
-        <h2 class="section-title">One dashboard.<br>Every round covered.</h2>
-        <p class="section-sub">Video interviews are just the start. Your HireView dashboard also has these, all in one place.</p>
-      </div>
-      <div class="toolkit-grid">
-        <div class="toolkit-tile glass reveal">
-          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
-          <div class="toolkit-icon">💻</div>
-          <div class="toolkit-title">Coding Round</div>
-          <div class="toolkit-desc">Pick a topic, difficulty and 1–8 problems in C++, Java, Python or JavaScript. Run your code against sample cases, then submit to grade against hidden test cases — a real in-browser editor, timed per problem.</div>
-        </div>
-        <div class="toolkit-tile glass reveal">
-          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
-          <div class="toolkit-icon">🧮</div>
-          <div class="toolkit-title">Aptitude Tests</div>
-          <div class="toolkit-desc">Timed MCQ sets of 5, 10, 15 or 20 questions — 45 seconds each, topic and difficulty your choice, graded instantly with a full explanation on every answer.</div>
-        </div>
-        <div class="toolkit-tile glass reveal">
-          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
-          <div class="toolkit-icon">📚</div>
-          <div class="toolkit-title">Question Bank</div>
-          <div class="toolkit-desc">Browse and practice real Aptitude, Coding, and Interview questions by topic and difficulty — no signup walls or random PDFs, just open a question and go.</div>
-        </div>
-        <div class="toolkit-tile glass reveal">
-          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
-          <div class="toolkit-icon">🏆</div>
-          <div class="toolkit-title">Leaderboard</div>
-          <div class="toolkit-desc">Ranked by your HireView Score — a blend of your Interview, Aptitude and Coding performance. See where you stand all-time, this month, or this week.</div>
-        </div>
-        <div class="toolkit-tile glass reveal">
-          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
-          <div class="toolkit-icon">📈</div>
-          <div class="toolkit-title">Progress Analytics</div>
-          <div class="toolkit-desc">A score-trend line, a skill radar, and topic-wise breakdowns across Interviews, Aptitude and Coding — so you know exactly where to focus next.</div>
-        </div>
-        <div class="toolkit-tile glass reveal">
-          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
-          <div class="toolkit-icon">🎖️</div>
-          <div class="toolkit-title">Achievement Badges</div>
-          <div class="toolkit-desc">Earn badges as you practice — each one unlocks and lights up on your profile the moment you hit the milestone behind it.</div>
-        </div>
-        <div class="toolkit-tile glass reveal">
-          <span class="toolkit-tag">IN YOUR DASHBOARD</span>
-          <div class="toolkit-icon">🕘</div>
-          <div class="toolkit-title">My Reports</div>
-          <div class="toolkit-desc">Every interview, aptitude attempt and coding round — full transcripts, question-by-question review, and feedback, saved and revisit-able anytime.</div>
         </div>
       </div>
     </div>
@@ -1023,9 +1052,9 @@
   <section class="cta-section">
     <div class="cta-card reveal">
       <div class="cta-pin">🎙️</div>
-      <h2>Your next interview<br>starts here.</h2>
-      <p>First 3 interviews are free. No card required.</p>
-      <a href="#" onclick="goToAuth('signupPage');return false;" class="btn-primary" style="font-size:1.1rem;padding:1.15rem 3rem;">Start an interview with Arjun</a>
+      <h2>Whatever round is next,<br>practice it here.</h2>
+      <p>Interview, coding, aptitude, or a government exam track — first 3 interviews are free, no card required.</p>
+      <a href="#" onclick="goToAuth('signupPage');return false;" class="btn-primary" style="font-size:1.1rem;padding:1.15rem 3rem;">Start free on HireView</a>
       <div class="cta-annotation hv-annotation" style="color:var(--hv-terracotta);">P.S. no card, no catch.</div>
     </div>
   </section>
