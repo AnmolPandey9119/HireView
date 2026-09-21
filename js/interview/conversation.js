@@ -776,14 +776,14 @@ function showFeedbackScreen(feedback) {
   const score = hasScore ? feedback.overall_score : 0;
   const scoreColor = !hasScore ? '#94a3b8' : score >= 8 ? '#22c55e' : score >= 6 ? '#f59e0b' : '#ef4444';
   const rec = feedback.hiring_recommendation || 'Borderline';
-  const recColor = rec === 'Not Evaluated' ? '#94a3b8' : rec.includes('Strong') ? '#22c55e' : rec === 'Hire' ? '#6366f1' : rec === 'Borderline' ? '#f59e0b' : '#ef4444';
+  const recColor = rec === 'Not Evaluated' ? '#94a3b8' : rec.includes('Strong') ? '#22c55e' : rec === 'Hire' ? '#C65D3A' : rec === 'Borderline' ? '#f59e0b' : '#ef4444';
   const strengthsList = (feedback.strengths || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
   const improveList = (feedback.areas_to_improve || []).map(a => `<li>${escapeHtml(a)}</li>`).join('');
   const candidateName = (currentUser && currentUser.name) ? escapeHtml(currentUser.name.split(' ')[0]) : null;
 
   const personalNoteSection = feedback.personal_note ? `
-    <div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(236,72,153,0.08));border:1px solid rgba(99,102,241,0.25);border-radius:18px;padding:1.75rem;margin-bottom:1.5rem;display:flex;gap:1rem;align-items:flex-start">
-      <div style="width:44px;height:44px;flex-shrink:0;border-radius:50%;background:linear-gradient(135deg,#6366f1,#ec4899);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem">A</div>
+    <div style="background:linear-gradient(135deg,rgba(198,93,58,0.1),rgba(232,147,95,0.08));border:1px solid rgba(198,93,58,0.25);border-radius:18px;padding:1.75rem;margin-bottom:1.5rem;display:flex;gap:1rem;align-items:flex-start">
+      <div style="width:44px;height:44px;flex-shrink:0;border-radius:50%;background:linear-gradient(135deg,#C65D3A,#E8935F);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem">A</div>
       <div>
         <div style="font-weight:700;margin-bottom:0.4rem;font-size:0.95rem">A note from Arjun</div>
         <p style="margin:0;color:rgba(255,255,255,0.82);line-height:1.7;font-size:0.95rem;font-style:italic">"${escapeHtml(feedback.personal_note)}"</p>
@@ -834,18 +834,18 @@ function showFeedbackScreen(feedback) {
         <div style="display:inline-block;margin-top:1rem;padding:0.5rem 1.5rem;background:${recColor}22;border:1px solid ${recColor};border-radius:20px;color:${recColor};font-weight:700">${rec}</div>
       </div>
       ${personalNoteSection}
-      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(99,102,241,0.2);border-radius:18px;padding:2rem;margin-bottom:1.5rem">
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(198,93,58,0.2);border-radius:18px;padding:2rem;margin-bottom:1.5rem">
         <div style="font-weight:700;margin-bottom:1rem">📋 Summary</div>
         <p style="color:rgba(255,255,255,0.75);line-height:1.7;margin:0">${escapeHtml(feedback.summary)}</p>
       </div>
       <div class="results-score-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
-        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(99,102,241,0.2);border-radius:14px;padding:1.5rem">
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(198,93,58,0.2);border-radius:14px;padding:1.5rem">
           <div style="font-size:0.8rem;color:rgba(255,255,255,0.5);font-weight:600;text-transform:uppercase;margin-bottom:0.5rem">Technical</div>
-          <div style="font-size:2rem;font-weight:800;color:#6366f1">${feedback.technical_score != null ? `${feedback.technical_score}/10` : '—'}</div>
+          <div style="font-size:2rem;font-weight:800;color:#C65D3A">${feedback.technical_score != null ? `${feedback.technical_score}/10` : '—'}</div>
         </div>
-        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(99,102,241,0.2);border-radius:14px;padding:1.5rem">
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(198,93,58,0.2);border-radius:14px;padding:1.5rem">
           <div style="font-size:0.8rem;color:rgba(255,255,255,0.5);font-weight:600;text-transform:uppercase;margin-bottom:0.5rem">Soft Skills</div>
-          <div style="font-size:2rem;font-weight:800;color:#ec4899">${feedback.soft_skills_score != null ? `${feedback.soft_skills_score}/10` : '—'}</div>
+          <div style="font-size:2rem;font-weight:800;color:#E8935F">${feedback.soft_skills_score != null ? `${feedback.soft_skills_score}/10` : '—'}</div>
         </div>
       </div>
       <div class="results-score-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
@@ -858,14 +858,14 @@ function showFeedbackScreen(feedback) {
           <ul style="margin:0;padding-left:1.25rem;color:rgba(255,255,255,0.75);line-height:1.8;font-size:0.9rem">${improveList}</ul>
         </div>
       </div>
-      <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:14px;padding:1.5rem;margin-bottom:1.5rem">
-        <div style="font-weight:700;color:#818cf8;margin-bottom:0.5rem">🎯 Next Steps</div>
+      <div style="background:rgba(198,93,58,0.08);border:1px solid rgba(198,93,58,0.2);border-radius:14px;padding:1.5rem;margin-bottom:1.5rem">
+        <div style="font-weight:700;color:#E8935F;margin-bottom:0.5rem">🎯 Next Steps</div>
         <p style="margin:0;color:rgba(255,255,255,0.75);line-height:1.7;font-size:0.9rem">${escapeHtml(feedback.next_steps)}</p>
       </div>
       ${integritySection}
       <div style="text-align:center;margin-top:2rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
         <button onclick="window.location.href='dashboard.html'" style="padding:1rem 2rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;color:white;font-weight:700;font-size:1rem;cursor:pointer;font-family:inherit">📊 Dashboard</button>
-        <button onclick="window.location.href='interview.html'" style="padding:1rem 2.5rem;background:linear-gradient(135deg,#6366f1,#ec4899);border:none;border-radius:14px;color:white;font-weight:700;font-size:1rem;cursor:pointer;font-family:inherit">🔄 New Interview</button>
+        <button onclick="window.location.href='interview.html'" style="padding:1rem 2.5rem;background:linear-gradient(135deg,#C65D3A,#E8935F);border:none;border-radius:14px;color:white;font-weight:700;font-size:1rem;cursor:pointer;font-family:inherit">🔄 New Interview</button>
       </div>
     </div>`;
 }

@@ -42,8 +42,8 @@
    // Shared chart palette — matches the app's CSS custom properties
    // (css/main.css :root) so charts feel native, not bolted-on.
    const CHART_COLORS = {
-     primary: '#6366f1', primaryLight: '#818cf8', accent: '#ec4899',
-     success: '#22c55e', warning: '#f59e0b', cyan: '#22d3ee',
+     primary: '#C65D3A', primaryLight: '#E8935F', accent: '#172B3A',
+     success: '#4C7A5E', warning: '#f59e0b', cyan: '#5B8296',
      gridLine: 'rgba(255,255,255,0.08)', text: 'rgba(255,255,255,0.65)'
    };
    Chart.defaults.color = CHART_COLORS.text;
@@ -150,7 +150,7 @@
          data: {
            labels: data.score_trend.map(p => formatShortDate(p.date)),
            datasets: [
-             { label: 'Overall', data: data.score_trend.map(p => p.overall), borderColor: CHART_COLORS.primary, backgroundColor: 'rgba(99,102,241,0.15)', tension: 0.35, fill: true },
+             { label: 'Overall', data: data.score_trend.map(p => p.overall), borderColor: CHART_COLORS.primary, backgroundColor: 'rgba(198,93,58,0.15)', tension: 0.35, fill: true },
              { label: 'Technical', data: data.score_trend.map(p => p.technical), borderColor: CHART_COLORS.cyan, tension: 0.35 },
              { label: 'Soft Skills', data: data.score_trend.map(p => p.soft_skills), borderColor: CHART_COLORS.accent, tension: 0.35 },
            ]
@@ -175,7 +175,7 @@
            labels: ['Technical', 'Soft Skills', 'Eye Contact', 'Confidence', 'Engagement'],
            datasets: [{
              label: 'You', data: [radar.technical, radar.soft_skills, radar.eye_contact, radar.confidence, radar.engagement],
-             borderColor: CHART_COLORS.primary, backgroundColor: 'rgba(99,102,241,0.25)', pointBackgroundColor: CHART_COLORS.accent
+             borderColor: CHART_COLORS.primary, backgroundColor: 'rgba(198,93,58,0.25)', pointBackgroundColor: CHART_COLORS.accent
            }]
          },
          options: {

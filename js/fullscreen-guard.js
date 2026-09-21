@@ -105,8 +105,8 @@
         #fsGuardCard p { margin:0 0 1.3rem; font-size:.92rem; line-height:1.5; color:rgba(255,255,255,0.72); }
         #fsGuardCard button { border:none; cursor:pointer; font-weight:700; font-size:.95rem;
           padding:.85rem 1.4rem; border-radius:var(--hv-radius-md,12px); width:100%;
-          background:linear-gradient(135deg, var(--hv-primary,#6366f1), var(--hv-secondary,#8b5cf6));
-          color:#fff; box-shadow:var(--hv-shadow-glow, 0 8px 30px rgba(99,102,241,.35));
+          background:linear-gradient(135deg, var(--hv-primary,#C65D3A), var(--hv-secondary,#E8935F));
+          color:#fff; box-shadow:var(--hv-shadow-glow, 0 8px 30px rgba(198,93,58,.35));
           transition:transform 150ms ease; }
         #fsGuardCard button:active { transform:scale(0.97); }
         #fsGuardCard .fsg-strike { display:block; margin-top:1rem; font-size:.76rem;
@@ -114,7 +114,7 @@
         #fsGuardBadge { position:fixed; top:14px; left:14px; z-index:99998;
           display:flex; align-items:center; gap:.4rem; font-size:.72rem; font-weight:700;
           color:rgba(255,255,255,0.85); background:rgba(255,255,255,0.06);
-          border:1px solid rgba(99,102,241,0.3); padding:.4rem .7rem; border-radius:999px;
+          border:1px solid rgba(198,93,58,0.3); padding:.4rem .7rem; border-radius:999px;
           backdrop-filter:blur(8px); pointer-events:none; opacity:0; transition:opacity 300ms ease; }
         #fsGuardBadge.show { opacity:1; }
       `;

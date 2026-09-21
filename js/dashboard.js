@@ -199,7 +199,7 @@ async function startCheckout(plan, btnEl) {
         name: currentUser?.name || '',
         email: currentUser?.email || ''
       },
-      theme: { color: '#6366f1' },
+      theme: { color: '#C65D3A' },
       handler: async function (response) {
         // 3. Payment succeeded on Razorpay's side — verify it on OUR backend
         // before treating the subscription as active.
@@ -856,7 +856,7 @@ function getRoundBadge(i) {
   };
   const r = map[i.interview_round];
   if (!r) return '';
-  return `<span class="sector-badge" style="background:rgba(129,140,248,0.15);color:#818cf8;border:1px solid rgba(129,140,248,0.3)">${r.icon} ${r.label}</span>`;
+  return `<span class="sector-badge" style="background:rgba(232,147,95,0.15);color:#E8935F;border:1px solid rgba(232,147,95,0.3)">${r.icon} ${r.label}</span>`;
 }
 
 function renderInterviews(interviews) {

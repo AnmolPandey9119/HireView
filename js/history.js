@@ -25,9 +25,9 @@ if (!authToken) window.location.href = '/auth';
     }
 
     function getRecColor(rec) {
-      if (!rec) return '#6366f1';
+      if (!rec) return '#C65D3A';
       if (rec.includes('Strong')) return '#22c55e';
-      if (rec === 'Hire') return '#6366f1';
+      if (rec === 'Hire') return '#C65D3A';
       if (rec === 'Borderline') return '#f59e0b';
       return '#ef4444';
     }
@@ -50,11 +50,11 @@ if (!authToken) window.location.href = '/auth';
               <div class="score-chip-label">Overall</div>
             </div>
             <div class="score-chip">
-              <div class="score-chip-value" style="color:#818cf8">${feedback.technical_score ?? '—'}/10</div>
+              <div class="score-chip-value" style="color:#E8935F">${feedback.technical_score ?? '—'}/10</div>
               <div class="score-chip-label">Technical</div>
             </div>
             <div class="score-chip">
-              <div class="score-chip-value" style="color:#ec4899">${feedback.soft_skills_score ?? '—'}/10</div>
+              <div class="score-chip-value" style="color:#E8935F">${feedback.soft_skills_score ?? '—'}/10</div>
               <div class="score-chip-label">Soft Skills</div>
             </div>
           </div>
@@ -83,7 +83,7 @@ if (!authToken) window.location.href = '/auth';
             </div>` : ''}
           ${feedback.next_steps ? `
             <div>
-              <div style="font-size:0.78rem;font-weight:700;color:#818cf8;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.5px">🎯 Next Steps</div>
+              <div style="font-size:0.78rem;font-weight:700;color:#E8935F;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.5px">🎯 Next Steps</div>
               <div class="next-steps-box">${escapeHtml(feedback.next_steps)}</div>
             </div>` : ''}
           ${renderIntegrityReport(feedback.integrity_flags)}
@@ -137,7 +137,7 @@ if (!authToken) window.location.href = '/auth';
       };
       const r = map[i.interview_round];
       if (!r) return '';
-      return `<span class="sector-badge" style="background:rgba(129,140,248,0.15);color:#818cf8;border:1px solid rgba(129,140,248,0.3)">${r.icon} ${r.label}</span>`;
+      return `<span class="sector-badge" style="background:rgba(232,147,95,0.15);color:#E8935F;border:1px solid rgba(232,147,95,0.3)">${r.icon} ${r.label}</span>`;
     }
 
     function renderGovInfo(i) {
@@ -325,7 +325,7 @@ if (!authToken) window.location.href = '/auth';
             <div class="empty-icon">🧮</div>
             <div style="font-weight:700;font-size:1.1rem;margin-bottom:0.5rem">No aptitude tests yet</div>
             <div style="font-size:0.9rem">Take one from the Aptitude Test page to see your results here</div>
-            <button class="back-btn" style="margin-top:1.25rem;background:rgba(99,102,241,0.2);border-color:rgba(99,102,241,0.4);color:#818cf8" onclick="window.location.href='/aptitude'">Take an Aptitude Test</button>
+            <button class="back-btn" style="margin-top:1.25rem;background:rgba(198,93,58,0.2);border-color:rgba(198,93,58,0.4);color:#E8935F" onclick="window.location.href='/aptitude'">Take an Aptitude Test</button>
           </div>`;
         return;
       }
@@ -436,7 +436,7 @@ if (!authToken) window.location.href = '/auth';
             <div class="empty-icon">💻</div>
             <div style="font-weight:700;font-size:1.1rem;margin-bottom:0.5rem">No coding rounds yet</div>
             <div style="font-size:0.9rem">Take one from the Coding Round page to see your results here</div>
-            <button class="back-btn" style="margin-top:1.25rem;background:rgba(99,102,241,0.2);border-color:rgba(99,102,241,0.4);color:#818cf8" onclick="window.location.href='/coding'">Start a Coding Round</button>
+            <button class="back-btn" style="margin-top:1.25rem;background:rgba(198,93,58,0.2);border-color:rgba(198,93,58,0.4);color:#E8935F" onclick="window.location.href='/coding'">Start a Coding Round</button>
           </div>`;
         return;
       }
