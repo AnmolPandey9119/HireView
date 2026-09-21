@@ -172,12 +172,14 @@
     :root[data-theme="dark"] .ticket {
       background: #4A3524;
       color: var(--hv-cream);
+      box-shadow: 0 10px 26px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.3);
     }
+    :root[data-theme="dark"] .ticket:hover { box-shadow: 0 22px 42px rgba(0,0,0,0.55), 0 6px 14px rgba(0,0,0,0.35); }
     :root[data-theme="dark"] .ticket::before { border-top-color: rgba(255,255,255,0.15); }
     :root[data-theme="dark"] .ticket-price { color: var(--hv-cream); }
     :root[data-theme="dark"] .ticket-barcode {
-      background-image: repeating-linear-gradient(90deg, var(--hv-cream) 0 2px, transparent 2px 4px, var(--hv-cream) 4px 5px, transparent 5px 9px);
-      opacity: 0.4;
+      background-image: repeating-linear-gradient(90deg, var(--hv-cream) 0 1px, transparent 1px 3px, var(--hv-cream) 3px 5px, transparent 5px 6px, var(--hv-cream) 6px 8px, transparent 8px 11px);
+      opacity: 0.45;
     }
     :root[data-theme="dark"] .ticket-cta { border-color: var(--hv-cream); color: var(--hv-cream); }
     :root[data-theme="dark"] .ticket-cta:hover { background: var(--hv-cream); color: var(--hv-navy); }
@@ -420,7 +422,7 @@
     @media (max-width: 900px) { .corkboard { grid-template-columns: repeat(2, minmax(0,1fr)); } }
     .note-card {
       position: relative; background: var(--hv-cream); color: var(--hv-charcoal);
-      border-radius: 8px 28px 28px 28px; padding: 2.7rem 1.6rem 1.8rem; overflow: hidden;
+      border-radius: 8px 28px 28px 28px; padding: 2.7rem 1.6rem 1.8rem;
       box-shadow: 0 10px 26px rgba(31,37,40,0.16), 0 2px 6px rgba(31,37,40,0.09);
       transform: rotate(var(--tilt, 0deg));
       transition: transform 0.35s var(--hv-ease), box-shadow 0.35s var(--hv-ease);
@@ -433,12 +435,12 @@
       pointer-events: none; opacity: 0.7; transition: transform 0.5s var(--hv-ease), opacity 0.5s var(--hv-ease);
     }
     .note-card::after {
-      content: ''; position: absolute; bottom: 0; right: 0; width: 0; height: 0;
-      border-style: solid; border-width: 0 0 24px 24px;
-      border-color: transparent transparent rgba(31,37,40,0.1) transparent;
+      content: ''; position: absolute; bottom: 7px; right: 7px; width: 0; height: 0;
+      border-style: solid; border-width: 0 0 20px 20px;
+      border-color: transparent transparent rgba(31,37,40,0.12) transparent;
       transition: border-width 0.3s var(--hv-ease);
     }
-    .note-card:hover::after { border-width: 0 0 30px 30px; }
+    .note-card:hover::after { border-width: 0 0 25px 25px; }
     .note-card:nth-child(3n+2)::before { background: radial-gradient(circle at 0% 100%, rgba(76,122,94,0.26), transparent 70%); }
     .note-card:nth-child(3n+3)::before { background: radial-gradient(circle at 0% 100%, rgba(23,43,58,0.2), transparent 70%); }
     .note-card > * { position: relative; z-index: 1; }
@@ -460,7 +462,7 @@
       box-shadow: 0 5px 12px rgba(31,37,40,0.4), 0 2px 3px rgba(0,0,0,0.25);
       border: 1.5px solid rgba(255,255,255,0.55);
       z-index: 2;
-      display: flex; align-items: center; justify-content: center;
+      display: flex; align-items: center; justify-content: center; line-height: 1;
       font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.72rem; color: #fff;
       text-shadow: 0 1px 2px rgba(0,0,0,0.3);
     }
@@ -498,30 +500,53 @@
     .step-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--hv-ink); }
     .step-desc { font-size: 0.9rem; color: var(--hv-body); opacity: 0.7; line-height: 1.6; }
 
-    /* ── TOOLKIT ── */
-    .toolkit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.25rem; margin-top: 3rem; }
-    .toolkit-tile { border-radius: 8px 26px 26px 26px; padding: 1.9rem; position: relative; overflow: hidden; perspective: 700px; transition: transform var(--hv-dur) var(--hv-ease), box-shadow var(--hv-dur) var(--hv-ease); }
-    .toolkit-tile:nth-child(even) { border-radius: 26px 26px 8px 26px; }
-    .toolkit-tile::before {
-      content: ''; position: absolute; bottom: -45%; left: -30%; width: 70%; height: 70%;
-      background: radial-gradient(circle, rgba(198,93,58,0.2), transparent 70%);
-      pointer-events: none; transition: transform 0.5s var(--hv-ease), opacity 0.5s var(--hv-ease); opacity: 0.55;
+    /* ── TOOLKIT — dashboard widget tiles, deliberately not paper-note-shaped ── */
+    .toolkit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); gap: 1.4rem; margin-top: 3rem; }
+    .toolkit-tile {
+      border-radius: 20px; padding: 2.05rem 1.75rem 1.9rem; position: relative; overflow: hidden;
+      perspective: 700px; transition: transform 0.4s var(--hv-ease), box-shadow 0.4s var(--hv-ease);
     }
-    .toolkit-tile:nth-child(3n+2)::before { background: radial-gradient(circle, rgba(76,122,94,0.2), transparent 70%); }
-    .toolkit-tile:nth-child(3n+3)::before { background: radial-gradient(circle, rgba(23,43,58,0.16), transparent 70%); }
-    .toolkit-tile:hover { transform: translateY(-6px) rotateX(6deg) rotateY(-5deg); box-shadow: var(--hv-shadow-3), inset 0 1px 0 rgba(255,255,255,0.55); }
-    .toolkit-tile:hover::before { transform: scale(1.35); opacity: 1; }
-    .toolkit-tag { position: absolute; top: 1.15rem; right: 1.15rem; z-index: 1; font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: var(--hv-navy); letter-spacing: 0.03em; background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.6); padding: 0.25rem 0.55rem; border-radius: 20px; }
+    .toolkit-tile::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, transparent, var(--hv-terracotta) 50%, transparent);
+      opacity: 0.9;
+    }
+    .toolkit-tile:nth-child(3n+2)::before { background: linear-gradient(90deg, transparent, var(--hv-success) 50%, transparent); }
+    .toolkit-tile:nth-child(3n+3)::before { background: linear-gradient(90deg, transparent, var(--hv-navy) 50%, transparent); }
+    .toolkit-tile::after {
+      content: ''; position: absolute; bottom: 1.7rem; right: 1.9rem; width: 4px; height: 9px; border-radius: 1px;
+      background: var(--hv-terracotta);
+      box-shadow: 9px -5px 0 0 var(--hv-terracotta), 18px 3px 0 0 var(--hv-terracotta), 27px -9px 0 0 var(--hv-terracotta);
+      opacity: 0.16; transition: opacity 0.3s ease;
+    }
+    .toolkit-tile:nth-child(3n+2)::after { background: var(--hv-success); box-shadow: 9px -5px 0 0 var(--hv-success), 18px 3px 0 0 var(--hv-success), 27px -9px 0 0 var(--hv-success); }
+    .toolkit-tile:nth-child(3n+3)::after { background: var(--hv-navy); box-shadow: 9px -5px 0 0 var(--hv-navy), 18px 3px 0 0 var(--hv-navy), 27px -9px 0 0 var(--hv-navy); }
+    .toolkit-tile:hover { transform: translateY(-7px) rotateX(5deg) rotateY(-4deg); box-shadow: var(--hv-shadow-3), inset 0 1px 0 rgba(255,255,255,0.55); }
+    .toolkit-tile:hover::after { opacity: 0.4; }
+    .toolkit-tag {
+      position: absolute; top: 1.3rem; right: 1.3rem; z-index: 1;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.56rem; font-weight: 700; letter-spacing: 0.04em;
+      color: var(--hv-terracotta-dark); background: rgba(198,93,58,0.13); border: 1px solid rgba(198,93,58,0.3);
+      padding: 0.32rem 0.6rem 0.32rem 0.5rem; border-radius: 20px;
+      display: inline-flex; align-items: center; gap: 0.32rem;
+    }
+    .toolkit-tag::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--hv-terracotta); box-shadow: 0 0 5px var(--hv-terracotta); flex-shrink: 0; }
+    .toolkit-tile:nth-child(3n+2) .toolkit-tag { color: #2E4B37; background: rgba(76,122,94,0.14); border-color: rgba(76,122,94,0.32); }
+    .toolkit-tile:nth-child(3n+2) .toolkit-tag::before { background: var(--hv-success); box-shadow: 0 0 5px var(--hv-success); }
+    .toolkit-tile:nth-child(3n+3) .toolkit-tag { color: var(--hv-navy); background: rgba(23,43,58,0.1); border-color: rgba(23,43,58,0.28); }
+    .toolkit-tile:nth-child(3n+3) .toolkit-tag::before { background: var(--hv-navy); box-shadow: 0 0 5px var(--hv-navy); }
     .toolkit-icon {
       position: relative; z-index: 1;
-      width: 50px; height: 50px; border-radius: 13px; display: flex; align-items: center; justify-content: center;
-      font-size: 1.4rem; margin-bottom: 1.15rem;
-      background: linear-gradient(135deg, rgba(198,93,58,0.28), rgba(198,93,58,0.06));
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+      width: 52px; height: 52px; border-radius: 15px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.45rem; margin-bottom: 1.25rem;
+      background: linear-gradient(150deg, rgba(198,93,58,0.3), rgba(198,93,58,0.05));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 6px 16px rgba(198,93,58,0.22);
+      transition: transform 0.35s var(--hv-ease);
     }
-    .toolkit-tile:nth-child(3n+2) .toolkit-icon { background: linear-gradient(135deg, rgba(76,122,94,0.28), rgba(76,122,94,0.06)); }
-    .toolkit-tile:nth-child(3n+3) .toolkit-icon { background: linear-gradient(135deg, rgba(23,43,58,0.22), rgba(23,43,58,0.04)); }
-    .toolkit-title { position: relative; z-index: 1; font-weight: 600; color: var(--hv-ink); margin-bottom: 0.4rem; font-size: 1.05rem; }
+    .toolkit-tile:nth-child(3n+2) .toolkit-icon { background: linear-gradient(150deg, rgba(76,122,94,0.3), rgba(76,122,94,0.05)); box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 6px 16px rgba(76,122,94,0.22); }
+    .toolkit-tile:nth-child(3n+3) .toolkit-icon { background: linear-gradient(150deg, rgba(23,43,58,0.24), rgba(23,43,58,0.04)); box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 6px 16px rgba(23,43,58,0.18); }
+    .toolkit-tile:hover .toolkit-icon { transform: scale(1.1) translateY(-2px); }
+    .toolkit-title { position: relative; z-index: 1; font-weight: 700; color: var(--hv-ink); margin-bottom: 0.45rem; font-size: 1.08rem; }
     .toolkit-desc { position: relative; z-index: 1; font-size: 0.88rem; color: var(--hv-body); opacity: 0.72; line-height: 1.65; }
 
     /* ── INTEGRITY ── */
@@ -563,25 +588,51 @@
     .ticket-row { margin-top: 2.75rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.75rem; max-width: 940px; margin-left: auto; margin-right: auto; }
     .ticket {
       position: relative; background: var(--hv-cream); color: var(--hv-charcoal);
-      border-radius: 14px; padding: 1.9rem 1.5rem 1.7rem;
-      box-shadow: var(--hv-shadow-2); text-align: left; overflow: hidden;
-      transition: transform var(--hv-dur) var(--hv-ease), box-shadow var(--hv-dur) var(--hv-ease);
+      border-radius: 16px; padding: 2rem 1.6rem 1.8rem;
+      box-shadow: 0 10px 26px rgba(31,37,40,0.16), 0 2px 6px rgba(31,37,40,0.08);
+      text-align: left; overflow: hidden;
+      transform: rotate(var(--tk-tilt, 0deg));
+      transition: transform 0.4s var(--hv-ease), box-shadow 0.4s var(--hv-ease);
     }
-    .ticket:hover { transform: translateY(-6px); box-shadow: var(--hv-shadow-3); }
+    .ticket:nth-child(1) { --tk-tilt: -1.6deg; }
+    .ticket:nth-child(2) { --tk-tilt: 0.9deg; }
+    .ticket:nth-child(3) { --tk-tilt: -0.6deg; }
+    .ticket:hover { transform: rotate(0deg) translateY(-8px) scale(1.015); box-shadow: 0 22px 42px rgba(31,37,40,0.22), 0 6px 14px rgba(31,37,40,0.12); }
     .ticket::before { content: ''; position: absolute; left: 0; right: 0; top: 78px; border-top: 2px dashed rgba(31,37,40,0.2); }
     .ticket-perf { position: absolute; top: 71px; left: -9px; width: 18px; height: 18px; border-radius: 50%; background: var(--hv-mesh-bg); }
     .ticket-perf.r { left: auto; right: -9px; }
-    .ticket-featured { border: 2px solid var(--hv-terracotta); }
+    .ticket-featured { border: 2px solid var(--hv-terracotta); --tk-tilt: 0deg; transform: scale(1.02); }
+    .ticket-featured:hover { transform: translateY(-8px) scale(1.045); }
+    .ticket-featured::after {
+      content: 'BEST VALUE'; position: absolute; top: 15px; right: -36px; width: 136px; text-align: center;
+      background: var(--hv-terracotta); color: var(--hv-cream); font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; padding: 0.32rem 0;
+      transform: rotate(38deg); box-shadow: 0 3px 10px rgba(198,93,58,0.4); z-index: 2;
+    }
     .ticket-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.9rem; }
-    .ticket-kind { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.03em; color: var(--hv-terracotta-dark); }
-    .ticket-photo { width: 34px; height: 34px; border-radius: 4px; background: var(--hv-navy); color: var(--hv-cream); display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+    .ticket-kind { position: relative; padding-bottom: 0.4rem; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.06em; color: var(--hv-terracotta-dark); }
+    .ticket-kind::after { content: ''; position: absolute; left: 0; bottom: 0; width: 22px; height: 2px; background: var(--hv-terracotta); }
+    .ticket-photo {
+      width: 38px; height: 38px; border-radius: 50%; font-size: 1.05rem; transform: rotate(-8deg);
+      background: radial-gradient(circle at 32% 26%, rgba(255,255,255,0.55), transparent 60%), var(--hv-navy);
+      color: var(--hv-cream); display: flex; align-items: center; justify-content: center;
+      border: 2px dashed rgba(255,255,255,0.45); box-shadow: 0 4px 10px rgba(23,43,58,0.35);
+    }
+    .ticket:nth-child(2) .ticket-photo { background: radial-gradient(circle at 32% 26%, rgba(255,255,255,0.55), transparent 60%), var(--hv-terracotta); box-shadow: 0 4px 10px rgba(198,93,58,0.35); }
+    .ticket-featured .ticket-photo { background: radial-gradient(circle at 32% 26%, rgba(255,255,255,0.6), transparent 60%), var(--hv-terracotta-dark); box-shadow: 0 4px 12px rgba(198,93,58,0.45); }
     .ticket-price { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 600; margin-bottom: 1.6rem; color: var(--hv-navy); }
     .ticket-price span { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.78rem; font-weight: 400; opacity: 0.6; }
     .ticket-list { list-style: none; font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem; }
     .ticket-list li { display: flex; gap: 0.5rem; opacity: 0.8; }
     .ticket-list li::before { content: '✓'; color: var(--hv-success); font-weight: 700; flex-shrink: 0; }
-    .ticket-barcode { height: 24px; margin-bottom: 1.2rem; background-image: repeating-linear-gradient(90deg, var(--hv-charcoal) 0 2px, transparent 2px 4px, var(--hv-charcoal) 4px 5px, transparent 5px 9px); opacity: 0.55; }
+    .ticket-barcode {
+      height: 26px; margin-bottom: 1.2rem; border-radius: 2px;
+      background-image: repeating-linear-gradient(90deg, var(--hv-charcoal) 0 1px, transparent 1px 3px, var(--hv-charcoal) 3px 5px, transparent 5px 6px, var(--hv-charcoal) 6px 8px, transparent 8px 11px);
+      opacity: 0.6;
+    }
     .ticket-cta { display: block; width: 100%; text-align: center; padding: 0.72rem 1rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none; cursor: pointer; border: 1.5px solid var(--hv-charcoal); color: var(--hv-charcoal); background: transparent; transition: background var(--hv-dur) var(--hv-ease), color var(--hv-dur) var(--hv-ease); }
+    .ticket-cta::after { content: ' →'; opacity: 0; transition: opacity 0.25s ease, margin-left 0.25s ease; margin-left: -8px; display: inline-block; }
+    .ticket-cta:hover::after { opacity: 1; margin-left: 4px; }
     .ticket-cta:hover { background: var(--hv-charcoal); color: var(--hv-cream); }
     .ticket-cta--solid { background: var(--hv-terracotta); border-color: var(--hv-terracotta); color: var(--hv-cream); }
     .ticket-cta--solid:hover { background: var(--hv-terracotta-dark); color: var(--hv-cream); }
