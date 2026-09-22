@@ -41,10 +41,16 @@
    
    // Shared chart palette — matches the app's CSS custom properties
    // (css/main.css :root) so charts feel native, not bolted-on.
+   // gridLine/text read the live theme tokens (css/main.css :root) at load
+   // time so charts render correctly whichever theme is active — Chart.js
+   // draws to a <canvas>, so it can't just inherit CSS the way normal
+   // DOM text does.
+   const _rootStyle = getComputedStyle(document.documentElement);
    const CHART_COLORS = {
      primary: '#C65D3A', primaryLight: '#E8935F', accent: '#172B3A',
      success: '#4C7A5E', warning: '#f59e0b', cyan: '#5B8296',
-     gridLine: 'rgba(255,255,255,0.08)', text: 'rgba(255,255,255,0.65)'
+     gridLine: _rootStyle.getPropertyValue('--hv-hairline').trim() || 'rgba(255,255,255,0.08)',
+     text: _rootStyle.getPropertyValue('--hv-text-muted').trim() || 'rgba(255,255,255,0.65)'
    };
    Chart.defaults.color = CHART_COLORS.text;
    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
@@ -232,7 +238,7 @@
    
    function chartEmptyEl(text) {
      const div = document.createElement('div');
-     div.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,0.4);font-size:0.85rem;text-align:center;padding:1rem;';
+     div.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;color:var(--hv-text-faint);font-size:0.85rem;text-align:center;padding:1rem;';
      div.textContent = text;
      return div;
    }

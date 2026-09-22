@@ -317,7 +317,7 @@
        </div>
        <div class="qb-modal-prompt">${escapeHtml(q.prompt)}</div>
        ${q.constraints ? `<div class="qb-constraints"><b>Constraints:</b> ${escapeHtml(q.constraints)}</div>` : ''}
-       <div style="font-weight:700; font-size:0.85rem; color:rgba(255,255,255,0.6); margin-bottom:0.6rem;">Sample test cases</div>
+       <div style="font-weight:700; font-size:0.85rem; color:var(--hv-text-muted); margin-bottom:0.6rem;">Sample test cases</div>
        ${samplesHtml}
        <div class="qb-editor-top">
          <select class="qb-lang-select" id="qbLangSelect">${langOptionsHtml}</select>

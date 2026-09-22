@@ -788,7 +788,7 @@ function formatDate(isoString) {
 }
 
 function getScoreColor(score) {
-  if (score == null) return 'rgba(255,255,255,0.3)';
+  if (score == null) return 'var(--hv-text-faint)';
   if (score >= 8) return '#22c55e';
   if (score >= 6) return '#f59e0b';
   return '#ef4444';

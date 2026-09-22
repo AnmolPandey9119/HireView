@@ -786,7 +786,7 @@ function showFeedbackScreen(feedback) {
       <div style="width:44px;height:44px;flex-shrink:0;border-radius:50%;background:linear-gradient(135deg,#C65D3A,#E8935F);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem">A</div>
       <div>
         <div style="font-weight:700;margin-bottom:0.4rem;font-size:0.95rem">A note from Arjun</div>
-        <p style="margin:0;color:rgba(255,255,255,0.82);line-height:1.7;font-size:0.95rem;font-style:italic">"${escapeHtml(feedback.personal_note)}"</p>
+        <p style="margin:0;color:var(--hv-text-hover);line-height:1.7;font-size:0.95rem;font-style:italic">"${escapeHtml(feedback.personal_note)}"</p>
       </div>
     </div>` : '';
 
@@ -804,21 +804,21 @@ function showFeedbackScreen(feedback) {
         </div>
       </div>
       <div class="integrity-flags-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;font-size:0.85rem">
-        <div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:0.75rem;text-align:center">
+        <div style="background:var(--hv-bg-alt2);border-radius:10px;padding:0.75rem;text-align:center">
           <div style="font-size:1.4rem;font-weight:800;color:${ir.tab_switches > 0 ? '#f87171' : '#22c55e'}">${ir.tab_switches}</div>
-          <div style="color:rgba(255,255,255,0.5);font-size:0.78rem">Tab Switches</div>
+          <div style="color:var(--hv-text-faint);font-size:0.78rem">Tab Switches</div>
         </div>
-        <div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:0.75rem;text-align:center">
+        <div style="background:var(--hv-bg-alt2);border-radius:10px;padding:0.75rem;text-align:center">
           <div style="font-size:1.4rem;font-weight:800;color:${ir.window_switches > 2 ? '#f87171' : '#22c55e'}">${ir.window_switches}</div>
-          <div style="color:rgba(255,255,255,0.5);font-size:0.78rem">Window Switches</div>
+          <div style="color:var(--hv-text-faint);font-size:0.78rem">Window Switches</div>
         </div>
-        <div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:0.75rem;text-align:center">
+        <div style="background:var(--hv-bg-alt2);border-radius:10px;padding:0.75rem;text-align:center">
           <div style="font-size:1.4rem;font-weight:800;color:${(ir.face_detection?.multiple_face_detections || 0) > 0 ? '#f87171' : '#22c55e'}">${ir.face_detection?.multiple_face_detections || 0}</div>
-          <div style="color:rgba(255,255,255,0.5);font-size:0.78rem">Multi-Face Flags</div>
+          <div style="color:var(--hv-text-faint);font-size:0.78rem">Multi-Face Flags</div>
         </div>
-        <div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:0.75rem;text-align:center">
+        <div style="background:var(--hv-bg-alt2);border-radius:10px;padding:0.75rem;text-align:center">
           <div style="font-size:1.4rem;font-weight:800;color:${(ir.off_turn_audio?.off_turn_flags || 0) > 0 ? '#f87171' : '#22c55e'}">${ir.off_turn_audio?.off_turn_flags || 0}</div>
-          <div style="color:rgba(255,255,255,0.5);font-size:0.78rem">Background Noise Flags</div>
+          <div style="color:var(--hv-text-faint);font-size:0.78rem">Background Noise Flags</div>
         </div>
       </div>
       ${ir.response_timing?.suspicious ? `<div style="margin-top:0.75rem;padding:0.75rem;background:rgba(239,68,68,0.1);border-radius:10px;font-size:0.85rem;color:#fca5a5">⚠️ Response timing was unusually consistent — possible AI assistance detected.</div>` : ''}
@@ -828,43 +828,43 @@ function showFeedbackScreen(feedback) {
   document.getElementById('activeInterviewPage').innerHTML = `
     <div class="results-container" style="max-width:800px;margin:0 auto;padding:2rem 1rem">
       <div style="text-align:center;margin-bottom:1.5rem">
-        <div style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin-bottom:1.25rem">${candidateName ? `Here's how your interview went, ${candidateName}` : "Here's how your interview went"}</div>
+        <div style="color:var(--hv-text-muted);font-size:0.95rem;margin-bottom:1.25rem">${candidateName ? `Here's how your interview went, ${candidateName}` : "Here's how your interview went"}</div>
         <div style="font-size:3rem;font-weight:800;color:${scoreColor}">${hasScore ? `${score}/10` : 'Not scored'}</div>
-        <div style="font-size:1.1rem;color:rgba(255,255,255,0.6);margin-top:0.5rem">Overall Score</div>
+        <div style="font-size:1.1rem;color:var(--hv-text-muted);margin-top:0.5rem">Overall Score</div>
         <div style="display:inline-block;margin-top:1rem;padding:0.5rem 1.5rem;background:${recColor}22;border:1px solid ${recColor};border-radius:20px;color:${recColor};font-weight:700">${rec}</div>
       </div>
       ${personalNoteSection}
-      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(198,93,58,0.2);border-radius:18px;padding:2rem;margin-bottom:1.5rem">
+      <div style="background:var(--hv-glass-bg);border:1px solid rgba(198,93,58,0.2);border-radius:18px;padding:2rem;margin-bottom:1.5rem">
         <div style="font-weight:700;margin-bottom:1rem">📋 Summary</div>
-        <p style="color:rgba(255,255,255,0.75);line-height:1.7;margin:0">${escapeHtml(feedback.summary)}</p>
+        <p style="color:var(--hv-text-hover);line-height:1.7;margin:0">${escapeHtml(feedback.summary)}</p>
       </div>
       <div class="results-score-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
-        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(198,93,58,0.2);border-radius:14px;padding:1.5rem">
-          <div style="font-size:0.8rem;color:rgba(255,255,255,0.5);font-weight:600;text-transform:uppercase;margin-bottom:0.5rem">Technical</div>
+        <div style="background:var(--hv-glass-bg);border:1px solid rgba(198,93,58,0.2);border-radius:14px;padding:1.5rem">
+          <div style="font-size:0.8rem;color:var(--hv-text-faint);font-weight:600;text-transform:uppercase;margin-bottom:0.5rem">Technical</div>
           <div style="font-size:2rem;font-weight:800;color:#C65D3A">${feedback.technical_score != null ? `${feedback.technical_score}/10` : '—'}</div>
         </div>
-        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(198,93,58,0.2);border-radius:14px;padding:1.5rem">
-          <div style="font-size:0.8rem;color:rgba(255,255,255,0.5);font-weight:600;text-transform:uppercase;margin-bottom:0.5rem">Soft Skills</div>
+        <div style="background:var(--hv-glass-bg);border:1px solid rgba(198,93,58,0.2);border-radius:14px;padding:1.5rem">
+          <div style="font-size:0.8rem;color:var(--hv-text-faint);font-weight:600;text-transform:uppercase;margin-bottom:0.5rem">Soft Skills</div>
           <div style="font-size:2rem;font-weight:800;color:#E8935F">${feedback.soft_skills_score != null ? `${feedback.soft_skills_score}/10` : '—'}</div>
         </div>
       </div>
       <div class="results-score-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
         <div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:14px;padding:1.5rem">
           <div style="font-weight:700;color:#22c55e;margin-bottom:0.75rem">✅ Strengths</div>
-          <ul style="margin:0;padding-left:1.25rem;color:rgba(255,255,255,0.75);line-height:1.8;font-size:0.9rem">${strengthsList}</ul>
+          <ul style="margin:0;padding-left:1.25rem;color:var(--hv-text-hover);line-height:1.8;font-size:0.9rem">${strengthsList}</ul>
         </div>
         <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:14px;padding:1.5rem">
           <div style="font-weight:700;color:#f87171;margin-bottom:0.75rem">📈 Areas to Improve</div>
-          <ul style="margin:0;padding-left:1.25rem;color:rgba(255,255,255,0.75);line-height:1.8;font-size:0.9rem">${improveList}</ul>
+          <ul style="margin:0;padding-left:1.25rem;color:var(--hv-text-hover);line-height:1.8;font-size:0.9rem">${improveList}</ul>
         </div>
       </div>
       <div style="background:rgba(198,93,58,0.08);border:1px solid rgba(198,93,58,0.2);border-radius:14px;padding:1.5rem;margin-bottom:1.5rem">
         <div style="font-weight:700;color:#E8935F;margin-bottom:0.5rem">🎯 Next Steps</div>
-        <p style="margin:0;color:rgba(255,255,255,0.75);line-height:1.7;font-size:0.9rem">${escapeHtml(feedback.next_steps)}</p>
+        <p style="margin:0;color:var(--hv-text-hover);line-height:1.7;font-size:0.9rem">${escapeHtml(feedback.next_steps)}</p>
       </div>
       ${integritySection}
       <div style="text-align:center;margin-top:2rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-        <button onclick="window.location.href='dashboard.html'" style="padding:1rem 2rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;color:white;font-weight:700;font-size:1rem;cursor:pointer;font-family:inherit">📊 Dashboard</button>
+        <button onclick="window.location.href='dashboard.html'" style="padding:1rem 2rem;background:var(--hv-surface-2);border:1px solid var(--hv-hairline);border-radius:14px;color:var(--hv-text-strong);font-weight:700;font-size:1rem;cursor:pointer;font-family:inherit">📊 Dashboard</button>
         <button onclick="window.location.href='interview.html'" style="padding:1rem 2.5rem;background:linear-gradient(135deg,#C65D3A,#E8935F);border:none;border-radius:14px;color:white;font-weight:700;font-size:1rem;cursor:pointer;font-family:inherit">🔄 New Interview</button>
       </div>
     </div>`;

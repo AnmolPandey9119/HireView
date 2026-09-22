@@ -18,7 +18,7 @@ if (!authToken) window.location.href = '/auth';
     }
 
     function getScoreColor(score) {
-      if (score == null) return 'rgba(255,255,255,0.3)';
+      if (score == null) return 'var(--hv-text-faint)';
       if (score >= 8) return '#22c55e';
       if (score >= 6) return '#f59e0b';
       return '#ef4444';
@@ -65,7 +65,7 @@ if (!authToken) window.location.href = '/auth';
             <div class="personal-note-box">
               <div class="personal-note-avatar">A</div>
               <div>
-                <div style="font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.6);margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.5px">A note from Arjun</div>
+                <div style="font-size:0.75rem;font-weight:700;color:var(--hv-text-muted);margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.5px">A note from Arjun</div>
                 <div class="personal-note-text">"${escapeHtml(feedback.personal_note)}"</div>
               </div>
             </div>` : ''}
@@ -105,14 +105,14 @@ if (!authToken) window.location.href = '/auth';
             </div>
           </div>
           ${unmonitored ? `
-            <div style="color:rgba(255,255,255,0.6);font-size:0.85rem;line-height:1.6">Camera/mic access wasn't available during this session, so video-based checks (face presence, multi-face detection) could not run.</div>
+            <div style="color:var(--hv-text-muted);font-size:0.85rem;line-height:1.6">Camera/mic access wasn't available during this session, so video-based checks (face presence, multi-face detection) could not run.</div>
           ` : `
             <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.75rem;font-size:0.85rem">
-              <div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:0.75rem;text-align:center">
+              <div style="background:var(--hv-bg-alt2);border-radius:10px;padding:0.75rem;text-align:center">
                 <div style="font-size:1.4rem;font-weight:800;color:${(ir.tab_switches || 0) > 0 ? '#f87171' : '#22c55e'}">${ir.tab_switches ?? 0}</div>
                 <div style="color:rgba(255,255,255,0.5);font-size:0.78rem">Tab Switches</div>
               </div>
-              <div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:0.75rem;text-align:center">
+              <div style="background:var(--hv-bg-alt2);border-radius:10px;padding:0.75rem;text-align:center">
                 <div style="font-size:1.4rem;font-weight:800;color:${(ir.window_switches || 0) > 2 ? '#f87171' : '#22c55e'}">${ir.window_switches ?? 0}</div>
                 <div style="color:rgba(255,255,255,0.5);font-size:0.78rem">Window Switches</div>
               </div>
@@ -241,13 +241,13 @@ if (!authToken) window.location.href = '/auth';
             ${i.status === 'cheating_terminated' 
               ? `<div style="padding:1.5rem;background:rgba(239,68,68,0.06);border-top:1px solid rgba(239,68,68,0.2)">
                   <div style="color:#f87171;font-weight:700;font-size:1rem;margin-bottom:0.5rem">🚨 Interview Terminated Due to Integrity Violation</div>
-                  <div style="color:rgba(255,255,255,0.6);font-size:0.9rem;line-height:1.6">This interview was terminated because cheating signals were detected (tab switching or multiple faces on camera). No score or feedback is available for this session.</div>
+                  <div style="color:var(--hv-text-muted);font-size:0.9rem;line-height:1.6">This interview was terminated because cheating signals were detected (tab switching or multiple faces on camera). No score or feedback is available for this session.</div>
                 </div>`
               : i.status === 'failed'
               ? `<div style="padding:1.5rem;background:rgba(148,163,184,0.06);border-top:1px solid rgba(148,163,184,0.2)">
                   <div style="color:#94a3b8;font-weight:700;font-size:1rem;margin-bottom:0.5rem">⚠️ Interview Failed</div>
-                  <div style="color:rgba(255,255,255,0.6);font-size:0.9rem;line-height:1.6">${i.failure_reason ? escapeHtml(i.failure_reason) : 'This session could not be completed due to a technical issue.'}</div>
-                  <div style="color:rgba(255,255,255,0.6);font-size:0.82rem;margin-top:0.75rem">This attempt was not your fault — it has NOT been counted against your free interviews.</div>
+                  <div style="color:var(--hv-text-muted);font-size:0.9rem;line-height:1.6">${i.failure_reason ? escapeHtml(i.failure_reason) : 'This session could not be completed due to a technical issue.'}</div>
+                  <div style="color:var(--hv-text-muted);font-size:0.82rem;margin-top:0.75rem">This attempt was not your fault — it has NOT been counted against your free interviews.</div>
                 </div>`
               : `${renderGovInfo(i)}${renderFeedback(i.feedback)}${renderQA(i.questions)}`
             }
@@ -303,7 +303,7 @@ if (!authToken) window.location.href = '/auth';
     });
 
     function aptScoreColor(pct) {
-      if (pct == null) return 'rgba(255,255,255,0.3)';
+      if (pct == null) return 'var(--hv-text-faint)';
       if (pct >= 70) return '#22c55e';
       if (pct >= 40) return '#f59e0b';
       return '#ef4444';
@@ -421,7 +421,7 @@ if (!authToken) window.location.href = '/auth';
     const codingAttemptCache = {};
 
     function codingScoreColor(pct) {
-      if (pct == null) return 'rgba(255,255,255,0.3)';
+      if (pct == null) return 'var(--hv-text-faint)';
       if (pct >= 70) return '#22c55e';
       if (pct >= 40) return '#f59e0b';
       return '#ef4444';
@@ -491,7 +491,7 @@ if (!authToken) window.location.href = '/auth';
         <div class="coding-review-q">
           <div class="apt-review-prompt">Q${i + 1}. ${escapeHtml(q.prompt)} ${q.attempted ? (q.is_solved ? '✅' : `❌ ${q.passed_count}/${q.total_count}`) : '— not attempted'}</div>
           ${q.attempted ? `
-            <div style="font-size:0.8rem;color:rgba(255,255,255,0.5);">Language: ${escapeHtml(q.language)}</div>
+            <div style="font-size:0.8rem;color:var(--hv-text-faint);">Language: ${escapeHtml(q.language)}</div>
             <div class="coding-review-code">${escapeHtml(q.source_code || '')}</div>
           ` : ''}
         </div>`).join('');

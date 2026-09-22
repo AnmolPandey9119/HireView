@@ -203,7 +203,7 @@ async function setupCameraAndMic() {
     console.error('Camera/mic error:', err);
     cameraUnavailable = true;
     document.getElementById('cameraPlaceholder').innerHTML =
-      '<div style="font-size:0.85rem;color:rgba(255,255,255,0.5);padding:1rem;text-align:center">Camera/mic access denied. You can still continue by typing.</div>';
+      '<div style="font-size:0.85rem;color:var(--hv-text-faint);padding:1rem;text-align:center">Camera/mic access denied. You can still continue by typing.</div>';
     startInterviewTimer();
     setupCheatDetection();
     setTimeout(() => loadFirstQuestion(), 2000);

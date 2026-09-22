@@ -35,47 +35,53 @@
   <style>
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem; }
     .page-title { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, var(--hv-primary) 0%, var(--hv-accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .page-sub { color: rgba(255,255,255,0.6); font-size: 0.92rem; margin-top: 0.25rem; }
+    .page-sub { color: var(--hv-text-muted); font-size: 0.92rem; margin-top: 0.25rem; }
 
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.1rem; margin-bottom: 2.25rem; }
-    .stat-card { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); padding: 1.5rem; border-radius: 18px; border: 1px solid rgba(198,93,58,0.2); box-shadow: 0 8px 30px rgba(0,0,0,0.3); transition: transform 0.2s ease; }
+    .stat-card { background: var(--hv-glass-bg); backdrop-filter: blur(20px); padding: 1.5rem; border-radius: 18px; border: 1px solid rgba(198,93,58,0.2); box-shadow: 0 8px 30px rgba(0,0,0,0.3); transition: transform 0.2s ease; }
     .stat-card:hover { transform: translateY(-3px); }
     .stat-icon { font-size: 1.6rem; margin-bottom: 0.6rem; }
     .stat-value { font-size: 2rem; font-weight: 800; margin-bottom: 0.2rem; }
-    .stat-label { font-size: 0.82rem; color: rgba(255,255,255,0.6); font-weight: 600; }
+    .stat-label { font-size: 0.82rem; color: var(--hv-text-muted); font-weight: 600; }
     .stat-purple { color: #E8935F; } .stat-green { color: #4C7A5E; } .stat-pink { color: #172B3A; }
     .stat-yellow { color: #f59e0b; } .stat-cyan { color: #22d3ee; }
 
     .badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
-    .badge-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 1.1rem 0.9rem; text-align: center; opacity: 0.45; filter: grayscale(0.6); transition: all 0.25s ease; }
+    .badge-card { background: var(--hv-surface-1); border: 1px solid var(--hv-hairline); border-radius: 16px; padding: 1.1rem 0.9rem; text-align: center; opacity: 0.45; filter: grayscale(0.6); transition: all 0.25s ease; }
     .badge-card.earned { opacity: 1; filter: none; border-color: rgba(250,204,21,0.4); background: rgba(250,204,21,0.06); box-shadow: 0 4px 20px rgba(250,204,21,0.1); }
     .badge-card:hover { transform: translateY(-2px); }
     .badge-icon { font-size: 1.9rem; margin-bottom: 0.5rem; }
-    .badge-label { font-weight: 800; font-size: 0.85rem; color: white; margin-bottom: 0.3rem; }
-    .badge-desc { font-size: 0.72rem; color: rgba(255,255,255,0.5); line-height: 1.4; min-height: 2.2em; }
+    .badge-label { font-weight: 800; font-size: 0.85rem; color: var(--hv-text-strong); margin-bottom: 0.3rem; }
+    .badge-desc { font-size: 0.72rem; color: var(--hv-text-faint); line-height: 1.4; min-height: 2.2em; }
     .badge-tick { margin-top: 0.6rem; font-size: 0.7rem; font-weight: 800; color: #facc15; }
-    .badge-locked { margin-top: 0.6rem; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.35); }
+    .badge-locked { margin-top: 0.6rem; font-size: 0.7rem; font-weight: 700; color: var(--hv-text-faint); }
 
     .analytics-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
     @media (max-width: 960px) { .analytics-grid { grid-template-columns: 1fr; } }
 
-    .chart-card { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); padding: 1.75rem; border-radius: 20px; border: 1px solid rgba(198,93,58,0.2); box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-    .chart-card-title { font-size: 1rem; font-weight: 800; color: rgba(255,255,255,0.85); margin-bottom: 1.1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .chart-card { background: var(--hv-glass-bg); backdrop-filter: blur(20px); padding: 1.75rem; border-radius: 20px; border: 1px solid rgba(198,93,58,0.2); box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .chart-card-title { font-size: 1rem; font-weight: 800; color: var(--hv-text-hover); margin-bottom: 1.1rem; display: flex; align-items: center; gap: 0.5rem; }
     .chart-wrap { position: relative; height: 260px; }
     .chart-wrap.short { height: 220px; }
 
-    .section-title { font-size: 1.2rem; font-weight: 800; margin: 2rem 0 1.1rem; color: rgba(255,255,255,0.6); }
+    .section-title { font-size: 1.2rem; font-weight: 800; margin: 2rem 0 1.1rem; color: var(--hv-text-muted); }
 
-    .empty-analytics { text-align: center; padding: 4rem 1.5rem; background: rgba(255,255,255,0.03); border-radius: 20px; border: 1px dashed rgba(198,93,58,0.3); }
+    .empty-analytics { text-align: center; padding: 4rem 1.5rem; background: var(--hv-surface-1); border-radius: 20px; border: 1px dashed rgba(198,93,58,0.3); }
     .empty-analytics-icon { font-size: 3rem; margin-bottom: 1rem; }
     .empty-analytics-title { font-weight: 800; font-size: 1.15rem; margin-bottom: 0.5rem; }
-    .empty-analytics-sub { color: rgba(255,255,255,0.55); font-size: 0.92rem; margin-bottom: 1.5rem; }
+    .empty-analytics-sub { color: var(--hv-text-muted); font-size: 0.92rem; margin-bottom: 1.5rem; }
 
-    .loading-shimmer { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 18px; height: 100px; }
+    .loading-shimmer { background: linear-gradient(90deg, var(--hv-surface-1) 25%, var(--hv-surface-3) 50%, var(--hv-surface-1) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 18px; height: 100px; }
     @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
     .primary-btn { padding: 0.85rem 1.75rem; background: linear-gradient(135deg, var(--hv-primary), var(--hv-accent)); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(198,93,58,0.4); }
     .primary-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(198,93,58,0.6); }
+
+    /* Light-theme contrast fixes — bright cyan/gold accents picked for
+       the dark canvas wash out on the cream light canvas. Dark theme
+       is untouched. */
+    :root:not([data-theme="dark"]) .stat-cyan { color: #0e7490; }
+    :root:not([data-theme="dark"]) .badge-tick { color: #b45309; }
   </style>
 </head>
 <body>
