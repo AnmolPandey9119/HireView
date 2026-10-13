@@ -2,7 +2,7 @@
 
 **Practice Like It's Real. Perform Like a Pro.**
 
-🚀 **Try it now:** [hireview-ai.vercel.app](https://hireview-ai.vercel.app)
+🚀 **Try it now:** [[intervyx-ai.vercel.app](https://intervyx-ai.vercel.app/)]
 
 HireView is an AI-powered mock interview platform built for Indian job seekers. It conducts real, adaptive interviews using a conversational AI interviewer named **Arjun**, gives you detailed, honest feedback, and detects cheating using computer vision and behavioral signals — in English, Hindi, or Hinglish, with 10 more Indian regional languages coming soon.
 
